@@ -1,0 +1,774 @@
+# pear-electron
+
+> Pear User-Interface Library for Electron
+
+**Status: WIP**
+
+## Installation
+
+```sh
+npm install pear-electron
+```
+
+## Setup
+
+Configure `pear.json` or `pear` field of `package.json` to contain a `ui` object with `provider` property set to `pear-electron`:
+
+```
+{
+  "ui": {
+    "provider": "pear-electron",
+    ...options
+  }
+}
+```
+
+## Options
+
+### `width <Number>`
+
+Window width (pixels).
+
+### `height <Number>`
+
+Window height (pixels).
+
+### `x <Number>`
+
+Horizontal window position (pixels).
+
+### `y <Number>`
+
+Vertical window position (pixels).
+
+### `minWidth <Number>`
+
+Window minimum width (pixels).
+
+### `minHeight <Number>`
+
+Window minimum height (pixels).
+
+### `maxWidth <Number>`
+
+Window maximum width (pixels).
+
+### `maxHeight <Number>`
+
+Window maximum height (pixels).
+
+### `center <Boolean>` (default: `false`)
+
+Center window.
+
+### `resizable <Boolean>` (default: `true`)
+
+Window resizability.
+
+### `movable <Boolean>` (default: `true`)
+
+Window movability.
+
+### `minimizable <Boolean>` (default: `true`)
+
+Window minimizability.
+
+### `maximizable <Boolean>` (default: `true`)
+
+Window maximizability.
+
+### `closable <Boolean>` (default: `true`)
+
+Window closability.
+
+### `focusable <Boolean>` (default: `true`)
+
+Window focusability.
+
+### `alwaysOnTop <Boolean>` (default: `false`)
+
+Set window to always be on top.
+
+### `fullscreen <Boolean>` (default: `false`)
+
+Set window to fullscreen on start.
+
+### `kiosk <Boolean>` (default: `false`)
+
+Set window to enter kiosk mode on start.
+
+### `autoHideMenuBar <Boolean>` (default: `false`)
+
+Hide menu bar unless Alt key is pressed (Linux, Windows).
+
+### `hasShadow <Boolean>` (default: `true`)
+
+Window shadow.
+
+### `opacity <Number>` (default: `1`)
+
+Set window opacity (0.0 - 1.0) (Windows, macOS).
+
+### `transparent <Boolean>` (default: `false`)
+
+Enable transparency. Must be set for opacity to work.
+
+### `backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
+
+Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
+
+## Modus Operandus
+
+`pear-electron` is a Pear User Interface Library. Installing it into a project and specifying it as a `ui.provider` via configuration causes Pear Runtime to start a process that loads and calls the function exported from [./provider.js](./provider.js). This spawns the Pear Runtime Electron Build which then continues application-boot flow.
+
+## API
+
+```js
+const ui = require('pear-electron')
+```
+
+## `ui.media <Object>`
+
+Media interface
+
+### `const status = await ui.media.status.microphone()`
+
+Resolves to: `<String>`
+
+If access to the microphone is available, resolved value will be `'granted'`.
+
+Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
+
+### `const status = await ui.media.status.camera()`
+
+Resolves to: `<String>`
+
+If access to the camera is available, resolved value will be `'granted'`.
+
+Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
+
+### `const status = await ui.media.status.screen()`
+
+Resolves to: `<String>`
+
+If access to the screen is available, resolved value will be `'granted'`.
+
+Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
+
+### `const success = await ui.media.access.microphone()`
+
+Resolves to: `<Boolean>`
+
+Request access to the microphone. Resolves to `true` if permission is granted.
+
+### `const success = await ui.media.access.camera()`
+
+Resolves to: `<Boolean>`
+
+Request access to the camera. Resolves to `true` if permission is granted.
+
+### `const success = await ui.media.access.screen()`
+
+Resolves to: `<Boolean>`
+
+Request access to screen sharing. Resolves to `true` if permission is granted.
+
+### `const sources = await ui.media.desktopSources(options <Object>)`
+
+Captures available desktop sources. Resolves to an array of objects with shape `{ id <String>, name <String>, thumbnail <NativeImage>, display_id <String>, appIcon <NativeImage> }`. The `id` is the window or screen identifier. The `name` is the window title or `'Screen <index>'` in multiscreen scenarios or else `Entire Screen`. The `display_id` identifies the screen. The thumbnail is a scaled down screen capture of the window/screen.
+
+**Options**
+
+* `types <Array<String>>` - Default: `['screen', 'window']`. Filter by types. Types are `'screen'` and `'window'`.
+* `thumbnailSize <Object>` - Default: `{width: 150, height: 150}`. Set thumbnail scaling (pixels)
+* `fetchWindowIcons <Boolean>` - Default: `false`. Populate `appIcon` with Window icons, or else `null`.
+
+**References**
+
+* [win.getMediaSourceId()](#const-sourceid--await-wingetmediasourceid)
+* [view.getMediaSourceId()](#const-sourceid--await-viewgetmediasourceid)
+* [self.getMediaSourceId()](#const-sourceid--await-selfgetmediasourceid)
+* [parent.getMediaSourceId()](#const-sourceid--await-parentgetmediasourceid)
+* https://www.electronjs.org/docs/latest/api/desktop-capturer#desktopcapturergetsourcesoptions
+* https://www.electronjs.org/docs/latest/api/structures/desktop-capturer-source
+* [`<NativeImage>`](https://www.electronjs.org/docs/latest/api/native-image)
+
+Exits the process with the provided exit code.
+
+### `const win = new ui.Window(entry <String>, options <Object>)`
+
+Desktop Applications only.
+
+Create a new `Window` instance.
+
+**Options**
+
+* `show <Boolean>` Default: `true` - show the window as soon as it has been opened
+* `x <Integer>` - the horizontal position of left side of the window (pixels)
+* `y <Integer>` - vertical window position (pixels)
+* `width <Integer>` - the width of the window (pixels)
+* `height <Integer>` - the height of the window (pixels)
+* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+* `center <Boolean` - center the window upon opening
+* `minWidth <Integer>` - window minimum width (pixels)
+* `minHeight <Integer>` - window minimum height (pixels)
+* `maxWidth <Integer>` - window maximum width (pixels)
+* `maxHeight <Integer>` - window maximum height (pixels)
+* `resizable <Boolean>` - window resizability
+* `movable <Boolean>` - window movability
+* `minimizable <Boolean>` - window minimizability
+* `maximizable <Boolean>` - window maximizability
+* `closable <Boolean>` - window closability
+* `focusable <Boolean>` - window focusability
+* `alwaysOnTop <Boolean>` - Set window to always be on top
+* `fullscreen <Boolean>` - Set window to fullscreen upon open
+* `kiosk <Boolean>` - Set window to enter kiosk mode upon open
+* `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
+* `hasShadow <Boolean>` - Set window shadow
+* `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
+* `transparent <Boolean>` - Set window transparency
+* `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+
+### `win.on[ce]('message', (...args) => { })`
+### `for await (const [ ...args ] of win)`
+
+Receive a message from the window. The received `args` array is deserialized via `JSON.parse`.
+
+**References**
+
+* [`win.send()`](#await-winsendargs)
+
+### `const success = await win.open(options <Object>)`
+
+Resolves to: `<Boolean>`
+
+Open the window.
+
+**Options**
+
+* `show` Default: `true` - show the window as soon as it has been opened
+* `x <Integer>` - the horizontal position of left side of the window (pixels)
+* `y <Integer>` - vertical window position (pixels)
+* `width <Integer>` - the width of the window (pixels)
+* `height <Integer>` - the height of the window (pixels)
+* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+* `center <Boolean` - center the window upon opening
+* `minWidth <Integer>` - window minimum width (pixels)
+* `minHeight <Integer>` - window minimum height (pixels)
+* `maxWidth <Integer>` - window maximum width (pixels)
+* `maxHeight <Integer>` - window maximum height (pixels)
+* `resizable <Boolean>` - window resizability
+* `movable <Boolean>` - window movability
+* `minimizable <Boolean>` - window minimizability
+* `maximizable <Boolean>` - window maximizability
+* `closable <Boolean>` - window closability
+* `focusable <Boolean>` - window focusability
+* `alwaysOnTop <Boolean>` - Set window to always be on top
+* `fullscreen <Boolean>` - Set window to fullscreen upon open
+* `kiosk <Boolean>` - Set window to enter kiosk mode upon open
+* `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
+* `hasShadow <Boolean>` - Set window shadow
+* `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
+* `transparent <Boolean>` - Set window transparency
+* `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+
+### `const success = await win.close()`
+
+Resolves to: `<Boolean>`
+
+Close the window.
+
+### `const success = await win.show()`
+
+Resolves to: `<Boolean>`
+
+Show the window.
+
+### `const success = await win.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide the window.
+
+### `const success = await win.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus the window.
+
+### `const success = await win.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur the window.
+
+### `const success = await win.minimize()`
+
+Resolves to: `<Boolean>`
+
+Minimize the window.
+
+### `const success = await win.maximize()`
+
+Resolves to: `<Boolean>`
+
+Maximize the window.
+
+### `const success = await win.restore()`
+
+Resolves to: `<Boolean>`
+
+Unmaximize/unminimize the window if it is currently maximized/minimized.
+
+### `await win.send(...args)`
+
+Send arguments to the window. They will be serialized with `JSON.stringify`.
+
+
+### `const sourceId = await win.getMediaSourceId()`
+
+Resolves to: `<String>`
+
+Correlates to the `id` property of objects in the array returned from [ui.media.desktopSources](#const-sources---await-appmediadesktopsources-options).
+
+**References**
+
+* [ui.media.desktopSources](#const-sources--await-appmediadesktopsourcesoptions-object)
+* https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
+
+### `const dimensions = await win.dimensions()`
+
+Resolves to: `{x <Integer>, y <Integer>, width <Integer>, height <Integer>} | null`.
+
+The height, width, horizontal (`x`), vertical (`y`) position of the window relative to the screen.
+
+All units are (pixels)
+
+If the window is closed this will resolve to `null`.
+
+**References**
+
+* [await win.dimensions(options)](#await-windimensionsoptions-object)
+
+### `await win.dimensions(options <Object>)`
+
+```js
+const win = new ui.Window('./some.html', {
+  x: 10,
+  y: 450,
+  width: 300,
+  height: 350
+})
+
+await win.open()
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+await win.dimensions({
+  x: 20,
+  y: 50,
+  width: 550,
+  height: 300,
+  animate: true // only has an effect on macOS
+})
+
+```
+
+Sets the dimensions of the window.
+
+**Options**
+
+* `x <Integer>` - the horizontal position of left side of the window (pixels)
+* `y <Integer>` - the vertical position of the top of the window (pixels)
+* `width <Integer>` - the width of the window (pixels)
+* `height <Integer>` - the height of the window (pixels)
+* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+* `position <String>` - may be `'center'` to set the window in the center of the screen or else `undefined`.
+
+**References**
+
+* [const dimensions = await win.dimensions()](#const-dimensions-await-windimensions)
+
+
+### `const visible = await win.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the window is visible.
+
+### `const minimized = await win.isMinimized()`
+
+Resolves to: `<Boolean>`
+
+Whether the window is minimized.
+
+### `const maximized = await win.isMaximized()`
+
+Resolves to: `<Boolean>`
+
+Whether the window is maximized.
+
+### `const closed = await win.isClosed()`
+
+Resolves to: `<Boolean>`
+
+Whether the window is closed.
+
+### `const view = new ui.View(options <Object>)`
+
+Desktop Applications only.
+
+Create a new `View` instance. Views provide isolated content views. Frameless, chromeless windows that can be embedded inside other windows and views.
+
+**Options**
+
+* `x <Integer>` - the horizontal position of left side of the view (pixels)
+* `y <Integer>` - vertical view position (pixels)
+* `width <Integer>` - the width of the view (pixels)
+* `height <Integer>` - the height of the view (pixels)
+* `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+* `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
+
+**References**
+
+* https://www.electronjs.org/docs/latest/api/browser-view#viewsetautoresizeoptions-experimental
+* https://www.electronjs.org/docs/latest/api/browser-view#viewsetbackgroundcolorcolor-experimental
+
+### `view.on[ce]('message', (...args) => { })`
+### `for await (const [ ...args ] of view)`
+
+Receive a message from the view. The received `args` array is deserialized via `JSON.parse`.
+
+**References**
+
+* [`view.send()`](#await-viewsendargs)
+
+### `const success = await view.open(options <Object>)`
+
+Resolves to: `<Boolean>`
+
+Open the view.
+
+**Options**
+
+* `x <Integer>` - the horizontal position of left side of the view (pixels)
+* `y <Integer>` - vertical view position (pixels)
+* `width <Integer>` - the width of the view (pixels)
+* `height <Integer>` - the height of the view (pixels)
+* `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+* `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
+
+### `const success = await view.close()`
+
+Resolves to: `<Boolean>`
+
+Close the view.
+
+### `const success = await view.show()`
+
+Resolves to: `<Boolean>`
+
+Show the view.
+
+### `const success = await view.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide the view.
+
+### `const success = await view.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus the view.
+
+### `const success = await view.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur the view.
+
+### `await view.send(...args)`
+
+Send arguments to the view. They will be serialized with `JSON.stringify`.
+
+### `const sourceId = await view.getMediaSourceId()`
+
+Resolves to: `<String>`
+
+Supplies the `id` property of objects in the array returned from [ui.media.desktopSources](#const-sources---await-appmediadesktopsources-options).
+
+**References**
+
+* [ui.media.desktopSources](#const-sources---await-appmediadesktopsources-options)
+* https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
+
+### `const dimensions = await view.dimensions()`
+
+Resolves to: `{x <Integer>, y <Integer>, width <Integer>, height <Integer>} | null`.
+
+The height, width, horizontal (`x`), vertical (`y`) position of the window relative to the screen.
+
+All units are (pixels)
+
+If the Window is closed this will resolve to `null`.
+
+**References**
+
+* [await view.dimensions(options)](#await-viewdimensionsoptions-object)
+
+### `await view.dimensions(options <Object>)`
+
+```js
+const view = new ui.View('./some.html', {
+  x: 10,
+  y: 450,
+  width: 300,
+  height: 350
+})
+
+await view.open()
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+await view.dimensions({
+  x: 20,
+  y: 50,
+  width: 550,
+  height: 300
+})
+```
+
+Sets the dimensions of the view.
+
+**Options**
+
+* `x <Integer>` - the horizontal position of left side of the window (pixels)
+* `y <Integer>` - the vertical position of the top of the window (pixels)
+* `width <Integer>` - the width of the window (pixels)
+* `height <Integer>` - the height of the window (pixels)
+
+
+**References**
+
+* [const dimensions = await view.dimensions()](#const-dimensions--await-viewdimensions)
+
+### `const visible = await view.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the view is visible.
+
+### `const closed = await view.isClosed()`
+
+Resolves to: `<Boolean>`
+
+Whether the view is closed.
+
+### `const { self } = ui.Window`  `const { self } = ui.View`
+
+### `const success = await self.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus current view or window.
+
+### `const success = await self.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur current view or window.
+
+### `const success = await self.show()`
+
+Resolves to: `<Boolean>`
+
+Show current view or window.
+
+### `const success = await self.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide current view or window.
+
+### `const sourceId = await self.getMediaSourceId()`
+
+Get the sourceId of the current window or view.
+
+**References**
+
+* [win.getMediaSourceId()](const-sourceId--await-wingetMediaSourceId)
+
+
+### `const success = await self.minimize()`
+
+Resolves to: `<Boolean>`
+
+Minimize current window.
+
+Throws a `TypeError` if `self` is a view.
+
+### `const success = await self.maximize()`
+
+Resolves to: `<Boolean>`
+
+Maximize current window.
+
+Throws a `TypeError` if `self` is a view.
+
+### `const success = await self.restore()`
+
+Resolves to: `<Boolean>`
+
+Unmaximize/unminimize the current window if it is currently maximized/minimized.
+
+Throws a `TypeError` if `self` is a view.
+
+
+### `const success = await self.close()`
+
+Resolves to: `<Boolean>`
+
+Closes the current view or window.
+
+
+### `const isVisible = await self.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the current window or view is visible.
+
+### `const isMaximized = await self.isMaximized()`
+Resolves to: `<Boolean>`
+
+Whether the current window is maximized. Throws a `TypeError` if `self` is a view.
+
+
+### `const isMinimized = await self.isMinimized()`
+
+Resolves to: `<Boolean>`
+
+Whether the current window is minimized. Throws a `TypeError` if `self` is a view.
+
+### `const { parent } = ui.Window`  `const { parent } = ui.View`
+
+### `parent.on[ce]('message', (...args) => { })`
+### `for await (const [ ...args ] of parent)`
+
+Receive a message from the parent window or view. The received `args` array is deserialized via `JSON.parse`.
+
+### `await parent.send(...args)`
+
+Send arguments to the parent view or window. They will be serialized with `JSON.stringify`.
+
+
+### `const success = await parent.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus parent view or window.
+
+### `const success = await parent.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur parent view or window.
+
+### `const success = await parent.show()`
+
+Resolves to: `<Boolean>`
+
+Show parent view or window.
+
+### `const success = await parent.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide parent view or window.
+
+### `const sourceId = await parent.getMediaSourceId()`
+
+Get the sourceId of the parent window or view.
+
+**References**
+
+* [win.getMediaSourceId()](#const-sourceId--await-wingetMediaSourceId)
+
+
+### `const success = await parent.minimize()`
+
+Resolves to: `<Boolean>`
+
+Minimize parent window.
+
+Throws a `TypeError` if `parent` is a view.
+
+### `const success = await parent.maximize()`
+
+Resolves to: `<Boolean>`
+
+Maximize parent window.
+
+Throws a `TypeError` if `parent` is a view.
+
+### `const success = await parent.restore()`
+
+Resolves to: `<Boolean>`
+
+Unmaximize/unminimize the parent window if it is currently maximized/minimized.
+
+Throws a `TypeError` if `parent` is a view.
+
+### `const success = await parent.close()`
+
+Resolves to: `<Boolean>`
+
+Closes the parent view or window.
+
+### `const isVisible = await parent.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the parent window or view is visible.
+
+### `const isMaximized = await parent.isMaximized()`
+Resolves to: `<Boolean>`
+
+Whether the parent window is maximized. Throws a `TypeError` if `parent` is a view.
+
+
+### `const isMinimized = await parent.isMinimized()`
+
+Resolves to: `<Boolean>`
+
+Whether the parent window is minimized. Throws a `TypeError` if `parent` is a view.
+
+
+## Web APIs
+
+Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
+
+This section details deviations in behavior from and notable aspects of Web APIs as they relate to `pear-electron`.
+
+### `window.open`
+
+The [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) Web API function will ignore all arguments except for the URL parameter.
+
+In browsers, `window.open` opens a new browser window. The opened window belongs to the same browser from which `window.open` is called.
+
+With `pear-electron` UI Library, `window.open` loads the URL in the **default system browser**. It does *not* create a new application window (use `Pear.Window` to create application windows).
+
+Therefore Pear's `window.open` only supports a single URL argument. The `target` and `windowFeatures` parameters that browsers support are discarded.
+
+### Scripts and Modules
+
+Like browsers, there is no support for CommonJS (e.g. the `require` function as used by Node.js is not supported in Pear Applications).
+
+Like browsers, there is support for native EcmaScript Modules (ESM). A JavaScript Script has no module capabilities. A JavaScript Module has ESM capabilities.
+
+Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Module.
+
+Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
+
+
+# LICENSE
+
+Apache 2.0
