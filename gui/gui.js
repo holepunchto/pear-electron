@@ -1049,8 +1049,7 @@ class Window extends GuiCtrl {
     this.win.setMenuBarVisibility(false)
     if (isMac === false) this.win.setAutoHideMenuBar(true)
 
-    const decalUrl = `${this.sidecar}/decal.html`
-    const decalLoading = this.win.loadURL(decalUrl)
+    const decalLoading = this.win.loadURL(require('./decal'))
 
     if (interload && (await interload(this)) === false) return false
 

@@ -218,11 +218,19 @@ module.exports = class PearGUI {
           Window = Window
           View = View
           media = media
+          static DECAL = Symbol('decal')
           warming () {
             electron.ipcRenderer.send('warming')
             const stream = new streamx.Readable()
             electron.ipcRenderer.on('warming', (e, data) => { stream.push(data) })
             return stream
+          }
+          constructor () {
+            if (state.isDecal) this[this.constructor.DECAL] = {
+              ipc,
+              'hypercore-id-encoding': require('hypercore-id-encoding'),
+              'pear-api/constants': require('pear-api/constants')
+            }
           }
         }
 
@@ -231,17 +239,17 @@ module.exports = class PearGUI {
 
       get media () {
         console.warn('Pear.media is deprecated use require(\'pear-electron\').media')
-        return this[this.constructor.ui].media
+        return this[this.constructor.UI].media
       }
 
       get Window () {
         console.warn('Pear.Window is deprecated use require(\'pear-electron\').Window')
-        return this[this.constructor.ui].Window
+        return this[this.constructor.UI].Window
       }
 
       get View () {
         console.warn('Pear.View is deprecated use require(\'pear-electron\').View')
-        return this[this.constructor.ui].View
+        return this[this.constructor.UI].View
       }
 
       exit = (code) => {
