@@ -1,8 +1,8 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
-const fonts = fs.readFileSync(path.join(__dirname, '..', 'fonts.css'), { encoding: 'utf8'}).split('\n')
-const decal = fs.readFileSync(path.join(__dirname, '..', 'decal.html'), { encoding: 'utf8'}).split('\n')
+const fonts = fs.readFileSync(path.join(__dirname, '..', 'fonts.css'), { encoding: 'utf8' }).split('\n')
+const decal = fs.readFileSync(path.join(__dirname, '..', 'decal.html'), { encoding: 'utf8' }).split('\n')
 
 const indices = []
 const srcs = fonts.filter((line, index) => {

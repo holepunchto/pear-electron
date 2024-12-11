@@ -23,16 +23,11 @@ const EXEC = isWindows
 const BOOT = require.resolve('./boot.js')
 const shell = require('pear-api/shell')
 const run = require('pear-api/cmd-def/run')
-
+const noop = () => {}
 class PearElectron extends ReadyResource {
   ipc = null
   stderr = null
   bin = ''
-  info = null
-  constructor ({ info = {} }) {
-    super()
-    this.info = info
-  }
 
   async _open () {
     this.ipc = Pear[Pear.constructor.IPC]
@@ -40,26 +35,32 @@ class PearElectron extends ReadyResource {
     const INTERFACE = path.join(constants.PLATFORM_DIR, 'interfaces', 'pear-electron', version)
     this.bin = path.join(INTERFACE, 'by-arch', require.addon.host, 'bin', EXEC)
 
-    if (fs.existsSync(INTERFACE)) return
+    if (fs.existsSync(INTERFACE)) {
+      this.ipc.gc({ resource: 'interfaces' }).catch(noop) // background gc unused interfaces
+      return
+    }
 
     console.log('Bootstrapping Application Runtime...')
+    // TODO  check that dump understands length
     for await (const info of this.ipc.dump(pear.ui.runtime, INTERFACE)) {
       if (info.tag === 'error') throw new Error('Bootstrapping failure: ' + info.stack)
       // TODO info.tag === 'byte-diff' in-place updating
     }
-    // TODO: we also need to create a boot.bundle for pear-electron from the ./boot.js file
-    // and place it in INTERFACE
+
+    // TODO: need stage --dry-run to output expected length,
+    // flow then autosets pear.ui.runtime link to correct length & updates semver and tags
+    // CI workflow then runs this flow to stage to given key
+    // to release npm author git pulls after workflow and does npm pub
     console.log('Application Runtime Bootstrapped')
 
-    // TODO: we need a GC algo for old versions that are unused, e.g. check mtime of all folders in
-    // <pear-dir>/interfaces/pear-electron and remove ones with mtime > MAX
+    this.ipc.gc({ resource: 'interfaces' }).catch(noop) // background gc unused interfaces
   }
 
   async _close () {
     await this.ipc.close()
   }
 
-  start () {
+  start (info) {
     let argv = Pear.argv
     const parsed = shell(Pear.argv)
     const cmdIx = parsed?.indices.args.cmd ?? -1
@@ -101,7 +102,7 @@ class PearElectron extends ReadyResource {
     const detach = args.includes('--detach')
     const checkout = JSON.stringify(constants.CHECKOUT)
     const mountpoint = constants.MOUNT
-    args = [BOOT, '--checkout', checkout, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...args]
+    args = [BOOT, '--runtime-info', info, '--checkout', checkout, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...args]
     const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'overlapped']
     const sp = spawn(this.bin, args, {
       stdio,

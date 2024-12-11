@@ -10,128 +10,53 @@
 npm install pear-electron
 ```
 
-## Setup
+## Usage
 
-Configure `pear.json` or `pear` field of `package.json` to contain a `ui` object with `provider` property set to `pear-electron`:
+Instantiate a `pear-electron` runtime instance from a Pear Application's entrypoint JavaScript file:
 
+```js
+import Runtime from 'pear-electron'
+import Bridge from 'pear-bridge'
+
+const runtime = new Runtime()
+await runtime.ready()
+
+const bridge = new Bridge()
+await bridge.ready()
+
+const pipe = runtime.start(bridge.info())
+Pear.teardown(() => pipe.end())
 ```
-{
-  "ui": {
-    "provider": "pear-electron",
-    ...options
-  }
-}
-```
 
-## Options
+Call `runtime.start` to open the UI.
 
-### `width <Number>`
+## Initialization API
 
-Window width (pixels).
+### `new Runtime() -> runtime`
 
-### `height <Number>`
+Create the runtime instances with `new Runtime()`.
 
-Window height (pixels).
+### `runtime.ready()`
 
-### `x <Number>`
+Prepare the runtime, runtime binaries for the runtime version may be bootstrapped peer-to-peer at this point. This only runs once per version and any prior bootstraps can be reused for subsequent versions where state hasn't changed. In a production scenario any bootstrapping would be performed in advance by the application distributable.
 
-Horizontal window position (pixels).
+### `runtime.start(info <String>)`
 
-### `y <Number>`
+Opens the UI. The `info` string is passed as a `--runtime-info` flag to the UI executable. The `pear-api/state` integration library then includes this flag value as `state.runtimeInfo` which can then be used by `pear-electron`. The `info` string by convention is a JSON string, with the shape, `{ type, data }`.
 
-Vertical window position (pixels).
+In the usage example, `bridge.info()` is passed to `runtime.start()`, `pear-electron` later uses this to determine the bridge localhost address to load with electron.
 
-### `minWidth <Number>`
-
-Window minimum width (pixels).
-
-### `minHeight <Number>`
-
-Window minimum height (pixels).
-
-### `maxWidth <Number>`
-
-Window maximum width (pixels).
-
-### `maxHeight <Number>`
-
-Window maximum height (pixels).
-
-### `center <Boolean>` (default: `false`)
-
-Center window.
-
-### `resizable <Boolean>` (default: `true`)
-
-Window resizability.
-
-### `movable <Boolean>` (default: `true`)
-
-Window movability.
-
-### `minimizable <Boolean>` (default: `true`)
-
-Window minimizability.
-
-### `maximizable <Boolean>` (default: `true`)
-
-Window maximizability.
-
-### `closable <Boolean>` (default: `true`)
-
-Window closability.
-
-### `focusable <Boolean>` (default: `true`)
-
-Window focusability.
-
-### `alwaysOnTop <Boolean>` (default: `false`)
-
-Set window to always be on top.
-
-### `fullscreen <Boolean>` (default: `false`)
-
-Set window to fullscreen on start.
-
-### `kiosk <Boolean>` (default: `false`)
-
-Set window to enter kiosk mode on start.
-
-### `autoHideMenuBar <Boolean>` (default: `false`)
-
-Hide menu bar unless Alt key is pressed (Linux, Windows).
-
-### `hasShadow <Boolean>` (default: `true`)
-
-Window shadow.
-
-### `opacity <Number>` (default: `1`)
-
-Set window opacity (0.0 - 1.0) (Windows, macOS).
-
-### `transparent <Boolean>` (default: `false`)
-
-Enable transparency. Must be set for opacity to work.
-
-### `backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
-
-Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
-
-## Modus Operandus
-
-`pear-electron` is a Pear User Interface Library. Installing it into a project and specifying it as a `ui.provider` via configuration causes Pear Runtime to start a process that loads and calls the function exported from [./provider.js](./provider.js). This spawns the Pear Runtime Electron Build which then continues application-boot flow.
-
-## API
+## User-Interface API
 
 ```js
 const ui = require('pear-electron')
 ```
 
-## `ui.media <Object>`
+### `ui.media <Object>`
 
 Media interface
 
-### `const status = await ui.media.status.microphone()`
+#### `const status = await ui.media.status.microphone()`
 
 Resolves to: `<String>`
 
@@ -139,7 +64,7 @@ If access to the microphone is available, resolved value will be `'granted'`.
 
 Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
 
-### `const status = await ui.media.status.camera()`
+#### `const status = await ui.media.status.camera()`
 
 Resolves to: `<String>`
 
@@ -147,7 +72,7 @@ If access to the camera is available, resolved value will be `'granted'`.
 
 Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
 
-### `const status = await ui.media.status.screen()`
+#### `const status = await ui.media.status.screen()`
 
 Resolves to: `<String>`
 
@@ -155,25 +80,25 @@ If access to the screen is available, resolved value will be `'granted'`.
 
 Any other string indicates lack of permission. Possible values are `'granted'`, `'not-determined'`, `'denied'`, `'restricted'`, `'unknown'`.
 
-### `const success = await ui.media.access.microphone()`
+#### `const success = await ui.media.access.microphone()`
 
 Resolves to: `<Boolean>`
 
 Request access to the microphone. Resolves to `true` if permission is granted.
 
-### `const success = await ui.media.access.camera()`
+#### `const success = await ui.media.access.camera()`
 
 Resolves to: `<Boolean>`
 
 Request access to the camera. Resolves to `true` if permission is granted.
 
-### `const success = await ui.media.access.screen()`
+#### `const success = await ui.media.access.screen()`
 
 Resolves to: `<Boolean>`
 
 Request access to screen sharing. Resolves to `true` if permission is granted.
 
-### `const sources = await ui.media.desktopSources(options <Object>)`
+#### `const sources = await ui.media.desktopSources(options <Object>)`
 
 Captures available desktop sources. Resolves to an array of objects with shape `{ id <String>, name <String>, thumbnail <NativeImage>, display_id <String>, appIcon <NativeImage> }`. The `id` is the window or screen identifier. The `name` is the window title or `'Screen <index>'` in multiscreen scenarios or else `Entire Screen`. The `display_id` identifies the screen. The thumbnail is a scaled down screen capture of the window/screen.
 
@@ -741,7 +666,6 @@ Resolves to: `<Boolean>`
 
 Whether the parent window is minimized. Throws a `TypeError` if `parent` is a view.
 
-
 ## Web APIs
 
 Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
@@ -767,6 +691,112 @@ Like browsers, there is support for native EcmaScript Modules (ESM). A JavaScrip
 Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Module.
 
 Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
+
+## Graphical User Interface Options
+
+GUI options for an application are set in the application `package.json` `pear.gui` field.
+
+### `width <Number>`
+
+Window width (pixels).
+
+### `height <Number>`
+
+Window height (pixels).
+
+### `x <Number>`
+
+Horizontal window position (pixels).
+
+### `y <Number>`
+
+Vertical window position (pixels).
+
+### `minWidth <Number>`
+
+Window minimum width (pixels).
+
+### `minHeight <Number>`
+
+Window minimum height (pixels).
+
+### `maxWidth <Number>`
+
+Window maximum width (pixels).
+
+### `maxHeight <Number>`
+
+Window maximum height (pixels).
+
+### `center <Boolean>` (default: `false`)
+
+Center window.
+
+### `resizable <Boolean>` (default: `true`)
+
+Window resizability.
+
+### `movable <Boolean>` (default: `true`)
+
+Window movability.
+
+### `minimizable <Boolean>` (default: `true`)
+
+Window minimizability.
+
+### `maximizable <Boolean>` (default: `true`)
+
+Window maximizability.
+
+### `closable <Boolean>` (default: `true`)
+
+Window closability.
+
+### `focusable <Boolean>` (default: `true`)
+
+Window focusability.
+
+### `alwaysOnTop <Boolean>` (default: `false`)
+
+Set window to always be on top.
+
+### `fullscreen <Boolean>` (default: `false`)
+
+Set window to fullscreen on start.
+
+### `kiosk <Boolean>` (default: `false`)
+
+Set window to enter kiosk mode on start.
+
+### `autoHideMenuBar <Boolean>` (default: `false`)
+
+Hide menu bar unless Alt key is pressed (Linux, Windows).
+
+### `hasShadow <Boolean>` (default: `true`)
+
+Window shadow.
+
+### `opacity <Number>` (default: `1`)
+
+Set window opacity (0.0 - 1.0) (Windows, macOS).
+
+### `transparent <Boolean>` (default: `false`)
+
+Enable transparency. Must be set for opacity to work.
+
+### `backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
+
+Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
+
+## Development
+
+The `pear-electron` library is a Pear User Interface Runtime Library, as such `pear-electron` (and any Pear UI Lib.) is multifaceted and behaves differently depending on context.
+
+* When loaded into a UI,  `pear-electron` is the UI API
+* When loaded into non-UI (i.e app entrypoint js file), `pear-electron` is the runtime initializor
+  * When there is no runtime binary on the system, `pear-electron` performs bootstrapping of the UI runtime executable, into `<pear-dir>/interfaces/pear-electron/<semver>`
+* The `pear-electron` repo is also self-bootstrapping and generates the runtime drive (with `by-arch`, `prebuilds` and `boot.bundle`), which can then be staged with Pear. The pear link for the staged `pear-electron` contents in `pear-electron` `package.json` `pear.ui.runtime` field is then set, with fork and length included. This locks runtime builds for a given semver to a specific runtime drive checkout.
+  * This is what `pear-electron` bootstraps from during `runtime.ready()`.
 
 
 # LICENSE

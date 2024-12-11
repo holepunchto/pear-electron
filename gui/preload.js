@@ -225,11 +225,14 @@ module.exports = class PearGUI {
             electron.ipcRenderer.on('warming', (e, data) => { stream.push(data) })
             return stream
           }
+
           constructor () {
-            if (state.isDecal) this[this.constructor.DECAL] = {
-              ipc,
-              'hypercore-id-encoding': require('hypercore-id-encoding'),
-              'pear-api/constants': require('pear-api/constants')
+            if (state.isDecal) {
+              this[this.constructor.DECAL] = {
+                ipc,
+                'hypercore-id-encoding': require('hypercore-id-encoding'),
+                'pear-api/constants': require('pear-api/constants')
+              }
             }
           }
         }
@@ -332,7 +335,7 @@ class IPC {
     return stream
   }
 
-  workerRun (link) {
+  workerRun (link, args) {
     const id = electron.ipcRenderer.sendSync('workerPipeId')
     electron.ipcRenderer.send('workerRun', link, args)
     const stream = new streamx.Duplex({

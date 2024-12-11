@@ -3,8 +3,7 @@ import Bundle from 'bare-bundle'
 import Localdrive from 'localdrive'
 import DriveBundler from 'drive-bundler'
 import fs from 'bare-fs'
-
-const dirname = new URL('..', import.meta.url).pathname
+const dirname = global.Pear?.config.applink ? new URL(global.Pear.config.applink + '/').pathname : new URL('..', import.meta.url).pathname
 
 const drive = new Localdrive(dirname)
 const b = new Bundle()
@@ -26,4 +25,5 @@ for (const [key, source] of Object.entries(sources)) {
 b.main = entrypoint
 b.resolutions = res
 
-fs.writeFileSync(dirname + 'boot.bundle', b.toBuffer())
+await fs.promises.writeFile(dirname + 'boot.bundle', b.toBuffer())
+console.log('boot.bundle generated')

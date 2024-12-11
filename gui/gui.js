@@ -369,7 +369,7 @@ electron.app.userAgentFallback = 'Pear Platform'
 
 class App {
   menu = null
-  sidecar = null
+  bridge = null
   state = null
   ipc = null
   id = null
@@ -544,13 +544,10 @@ class App {
       decalSession.setUserAgent('Pear Platform')
       const entry = state.entrypoint || '/' + state.main
       const identify = await this.ipc.identify({ startId: state.startId })
-      const { id, host } = identify
+      const { id } = identify
 
-      state.update({ sidecar: host, id, config: state.constructor.configFrom(state) })
+      state.update({ id, config: state.constructor.configFrom(state) })
       this.ipc.id = id
-
-      if (this.sidecar === null) this.sidecar = host
-      if (this.sidecar !== host) this.sidecar = host
 
       const ctrl = await PearGUI.ctrl('window', entry, { state }, {
         ...guiOptions,
@@ -789,8 +786,9 @@ class GuiCtrl {
     this.parentId = parentId
     this.closed = true
     this.id = null
-    this.sidecar = this.state.sidecar
-    this.entry = `${this.sidecar}${entry}`
+    const info = this.state.runtimeInfo
+    this.bridge = info.type === 'bridge' ? info.data : null
+    this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
   }
@@ -808,15 +806,15 @@ class GuiCtrl {
   }
 
   nav = (event, url) => {
-    if (url.startsWith(this.sidecar)) return
+    if (this.bridge !== null && url.startsWith(this.bridge)) return
     event.preventDefault()
     electron.shell.openExternal(url).catch(console.error)
   }
 
   open () {
     const handler = (wc) => ({ url }) => {
-      if (url.startsWith(this.sidecar)) {
-        wc.executeJavaScript(`console.error('Pear: Improper use of window.open (ignoring "${url}").\\n 👉 Pear window.open exclusively opens external URLs in default browser.\\n 💡 To open application windows or view, use pear/gui')`).catch(noop)
+      if (this.bridge !== null && url.startsWith(this.bridge)) {
+        wc.executeJavaScript(`console.error('pear-electron: Illegal use of window.open (ignoring "${url}").\\n 👉 pear-electron window.open exclusively opens external URLs in default browser.')`).catch(noop)
         return
       }
       electron.shell.openExternal(url)
@@ -922,7 +920,7 @@ class GuiCtrl {
     const { webContents } = (this.view || this.win)
     const until = new Promise((resolve) => { this.unload = resolve })
     webContents.once('will-navigate', (e, url) => {
-      if (!url.startsWith(this.sidecar)) return // handled by the other will-navigate handler
+      if (this.bridge === null || !url.startsWith(this.bridge)) return // handled by the other will-navigate handler
       e.preventDefault()
       const type = (!e.frame || e.frame.url === url) ? 'reload' : 'nav'
       this.unload({ type, url })
@@ -1545,8 +1543,8 @@ class PearGUI extends ReadyResource {
     ;[entry] = entry.split('+')
     if (entry.slice(0, 2) === './') entry = entry.slice(1)
     if (entry[0] !== '/') entry = `/~${entry}`
-    const info = { state, parentId, ua, sessname, appkin }
-    const instance = type === 'view' ? new View(entry, options, info) : new Window(entry, options, info)
+    const meta = { state, parentId, ua, sessname, appkin }
+    const instance = type === 'view' ? new View(entry, options, meta) : new Window(entry, options, meta)
     if (typeof options.afterInstantiation === 'function') await options.afterInstantiation(instance)
 
     await instance.open(openOptions)

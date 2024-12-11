@@ -12,12 +12,8 @@ const Hyperswarm = require('hyperswarm')
 const goodbye = global.Pear?.teardown || require('graceful-goodbye')
 const byteSize = require('tiny-byte-size')
 const { decode } = require('hypercore-id-encoding')
-const safetyCatch = require('safety-catch')
 const Rache = require('rache')
-const parseLink = require('pear-api/parse-link')
 const argv = global.Pear?.config.args || global.Bare?.argv || global.process.argv
-const pkg = require('../package.json')
-const ui = parseLink(pkg.pear.interface)
 const parser = command('bootstrap',
   flag('--archdump'),
   flag('--dlruntime'),
@@ -28,20 +24,13 @@ const cmd = parser.parse(argv.slice(2), { sync: true })
 
 const ARCHDUMP = cmd.flags.archdump === true
 const DLRUNTIME = cmd.flags.dlruntime === true
-const RUNTIMES_DRIVE_KEY = ui.drive.key
-const CORESTORE = cmd.flags.externalCorestore && `/tmp/pear-archdump/${RUNTIMES_DRIVE_KEY}`
+const RUNTIMES_DRIVE_KEY = cmd.rest?.[0] || 'gd4n8itmfs6x7tzioj6jtxexiu4x4ijiu3grxdjwkbtkczw5dwho'
+const CORESTORE = `/tmp/pear-archdump/${RUNTIMES_DRIVE_KEY}`
 
 const ROOT = global.Pear ? path.join(new URL(global.Pear.config.applink).pathname, __dirname) : __dirname
 const ADDON_HOST = require.addon?.host || platform + '-' + arch
-const PEAR = path.join(ROOT, '..', 'pear')
 const SWAP = path.join(ROOT, '..')
 const HOST = path.join(SWAP, 'by-arch', ADDON_HOST)
-try {
-  fs.symlinkSync('..', path.join(PEAR, 'current'), !isWindows ? 'junction' : 'file')
-} catch (err) {
-  if (err.code === 'EPERM') throw err
-  safetyCatch(err)
-}
 
 if (ARCHDUMP) {
   const downloading = download(RUNTIMES_DRIVE_KEY, true)
@@ -66,7 +55,7 @@ async function * downloader (key, all) {
   if (all) yield '🍐 Fetching all runtimes from: \n   ' + key
   else yield '🍐 [ localdev ] - no local runtime: fetching runtime'
 
-  const store = CORESTORE || path.join(PEAR, 'corestores', 'platform')
+  const store = CORESTORE
 
   const maxCacheSize = 65536
   const globalCache = new Rache({ maxSize: maxCacheSize })
