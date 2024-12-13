@@ -12,6 +12,7 @@
     "prestage": "npm run archdump && npm run generate"
   },
   "files": [
+    "boot.js",
     "decal.html",
     "electron-main.js",
     "fonts.css",
