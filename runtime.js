@@ -100,9 +100,8 @@ class PearElectron extends ReadyResource {
     args[indices.args.link] = args[indices.args.link].replace('://', '_||') // for Windows
     if ((isLinux || isWindows) && !flags.sandbox) args.splice(indices.args.link, 0, '--no-sandbox')
     const detach = args.includes('--detach')
-    const checkout = JSON.stringify(constants.CHECKOUT)
     const mountpoint = constants.MOUNT
-    args = [BOOT, '--runtime-info', info, '--checkout', checkout, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...args]
+    args = [BOOT, '--runtime-info', info, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...args]
     const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'overlapped']
     const sp = spawn(this.bin, args, {
       stdio,

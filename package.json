@@ -12,12 +12,13 @@
     "prestage": "npm run archdump && npm run generate"
   },
   "files": [
-    "index.js",
-    "provider.js",
-    "boot.js",
+    "decal.html",
     "electron-main.js",
+    "fonts.css",
+    "gui/",
+    "index.js",
     "preload.js",
-    "gui/"
+    "runtime.js"
   ],
   "pear": {
     "name": "pear-electron",
