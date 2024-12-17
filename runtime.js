@@ -7,57 +7,30 @@ const path = require('bare-path')
 const Pipe = require('bare-pipe')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
-const ReadyResource = require('ready-resource')
 const { command } = require('paparam')
 const { isLinux, isWindows } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
 const { ERR_INVALID_INPUT } = require('pear-api/errors')
-const { version, pear } = require('./package.json')
 const EXEC = isWindows
-  ? 'pear-runtime-app/Pear Runtime.exe'
+  ? 'pear-runtime-app\\Pear Runtime.exe'
   : isLinux
     ? 'pear-runtime-app/pear-runtime'
     : 'Pear Runtime.app/Contents/MacOS/Pear Runtime'
 const BOOT = require.resolve('./boot.js')
 const shell = require('pear-api/shell')
 const run = require('pear-api/cmd-def/run')
-const noop = () => {}
-class PearElectron extends ReadyResource {
-  ipc = null
-  stderr = null
-  bin = ''
-
-  async _open () {
+class PearElectron {
+  constructor () {
+    this.stderr = null
     this.ipc = Pear[Pear.constructor.IPC]
-    Pear.teardown(() => this.close())
-    const INTERFACE = path.join(constants.PLATFORM_DIR, 'interfaces', 'pear-electron', version)
-    this.bin = path.join(INTERFACE, 'by-arch', require.addon.host, 'bin', EXEC)
-
-    if (fs.existsSync(INTERFACE)) {
-      this.ipc.gc({ resource: 'interfaces' }).catch(noop) // background gc unused interfaces
-      return
+    this.bin = ''
+    Pear.teardown(() => this.ipc.close())
+    const ondisk = Pear.config.key === null
+    if (ondisk === false) {
+      this.bin = path.join(constants.PLATFORM_DIR, 'experimental', require.addon.host, 'bin', EXEC)
     }
-
-    console.log('Bootstrapping Application Runtime...')
-    // TODO  check that dump understands length
-    for await (const info of this.ipc.dump(pear.ui.runtime, INTERFACE)) {
-      if (info.tag === 'error') throw new Error('Bootstrapping failure: ' + info.stack)
-      // TODO info.tag === 'byte-diff' in-place updating
-    }
-
-    // TODO: need stage --dry-run to output expected length,
-    // flow then autosets pear.ui.runtime link to correct length & updates semver and tags
-    // CI workflow then runs this flow to stage to given key
-    // to release npm author git pulls after workflow and does npm pub
-    console.log('Application Runtime Bootstrapped')
-
-    this.ipc.gc({ resource: 'interfaces' }).catch(noop) // background gc unused interfaces
-  }
-
-  async _close () {
-    await this.ipc.close()
   }
 
   start (info) {

@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
+  "bin": "bin.mjs",
   "scripts": {
-    "archdump": "node scripts/bootstrap.js --archdump",
-    "bootstrap": "node scripts/bootstrap.js",
+    "archdump": "node scripts/bootstrap.mjs --archdump",
+    "bootstrap": "node scripts/bootstrap.mjs",
     "decal": "node scripts/decal.js",
     "bundle": "bare scripts/bundle.mjs",
     "generate": "npm run decal && npm run bundle",
@@ -21,11 +22,21 @@
     "preload.js",
     "runtime.js"
   ],
+  "extractions": [
+    {
+      "link": "pear://0.123.hxse9j1waaruq7otfbixjgbb5fr3pc9n47jpqqb5p56698wghjay",
+      "paths": [
+        "by-arch/[host]"
+      ]
+    },
+    {
+      "paths": [
+        "boot.bundle"
+      ]
+    }
+  ],
   "pear": {
     "name": "pear-electron",
-    "ui": {
-      "runtime": "pear://0.885.hxse9j1waaruq7otfbixjgbb5fr3pc9n47jpqqb5p56698wghjay"
-    },
     "stage": {
       "ignore": [
         ".git",
@@ -64,17 +75,19 @@
   "license": "Apache-2.0",
   "dependencies": {
     "bare-env": "^3.0.0",
+    "bare-fs": "^4.0.1",
     "bare-os": "^3.3.0",
     "bare-path": "^3.0.0",
     "bare-subprocess": "^4.0.3",
     "bare-tty": "^4.0.2",
+    "fs": "npm:bare-node-fs@^1.0.2",
     "iambus": "^1.0.3",
     "paparam": "^1.6.1",
+    "path": "npm:bare-node-path@^1.0.1",
     "pear-api": "^0.0.6",
     "pear-interface": "^1.0.3",
     "pear-link": "^2.0.5",
     "pear-updater-bootstrap": "github:holepunchto/pear-updater-bootstrap#corestore-option",
-    "ready-resource": "^1.1.1",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
     "url-file-url": "^1.0.4",

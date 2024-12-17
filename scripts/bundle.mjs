@@ -1,8 +1,7 @@
-#!/usr/bin/env bare
 import Bundle from 'bare-bundle'
 import Localdrive from 'localdrive'
 import DriveBundler from 'drive-bundler'
-import fs from 'bare-fs'
+import fs from 'fs'
 const dirname = global.Pear?.config.applink ? new URL(global.Pear.config.applink + '/').pathname : new URL('..', import.meta.url).pathname
 
 const drive = new Localdrive(dirname)

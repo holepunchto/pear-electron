@@ -1,9 +1,7 @@
-#!/usr/bin/env bare
 'use strict'
-
-const { platform, arch, isWindows, isBare } = require('which-runtime')
-const fs = isBare ? require('bare-fs') : require('fs')
-const path = isBare ? require('bare-path') : require('path')
+const { platform, arch, isWindows } = require('which-runtime')
+const fs = require('fs')
+const path = require('path')
 const { command, flag, rest } = require('paparam')
 const Corestore = require('corestore')
 const Localdrive = require('localdrive')
@@ -12,6 +10,7 @@ const Hyperswarm = require('hyperswarm')
 const goodbye = global.Pear?.teardown || require('graceful-goodbye')
 const byteSize = require('tiny-byte-size')
 const { decode } = require('hypercore-id-encoding')
+
 const Rache = require('rache')
 const argv = global.Pear?.config.args || global.Bare?.argv || global.process.argv
 const parser = command('bootstrap',
@@ -32,15 +31,19 @@ const ADDON_HOST = require.addon?.host || platform + '-' + arch
 const SWAP = path.join(ROOT, '..')
 const HOST = path.join(SWAP, 'by-arch', ADDON_HOST)
 
-if (ARCHDUMP) {
-  const downloading = download(RUNTIMES_DRIVE_KEY, true)
-  downloading.catch(console.error).then(advise)
-} else if (DLRUNTIME || fs.existsSync(HOST) === false) {
-  const downloading = download(RUNTIMES_DRIVE_KEY, false)
-  downloading.catch(console.error)
-  if (DLRUNTIME === false) downloading.catch(console.error).then(advise)
-} else {
-  advise()
+module.exports = { download: (all = true) => download(RUNTIMES_DRIVE_KEY, all) }
+
+if (require.main === module) {
+  if (ARCHDUMP) {
+    const downloading = download(RUNTIMES_DRIVE_KEY, true)
+    downloading.catch(console.error).then(advise)
+  } else if (DLRUNTIME || fs.existsSync(HOST) === false) {
+    const downloading = download(RUNTIMES_DRIVE_KEY, false)
+    downloading.catch(console.error)
+    if (DLRUNTIME === false) downloading.catch(console.error).then(advise)
+  } else {
+    advise()
+  }
 }
 
 function advise () {
