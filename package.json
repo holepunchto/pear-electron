@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
-  "bin": "bin.js",
+  "bin": "bin.mjs",
   "scripts": {
     "archdump": "node scripts/bootstrap.mjs --archdump",
     "bootstrap": "node scripts/bootstrap.mjs",
@@ -13,6 +13,7 @@
     "prestage": "npm run archdump && npm run generate"
   },
   "files": [
+    "scripts/",
     "boot.js",
     "decal.html",
     "electron-main.js",
