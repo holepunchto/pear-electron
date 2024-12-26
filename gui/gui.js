@@ -1127,11 +1127,12 @@ class Window extends GuiCtrl {
 
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const sidecarURL = new URL(this.sidecar)
       const requestURL = new URL(details.url)
-      if (requestURL.host === this.bridgeURL.host) {
-        details.requestHeaders['X-Pear'] = `Pear ${this.state.id}`
-      } else if (this.state?.config?.options?.gui?.userAgent) {
-        details.requestHeaders['User-Agent'] = this.state.config.options.gui.userAgent
+      if (requestURL.host === sidecarURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
       }
       next({ requestHeaders: details.requestHeaders })
     }
