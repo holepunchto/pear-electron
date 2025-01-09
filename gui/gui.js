@@ -365,8 +365,6 @@ class ContextMenu {
   }
 }
 
-electron.app.userAgentFallback = 'Pear Platform'
-
 class App {
   menu = null
   bridge = null
@@ -977,9 +975,7 @@ class Window extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
@@ -1073,6 +1069,13 @@ class Window extends GuiCtrl {
     }
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const sidecarURL = new URL(this.sidecar)
+      const requestURL = new URL(details.url)
+      if (requestURL.host === sidecarURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      }
       next({ requestHeaders: details.requestHeaders })
     }
 
@@ -1280,9 +1283,7 @@ class View extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     this.view = new BrowserView({
       ...(options?.view || options),
