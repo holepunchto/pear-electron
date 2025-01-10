@@ -883,14 +883,6 @@ class GuiCtrl {
     return this.closed
   }
 
-  async show () {
-    if (this.closed) return false
-  }
-
-  async hide () {
-    if (this.closed) return false
-  }
-
   async dimensions (opts = null) {
     if (this.closed) return null
     const item = this[kCtrl] === 'view' ? this.view : this.win
