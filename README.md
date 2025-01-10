@@ -223,7 +223,7 @@ Focus the window.
 
 **Options**
 
-* `steal` Default: `true` - brings the window to the foreground and attempts to take focus, even if another application is currently active, hidden or minimized.
+* `steal` Default: `true` - brings the window to the foreground and attempts to take focus, even if another application is currently active, or the window is hidden or minimized.
 
 ### `const success = await win.blur()`
 
