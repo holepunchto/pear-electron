@@ -215,11 +215,15 @@ Resolves to: `<Boolean>`
 
 Hide the window.
 
-### `const success = await win.focus()`
+### `const success = await win.focus(options <Object>)`
 
 Resolves to: `<Boolean>`
 
 Focus the window.
+
+**Options**
+
+* `steal` Default: `true` - brings the window to the foreground and attempts to take focus, even if another application is currently active, hidden or minimized.
 
 ### `const success = await win.blur()`
 
