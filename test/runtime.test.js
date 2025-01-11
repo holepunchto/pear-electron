@@ -9,6 +9,6 @@ const state = {}
 global.Pear = new API(ipc, state)
 
 test('test Runtime', async (t) => {
-  const runtime = new Runtime()
-  console.log('🚀 ~ test ~ runtime:', runtime)
+  new Runtime()
+  // TODO: implement test after fixing the early access to global.Pear in pear-api/constants.js
 })
