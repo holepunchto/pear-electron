@@ -13,7 +13,7 @@ const { decode } = require('hypercore-id-encoding')
 
 const Rache = require('rache')
 const speedometer = require('speedometer')
-const isTTY = isBare ? false : process.stdout.isTTY // TODO: support Bare
+const isTTY = process.stdout.isTTY // TODO: support Bare
 const argv = global.Pear?.config.args || global.Bare?.argv || global.process.argv
 const parser = command('bootstrap',
   flag('--archdump'),

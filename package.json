@@ -8,7 +8,7 @@
     "archdump": "node scripts/bootstrap.mjs --archdump",
     "bootstrap": "node scripts/bootstrap.mjs",
     "decal": "node scripts/decal.js",
-    "bundle": "bare scripts/bundle.mjs",
+    "bundle": "node scripts/bundle.mjs",
     "generate": "npm run decal && npm run bundle",
     "prestage": "npm run archdump && npm run generate"
   },
