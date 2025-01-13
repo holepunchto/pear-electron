@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "standard --fix",
     "test:gen": "brittle -r test/all.js test/*.test.js",
-    "test": "bare test/index.js",
+    "test": "bare test/all.js",
     "archdump": "node scripts/bootstrap.js --archdump",
     "bootstrap": "node scripts/bootstrap.js",
     "decal": "node scripts/decal.js",
