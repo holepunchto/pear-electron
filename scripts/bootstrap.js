@@ -33,7 +33,7 @@ const ADDON_HOST = require.addon?.host || platform + '-' + arch
 const SWAP = path.join(ROOT, '..')
 const HOST = path.join(SWAP, 'by-arch', ADDON_HOST)
 
-module.exports = { download: (all = true) => download(RUNTIMES_DRIVE_KEY, all) }
+module.exports = (all = true) => download(RUNTIMES_DRIVE_KEY, all)
 
 if (require.main === module) {
   if (ARCHDUMP) {
