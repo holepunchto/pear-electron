@@ -2,7 +2,7 @@ const Bundle = require('bare-bundle')
 const Localdrive = require('localdrive')
 const DriveBundler = require('drive-bundler')
 const fs = require('fs')
-const dirname = global.Pear?.config.applink ? new URL(global.Pear.config.applink + '/').pathname : new URL('..', import.meta.url).pathname
+const dirname = global.Pear?.config.applink ? new URL(global.Pear.config.applink + '/').pathname : __dirname
 
 async function bundle () {
   const drive = new Localdrive(dirname)
