@@ -26,7 +26,10 @@ jobs:
       - name: Setup repo
         uses: holepunchto/actions/.github/steps/setup-repo@v1
 
-      - name: Install deps
+      - name: Install Bare
+        run: npm i -g bare-runtime
+
+      - name: Install Deps
         run: npm i
 
       - name: Lint
