@@ -1,11 +1,23 @@
 #!/usr/bin/env pear run
-const inBin = global.Pear?.config.entrypoint.startsWith('/node_modules/.bin/pear-electron')
-const bootstrap = inBin ? require('../pear-electron/scripts/bootstrap') : require('./scripts/bootstrap')
-const bundle = inBin ? require('../pear-electron/scripts/bootstrap') : require('./scripts/bundle')
-
+/* global Pear, Bare */
+const path = require('path')
+const { runtimes } = require('./package.json').pear
+const { decode } = require('hypercore-id-encoding')
+const link = require('pear-link')
 async function pearElectron () {
-  await bootstrap()
-  await bundle()
+  const { protocol, pathname, drive } = link(runtimes)
+
+  const opts = {
+    id: Bare.pid,
+    link: protocol + decode(drive.key) + pathname,
+    dir: path.join(new URL(Pear.config.applink).pathname, pathname),
+    checkout: drive.length,
+    force: true
+  }
+
+  for await (const output of Pear[Pear.IPC].dump(opts)) {
+    console.log(output)
+  }
 }
 
 pearElectron().catch(console.error)
