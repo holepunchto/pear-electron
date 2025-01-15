@@ -1,7 +1,9 @@
 #!/usr/bin/env pear run
 /* global Pear, Bare */
 const path = require('path')
-const { runtimes } = require('./package.json').pear
+const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin') ?
+  require('../pear-electron/package.json').pear : 
+  require('./package.json').pear
 const { decode } = require('hypercore-id-encoding')
 const link = require('pear-link')
 async function pearElectron () {
