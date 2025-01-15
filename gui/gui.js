@@ -123,6 +123,7 @@ class Menu {
           const view = win.getBrowserViews()[0]
           const session = view?.webContents.session || win.webContents.session
           for (const ctrl of PearGUI.ofSession(session)) {
+            ctrl.quitting = true
             await ctrl.close()
           }
         }
@@ -536,7 +537,8 @@ class App {
         autoHideMenuBar: unfilteredUiOptions.autoHideMenuBar,
         hasShadow: unfilteredUiOptions.hasShadow,
         opacity: unfilteredUiOptions.opacity,
-        transparent: unfilteredUiOptions.transparent
+        transparent: unfilteredUiOptions.transparent,
+        hideable: unfilteredUiOptions.hideable ?? unfilteredUiOptions[process.platform]?.hideable ?? false
       }
 
       const decalSession = electron.session.fromPartition('persist:pear')
@@ -672,7 +674,8 @@ function linuxViewSize ({ win, view }) {
 }
 
 function applyGuiOptions (win, opts) {
-  for (const [key, value] of groupings(win, opts)) {
+  const platformOpts = opts[process.platform] || {}
+  for (const [key, value] of groupings(win, { ...opts, ...platformOpts })) {
     applyGuiOption(win, key, value)
   }
 }
@@ -722,6 +725,7 @@ function applyGuiOption (win, key, value) {
       win.setSize(w, h, false)
       return value ? win.setBackgroundColor('#00000000') : win.setBackgroundColor('#000')
     }
+    case 'hideable': win.hideable = value
   }
 }
 
@@ -772,6 +776,7 @@ class GuiCtrl {
   unloaded = null
   #unloading = null
   appkin = null
+  quitting = false
   static height = 540
   static width = 720
   static [kCtrl] = null
@@ -925,6 +930,7 @@ class GuiCtrl {
 
     const closeListener = (e) => {
       e.preventDefault()
+      if (this.win.hideable) return
       if (this.unload) {
         this.unload({ type: 'close' })
       }
@@ -1012,8 +1018,13 @@ class Window extends GuiCtrl {
       if (this?.view?.webContents) this.view.webContents.focus()
     })
 
-    this.win.on('close', () => {
-      this.closing = true
+    this.win.on('close', (evt) => {
+      if (this.win.hideable && this.quitting === false) {
+        evt.preventDefault()
+        this.win.hide()
+      } else {
+        this.closing = true
+      }
     })
 
     this.win.on('closed', () => {
