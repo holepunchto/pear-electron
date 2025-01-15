@@ -100,6 +100,21 @@ class Menu {
         }
       },
       { type: 'separator' },
+      ...(isMac
+        ? [{
+            get label () {
+              let name = app.state?.name
+              name = name || 'app'
+              name = name[0].toUpperCase() + name.slice(1)
+              return `Hide ${name}`
+            },
+            role: 'hide'
+          },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' }
+          ]
+        : []),
       {
         get label () {
           let name = app.state?.name
@@ -965,6 +980,12 @@ class Window extends GuiCtrl {
   closing = false
   #viewInitialized = null
   #viewLoaded = null
+
+  #onactivate = () => {
+    if (this.closing || this.closed) return
+    this.show()
+  }
+
   async open (opts = {}) {
     if (this.win) return !this.closed
     this.opening = true
@@ -1039,6 +1060,8 @@ class Window extends GuiCtrl {
         this.view = null
       }
     })
+
+    electron.app.on('activate', this.#onactivate)
 
     if (this.id === null) this.id = idify(this)
     this.constructor[kMap].set(this.id, this)
@@ -1256,6 +1279,7 @@ class Window extends GuiCtrl {
 
   async close () {
     this.closing = true
+    electron.app.off('activate', this.#onactivate)
     const closed = await super.close()
     this.closing = false
     return closed

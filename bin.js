@@ -1,5 +1,11 @@
 #!/usr/bin/env pear run
-import bootstrap from './scripts/bootstrap.js'
-import './scripts/bundle.mjs'
+const inBin = global.Pear?.config.entrypoint.startsWith('/node_modules/.bin/pear-electron')
+const bootstrap = inBin ? require('../pear-electron/scripts/bootstrap') : require('./scripts/bootstrap')
+const bundle = inBin ? require('../pear-electron/scripts/bootstrap') : require('./scripts/bundle')
 
-await bootstrap.download()
+async function pearElectron () {
+  await bootstrap()
+  await bundle()
+}
+
+pearElectron().catch(console.error)
