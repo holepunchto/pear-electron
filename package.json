@@ -24,20 +24,8 @@
     "preload.js",
     "runtime.js"
   ],
-  "extractions": [
-    {
-      "link": "pear://0.123.hxse9j1waaruq7otfbixjgbb5fr3pc9n47jpqqb5p56698wghjay",
-      "paths": [
-        "by-arch/[host]"
-      ]
-    },
-    {
-      "paths": [
-        "boot.bundle"
-      ]
-    }
-  ],
   "pear": {
+    "runtimes": "pear://0.2356.pqbzjhqyonxprx8hghxexnmctw75mr91ewqw5dxe1zmntfyaddqy",
     "name": "pear-electron",
     "stage": {
       "ignore": [
@@ -84,6 +72,7 @@
     "bare-tty": "^4.0.2",
     "corestore": "^6.18.4",
     "fs": "npm:bare-node-fs@^1.0.2",
+    "hypercore-id-encoding": "^1.3.0",
     "hyperdrive": "^11.13.3",
     "hyperswarm": "^4.8.4",
     "iambus": "^1.0.3",
@@ -92,7 +81,8 @@
     "path": "npm:bare-node-path@^1.0.1",
     "pear-api": "^0.0.6",
     "pear-interface": "^1.0.3",
-    "pear-link": "^2.0.5",
+    "pear-ipc": "^3.0.3",
+    "pear-link": "^2.0.6",
     "pear-updater-bootstrap": "github:holepunchto/pear-updater-bootstrap#corestore-option",
     "rache": "^1.0.0",
     "safety-catch": "^1.0.2",
