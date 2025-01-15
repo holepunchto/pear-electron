@@ -13,6 +13,7 @@
     "prestage": "npm run archdump && npm run generate"
   },
   "files": [
+    "bin.js",
     "scripts/",
     "lib/",
     "boot.js",
