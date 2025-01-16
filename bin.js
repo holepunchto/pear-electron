@@ -1,25 +1,36 @@
 #!/usr/bin/env pear run
 /* global Pear, Bare */
 const path = require('path')
-const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin') ?
-  require('../pear-electron/package.json').pear : 
-  require('./package.json').pear
-const { decode } = require('hypercore-id-encoding')
-const link = require('pear-link')
+const IPC = require('pear-ipc')
+const { encode } = require('hypercore-id-encoding')
+const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
+const tryboot = require('pear-api/tryboot')
+const link = require('pear-link')()
+const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
+  ? require('../pear-electron/package.json').pear
+  : require('./package.json').pear
+
 async function pearElectron () {
-  const { protocol, pathname, drive } = link(runtimes)
+  const { protocol, drive } = link(runtimes)
 
   const opts = {
     id: Bare.pid,
-    link: protocol + decode(drive.key) + pathname,
-    dir: path.join(new URL(Pear.config.applink).pathname, pathname),
-    checkout: drive.length,
+    link: protocol + '//' + encode(drive.key) + '/by-arch/',
+    dir: path.join(new URL(Pear.config.applink).pathname, 'node_modules', 'pear-electron'),
+    // checkout: drive.length,
     force: true
-  }
 
-  for await (const output of Pear[Pear.IPC].dump(opts)) {
-    console.log(output)
   }
+  const ipc = new IPC.Client({
+    lock: PLATFORM_LOCK,
+    socketPath: SOCKET_PATH,
+    connectTimeout: CONNECT_TIMEOUT,
+    connect: tryboot
+  })
+  await ipc.ready()
+  const stream = ipc.dump(opts)
+  for await (const output of stream) console.log(output)
+  await ipc.close()
 }
 
 pearElectron().catch(console.error)
