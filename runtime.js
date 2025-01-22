@@ -9,37 +9,32 @@ const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
 const { isLinux, isWindows } = require('which-runtime')
-const { pathToFileURL } = require('url-file-url')
+const { pathToFileURL, fileURLToPath } = require('url-file-url')
 const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
 const { ERR_INVALID_INPUT } = require('pear-api/errors')
+const run = require('pear-api/cmd/run')
+const pear = require('pear-api/cmd')
 const EXEC = isWindows
   ? 'pear-runtime-app\\Pear Runtime.exe'
   : isLinux
     ? 'pear-runtime-app/pear-runtime'
     : 'Pear Runtime.app/Contents/MacOS/Pear Runtime'
 const BOOT = require.resolve('./boot.js')
-const shell = require('pear-api/shell')
-const run = require('pear-api/cmd-def/run')
+
 class PearElectron {
   constructor () {
     this.stderr = null
     this.ipc = Pear[Pear.constructor.IPC]
-    this.bin = ''
+    this.bin = fileURLToPath(new URL(Pear.config.applink + '/node_modules/pear-electron/by-arch/' + require.addon.host + '/bin/' + EXEC))
     Pear.teardown(() => this.ipc.close())
-    const ondisk = Pear.config.key === null
-    if (ondisk === false) {
-      this.bin = path.join(constants.PLATFORM_DIR, 'experimental', require.addon.host, 'bin', EXEC)
-    }
   }
 
   start (info) {
-    let argv = Pear.argv
-    const parsed = shell(Pear.argv)
-    const cmdIx = parsed?.indices.args.cmd ?? -1
-    if (cmdIx > -1) argv = argv.slice(cmdIx)
+    const parsed = pear(Pear.argv)
     const cmd = command('run', ...run)
-    let { args, indices, flags } = cmd.parse(argv)
+    let argv = parsed.rest.slice(parsed.indices.rest)
+    const { args, indices, flags } = cmd.parse(argv)
     let link = Pear.config.link
     const { drive, pathname } = parseLink(link)
     const entry = isWindows ? path.normalize(pathname.slice(1)) : pathname
@@ -69,14 +64,14 @@ class PearElectron {
       }
     }
 
-    if (isPath) args[indices.args.link] = 'file://' + (base.entrypoint || '/')
-    args[indices.args.link] = args[indices.args.link].replace('://', '_||') // for Windows
-    if ((isLinux || isWindows) && !flags.sandbox) args.splice(indices.args.link, 0, '--no-sandbox')
-    const detach = args.includes('--detach')
+    if (isPath) argv[indices.args.link] = 'file://' + (base.entrypoint || '/')
+    argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
+    if ((isLinux || isWindows) && !flags.sandbox) argv.splice(indices.args.link, 0, '--no-sandbox')
+    const detach = args.detach
     const mountpoint = constants.MOUNT
-    args = [BOOT, '--runtime-info', info, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...args]
+    argv = [BOOT, '--runtime-info', info, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...argv]
     const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'overlapped']
-    const sp = spawn(this.bin, args, {
+    const sp = spawn(this.bin, argv, {
       stdio,
       cwd,
       windowsHide: true,

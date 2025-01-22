@@ -1,14 +1,14 @@
-#!/usr/bin/env pear run
+#!/usr/bin/env pear run -f
 /* global Pear, Bare */
 const path = require('path')
+const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
+  ? require('../pear-electron/package.json').pear
+  : require('./package.json').pear
 const IPC = require('pear-ipc')
 const { encode } = require('hypercore-id-encoding')
 const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
 const tryboot = require('pear-api/tryboot')
 const link = require('pear-link')()
-const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
-  ? require('../pear-electron/package.json').pear
-  : require('./package.json').pear
 
 async function pearElectron () {
   const { protocol, drive } = link(runtimes)
