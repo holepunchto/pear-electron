@@ -55,8 +55,8 @@ if (process.isMainFrame) {
     warn.call(console, msg, ...args)
   }
 
-  if (Pear.config.ui.preload) {
-    gui.ipc.get(Pear.config.ui.preload).then((preload) => {
+  if (Pear.config.gui.preload) {
+    gui.ipc.get(Pear.config.gui.preload).then((preload) => {
       eval(preload) // eslint-disable-line
     }, console.error).finally(descopeGlobals)
   } else {

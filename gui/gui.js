@@ -559,7 +559,7 @@ class App {
       const decalSession = electron.session.fromPartition('persist:pear')
 
       decalSession.setUserAgent('Pear Platform')
-      const entry = state.entrypoint || '/' + state.main
+      const entry = state.entrypoint ?? '/' + (state.gui?.main ?? '')
       const identify = await this.ipc.identify({ startId: state.startId })
       const { id } = identify
 
@@ -613,7 +613,7 @@ class App {
             const { bail } = await this.starting
             if (bail) return false
             state.update({ config: await this.ipc.config() })
-            applyGuiOptions(app.win, state.config.options.ui?.options ?? {})
+            applyGuiOptions(app.win, state.config.options.gui ?? {})
             if (app.closing) return false
             return true
           } catch (err) {
@@ -806,8 +806,7 @@ class GuiCtrl {
     this.parentId = parentId
     this.closed = true
     this.id = null
-    const info = this.state.runtimeInfo
-    this.bridge = info.type === 'bridge' ? info.data : null
+    this.bridge = this.state.runtimeInfo?.bridge ?? null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
