@@ -70,7 +70,7 @@ class PearElectron {
     const detach = args.detach
     const mountpoint = constants.MOUNT
     argv = [BOOT, '--runtime-info', info, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...argv]
-    const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'overlapped']
+    const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
     const sp = spawn(this.bin, argv, {
       stdio,
       cwd,
