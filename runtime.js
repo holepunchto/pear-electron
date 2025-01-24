@@ -30,7 +30,7 @@ class PearElectron {
     Pear.teardown(() => this.ipc.close())
   }
 
-  start (info) {
+  start (opts = {}) {
     const parsed = pear(Pear.argv)
     const cmd = command('run', ...run)
     let argv = parsed.rest.slice(parsed.indices.rest)
@@ -67,21 +67,22 @@ class PearElectron {
     if (isPath) argv[indices.args.link] = 'file://' + (base.entrypoint || '/')
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
     if ((isLinux || isWindows) && !flags.sandbox) argv.splice(indices.args.link, 0, '--no-sandbox')
-    const detach = args.detach
-    const mountpoint = constants.MOUNT
-    argv = [BOOT, '--runtime-info', info, '--mountpoint', mountpoint, '--start-id=' + Pear.config.startId, ...argv]
-    const stdio = detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
+    const info = JSON.stringify({
+      checkout: constants.CHECKOUT,
+      mount: constants.MOUNT,
+      bridge: opts.bridge?.addr ?? undefined,
+    })
+    argv = [BOOT, '--runtime-info', info, '--start-id=' + Pear.config.startId, ...argv]
+    const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
     const sp = spawn(this.bin, argv, {
       stdio,
       cwd,
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
     })
-    if (detach) return null
+    if (args.detach) return null
     const pipe = sp.stdio[3]
-    sp.on('exit', (code) => {
-      this.close().finally(() => Pear.exit(code))
-    })
+    sp.on('exit', (code) => { Pear.exit(code) })
     this.stderr = tty.isTTY(2) ? new tty.WriteStream(2) : new Pipe(2)
 
     const onerr = (data) => {
