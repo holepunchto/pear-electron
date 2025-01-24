@@ -72,7 +72,7 @@ class PearElectron {
       mount: constants.MOUNT,
       bridge: opts.bridge?.addr ?? undefined,
     })
-    argv = [BOOT, '--runtime-info', info, '--start-id=' + Pear.config.startId, ...argv]
+    argv = [BOOT, '--runtime-info', info, ...argv]
     const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
     const sp = spawn(this.bin, argv, {
       stdio,
