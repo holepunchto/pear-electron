@@ -70,7 +70,7 @@ class PearElectron {
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
-      bridge: opts.bridge?.addr ?? undefined,
+      bridge: opts.bridge?.addr ?? undefined
     })
     argv = [BOOT, '--runtime-info', info, ...argv]
     const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']

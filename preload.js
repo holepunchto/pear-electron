@@ -2,14 +2,14 @@
 
 /* global Pear */
 /* eslint-env node, browser */
-if (process.isMainFrame) {
+module.exports = (state) => {
+  if (!process.isMainFrame) return
   const electron = require('electron')
   const timers = require('timers')
   const { isMac, isWindows, platform } = require('which-runtime')
   const API = require('pear-api')
   const GUI = require('./gui')
-  const state = JSON.parse(process.argv.slice(isWindows ? -2 : -1)[0])
-  const { parentWcId, env, id, ...config } = state
+  const { parentWcId, env, id, runtimeInfo, ...config } = state
   const isDecal = state.isDecal || false
   if (config.key?.type === 'Buffer') config.key = Buffer.from(config.key.data)
   const dir = config.dir
@@ -55,8 +55,8 @@ if (process.isMainFrame) {
     warn.call(console, msg, ...args)
   }
 
-  if (Pear.config.gui.preload) {
-    gui.ipc.get(Pear.config.gui.preload).then((preload) => {
+  if (runtimeInfo.preload) {
+    gui.ipc.get(runtimeInfo.preload).then((preload) => {
       eval(preload) // eslint-disable-line
     }, console.error).finally(descopeGlobals)
   } else {
@@ -302,12 +302,12 @@ if (process.isMainFrame) {
           svg {
             width: 1em;
             height: 1em;
-         }
-         #titlebar{
-           -webkit-app-region: drag;
-           width: 100%;
-           height: 50px;
-         }
+          }
+          #titlebar{
+            -webkit-app-region: drag;
+            width: 100%;
+            height: 50px;
+          }
         </style>
         <div id="titlebar">
           <div id="ctrl">
