@@ -806,7 +806,8 @@ class GuiCtrl {
     this.parentId = parentId
     this.closed = true
     this.id = null
-    this.bridge = this.state.runtimeInfo?.bridge ?? null
+    this.runtimeInfo = this.state.runtimeInfo
+    this.bridge = this.runtimeInfo?.bridge ?? null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
@@ -1019,7 +1020,7 @@ class Window extends GuiCtrl {
         preload: require.main.filename,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, isDecal: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, runtimeInfo: this.runtimeInfo, isDecal: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1118,7 +1119,7 @@ class Window extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id, decalled: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1321,7 +1322,7 @@ class View extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), parentWcId: this.win.webContents.id })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
