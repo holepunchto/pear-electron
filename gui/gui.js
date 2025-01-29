@@ -1765,6 +1765,10 @@ class PearGUI extends ReadyResource {
 
   restart (opts = {}) { return this.ipc.restart(opts) }
 
+  get (params) { return this.ipc.get(params) }
+
+  exists (params) { return this.ipc.exists(params) }
+
   warming () { return this.ipc.warming() }
 
   reports () { return this.ipc.reports() }
