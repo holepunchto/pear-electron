@@ -78,6 +78,7 @@
     "hyperswarm": "^4.8.4",
     "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
+    "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
     "path": "npm:bare-node-path@^1.0.1",
     "pear-api": "^0.0.17",

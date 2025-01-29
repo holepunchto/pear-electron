@@ -19,6 +19,7 @@ module.exports = (state) => {
 
   const gui = new GUI({ API, state })
   window.Pear = gui.api
+  const PearElectron = Pear[Pear.constructor.UI]
 
   if (isDecal === false) Object.assign(process.env, env)
 
@@ -55,9 +56,11 @@ module.exports = (state) => {
     warn.call(console, msg, ...args)
   }
 
-  if (runtimeInfo.preload) {
-    gui.ipc.get(runtimeInfo.preload).then((preload) => {
-      eval(preload) // eslint-disable-line
+  if (Pear.config.options.gui?.preload) {
+    const run = require('node-bare-module')
+    const key = Pear.config.options.gui.preload
+    Pear.get({ key, bundle: true }).then((preload) => {
+      run(preload, { mount: '/', entrypoint: key })
     }, console.error).finally(descopeGlobals)
   } else {
     descopeGlobals()
@@ -181,19 +184,19 @@ module.exports = (state) => {
       this.#demax = () => this.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #min () { await Pear.Window.self.minimize() }
+    async #min () { await PearElectron.Window.self.minimize() }
     async #max (e) {
-      if (isMac) await Pear.Window.self.fullscreen()
-      else await Pear.Window.self.maximize()
+      if (isMac) await PearElectron.Window.self.fullscreen()
+      else await PearElectron.Window.self.maximize()
       e.target.root.querySelector('#ctrl').classList.add('max')
     }
 
     async #restore (e) {
-      await Pear.Window.self.restore()
+      await PearElectron.Window.self.restore()
       e.target.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #close () { await Pear.Window.self.close() }
+    async #close () { await PearElectron.Window.self.close() }
     #win () {
       return `
     <style>

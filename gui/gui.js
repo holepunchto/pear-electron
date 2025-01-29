@@ -1516,6 +1516,8 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('checkpoint', (evt, ...args) => this.checkpoint(...args))
     electron.ipcMain.handle('versions', (evt, ...args) => this.versions(...args))
     electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
+    electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
+    electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
       const pipe = this.worker.run(link, args)
@@ -1610,9 +1612,9 @@ class PearGUI extends ReadyResource {
     win.loadURL('chrome://' + name)
   }
 
-  has (id) { return GuiCtrl[kMap].has(id) }
+  hasCtrl (id) { return GuiCtrl[kMap].has(id) }
 
-  get (id) {
+  getCtrl (id) {
     const instance = GuiCtrl[kMap].get(id)
     if (!instance) {
       return {
@@ -1666,7 +1668,7 @@ class PearGUI extends ReadyResource {
   }
 
   async parent ({ id, act, args }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) throw new Error(`Could not find parent with id "${id}" to perform action "${act}"!`)
     if (act === 'focus') return instance.focus(...args)
     if (act === 'blur') return instance.blur()
@@ -1680,69 +1682,69 @@ class PearGUI extends ReadyResource {
     if (act === 'isFullscreen') return instance.isFullscreen()
   }
 
-  open ({ id, options }) { return this.get(id).open(options) }
+  open ({ id, options }) { return this.getCtrl(id).open(options) }
 
   // guiClose because ReadyResource needs close (affects internal naming only)
-  guiClose ({ id }) { return this.get(id).close() }
+  guiClose ({ id }) { return this.getCtrl(id).close() }
 
-  show ({ id }) { return this.get(id).show() }
+  show ({ id }) { return this.getCtrl(id).show() }
 
-  hide ({ id }) { return this.get(id).hide() }
+  hide ({ id }) { return this.getCtrl(id).hide() }
 
-  minimize ({ id }) { return this.get(id).minimize() }
+  minimize ({ id }) { return this.getCtrl(id).minimize() }
 
-  maximize ({ id }) { return this.get(id).maximize() }
+  maximize ({ id }) { return this.getCtrl(id).maximize() }
 
-  setMinimizable ({ id, value }) { return this.get(id).setMinimizable(value) }
+  setMinimizable ({ id, value }) { return this.getCtrl(id).setMinimizable(value) }
 
-  setMaximizable ({ id, value }) { return this.get(id).setMaximizable(value) }
+  setMaximizable ({ id, value }) { return this.getCtrl(id).setMaximizable(value) }
 
-  fullscreen ({ id }) { return this.get(id).fullscreen() }
+  fullscreen ({ id }) { return this.getCtrl(id).fullscreen() }
 
-  restore ({ id }) { return this.get(id).restore() }
+  restore ({ id }) { return this.getCtrl(id).restore() }
 
-  focus ({ id, options }) { return this.get(id).focus(options) }
+  focus ({ id, options }) { return this.getCtrl(id).focus(options) }
 
-  blur ({ id }) { return this.get(id).blur() }
+  blur ({ id }) { return this.getCtrl(id).blur() }
 
-  dimensions ({ id, options }) { return this.get(id).dimensions(options) }
+  dimensions ({ id, options }) { return this.getCtrl(id).dimensions(options) }
 
-  isVisible ({ id }) { return this.get(id).isVisible() }
+  isVisible ({ id }) { return this.getCtrl(id).isVisible() }
 
-  isClosed ({ id }) { return (this.has(id)) ? this.get(id).isClosed() : true }
+  isClosed ({ id }) { return (this.hasCtrl(id)) ? this.getCtrl(id).isClosed() : true }
 
-  isMinimized ({ id }) { return this.get(id).isMinimized() }
+  isMinimized ({ id }) { return this.getCtrl(id).isMinimized() }
 
-  isMaximized ({ id }) { return this.get(id).isMaximized() }
+  isMaximized ({ id }) { return this.getCtrl(id).isMaximized() }
 
-  isFullscreen ({ id }) { return this.get(id).isFullscreen() }
+  isFullscreen ({ id }) { return this.getCtrl(id).isFullscreen() }
 
-  setSize ({ id, width, height }) { return this.get(id).setSize(width, height) }
+  setSize ({ id, width, height }) { return this.getCtrl(id).setSize(width, height) }
 
-  unloading ({ id }) { return this.get(id).unloading() }
+  unloading ({ id }) { return this.getCtrl(id).unloading() }
 
   async completeUnload ({ id, action }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.completeUnload(action)
   }
 
-  async attachMainView ({ id }) { this.get(id).attachMainView() }
+  async attachMainView ({ id }) { this.getCtrl(id).attachMainView() }
 
-  async detachMainView ({ id }) { this.get(id).detachMainView() }
+  async detachMainView ({ id }) { this.getCtrl(id).detachMainView() }
 
   async afterViewLoaded ({ id }) {
-    return this.get(id).afterViewLoaded()
+    return this.getCtrl(id).afterViewLoaded()
   }
 
   async setWindowButtonPosition ({ id, point }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.setWindowButtonPosition(point)
   }
 
   async setWindowButtonVisibility ({ id, visible }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.setWindowButtonVisibility(visible)
   }

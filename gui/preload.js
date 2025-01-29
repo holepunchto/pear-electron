@@ -226,6 +226,10 @@ module.exports = class PearGUI {
             return stream
           }
 
+          async get (key) {
+            return Buffer.from(await ipc.get(key)).toString('utf-8')
+          }
+
           constructor () {
             if (state.isDecal) {
               this[this.constructor.DECAL] = {
@@ -309,6 +313,8 @@ class IPC {
   checkpoint (...args) { return electron.ipcRenderer.invoke('checkpoint', ...args) }
   versions (...args) { return electron.ipcRenderer.invoke('versions', ...args) }
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
+  get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
+  exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
 
   messages (pattern) {
     electron.ipcRenderer.send('messages', pattern)
