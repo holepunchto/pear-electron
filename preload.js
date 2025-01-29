@@ -57,7 +57,7 @@ module.exports = (state) => {
   }
 
   if (Pear.config.options.gui?.preload) {
-    const run = require('node-bare-module')
+    const run = require('node-bare-bundle')
     const key = Pear.config.options.gui.preload
     Pear.get({ key, bundle: true }).then((preload) => {
       run(preload, { mount: '/', entrypoint: key })
