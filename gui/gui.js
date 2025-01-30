@@ -13,6 +13,9 @@ const constants = require('pear-api/constants')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
 
+const defaultTrayOs = { win32: true, linux: true, darwin: true }
+const defaultTrayIcon = require('./icons/tray')
+
 class Menu {
   static PEAR = 0
   static APP = 0
@@ -1278,6 +1281,7 @@ class Window extends GuiCtrl {
   }
 
   async close () {
+    if (this.win?.hideable && this.quitting === false) return this.hide()
     this.closing = true
     electron.app.off('activate', this.#onactivate)
     const closed = await super.close()
@@ -1316,13 +1320,18 @@ class View extends GuiCtrl {
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
     session.setUserAgent(ua)
 
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     this.view = new BrowserView({
       ...(options?.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1415,6 +1424,9 @@ class View extends GuiCtrl {
 class PearGUI extends ReadyResource {
   static View = View
   static Window = Window
+
+  #tray
+
   constructor ({ socketPath, connectTimeout, tryboot, state }) {
     super()
     this.state = state
@@ -1518,6 +1530,8 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
+    electron.ipcMain.handle('tray', (evt, ...args) => this.tray(...args))
+    electron.ipcMain.handle('untray', (evt, ...args) => this.untray(...args))
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
       const pipe = this.worker.run(link, args)
@@ -1774,6 +1788,23 @@ class PearGUI extends ReadyResource {
   reports () { return this.ipc.reports() }
 
   permit (params) { return this.ipc.permit(params) }
+
+  tray ({ id, opts }) {
+    const tray = new Tray({
+      opts,
+      state: this.state,
+      ctrl: this.get(id),
+      onMenuClick: (key) => this.ipc.message({ type: 'pear/gui/tray/menuClick', key })
+    })
+    this.#tray = tray
+  }
+
+  untray () {
+    if (this.#tray) {
+      this.#tray.destroy()
+      this.#tray = null
+    }
+  }
 }
 
 class Freelist {
@@ -1809,6 +1840,71 @@ class Freelist {
       yield item
     }
   }
+}
+
+class Tray {
+  constructor ({ opts, state, ctrl, onMenuClick }) {
+    this.tray = null
+
+    this.platform = process.platform
+    this.state = state
+    this.ctrl = ctrl
+    this.onMenuClick = onMenuClick
+
+    this.defaultOs = { ...defaultTrayOs, ...opts.os }
+    this.defaultIcon = defaultTrayIcon
+
+    this.#set(opts)
+  }
+
+  destroy () {
+    if (this.tray) {
+      this.tray.destroy()
+    }
+  }
+
+  async #set ({ icon, menu }) {
+    if (!this.defaultOs[this.platform]) return
+
+    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const hideable = guiOptions.hideable ?? guiOptions[this.platform]?.hideable ?? false
+    if (!hideable) {
+      console.warn('hideable config must be enabled to use tray')
+      return
+    }
+
+    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : this.defaultIcon
+    const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
+
+    this.tray = new electron.Tray(iconNativeImg)
+    this.tray.on('click', () => this.onMenuClick('click'))
+    const contextMenu = electron.Menu.buildFromTemplate(menuTemplate)
+    this.tray.setContextMenu(contextMenu)
+  }
+
+  async #getIconNativeImg (icon) {
+    try {
+      const iconUrl = `${this.state.sidecar}/${icon}`
+      const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
+      if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
+
+      const iconBuffer = Buffer.from(await res.arrayBuffer())
+      const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
+      if (iconNativeImg.isEmpty()) throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
+
+      return iconNativeImg
+    } catch (err) {
+      console.warn(err)
+      return this.defaultIcon
+    }
+  }
+}
+
+function getDarkMode () {
+  const { shouldUseHighContrastColors, shouldUseInvertedColorScheme, shouldUseDarkColors } = electron.nativeTheme
+  if (shouldUseHighContrastColors) return true
+  else if (shouldUseInvertedColorScheme) return !shouldUseDarkColors
+  return shouldUseDarkColors
 }
 
 function parseConfigNumber (value, field) {
