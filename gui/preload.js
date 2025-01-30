@@ -35,6 +35,9 @@ module.exports = class PearGUI {
 
     API = class extends API {
       static UI = Symbol('ui')
+
+      #untray
+
       constructor (ipc, state) {
         const worker = new Worker({ ipc })
         super(ipc, state, { teardown, worker })
@@ -52,6 +55,13 @@ module.exports = class PearGUI {
           },
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
+
+        this.tray.scaleFactor = state.tray?.scaleFactor
+        this.tray.darkMode = state.tray?.darkMode
+
+        ipc.messages({ type: 'pear/gui/tray/darkMode' }).on('data', (msg) => {
+          this.tray.darkMode = msg.darkMode
+        })
 
         const kGuiCtrl = Symbol('gui:ctrl')
 
@@ -259,6 +269,46 @@ module.exports = class PearGUI {
         return this[this.constructor.UI].View
       }
 
+      tray = async (opts = {}, listener) => {
+        const ipc = this[Symbol.for('pear.ipc')]
+        opts = {
+          ...opts,
+          menu: opts.menu ?? {
+            show: `Show ${state.name}`,
+            quit: 'Quit'
+          }
+        }
+        listener = listener ?? ((key) => {
+          if (key === 'click' || key === 'show') {
+            this.Window.self.show()
+            this.Window.self.focus({ steal: true })
+            return
+          }
+          if (key === 'quit') {
+            this.exit(0)
+          }
+        })
+
+        if (this.#untray) {
+          await this.#untray()
+          this.#untray = null
+        }
+
+        const sub = ipc.messages({ type: 'pear/gui/tray/menuClick' })
+        sub.on('data', (msg) => listener(msg.key, opts))
+        await ipc.tray({ id, opts })
+
+        this.#untray = async () => {
+          sub.destroy()
+          await ipc.untray({ id })
+        }
+
+        return async () => {
+          await this.#untray()
+          this.#untray = null
+        }
+      }
+
       exit = (code) => {
         process.exitCode = code
         electron.ipcRenderer.sendSync('exit', code)
@@ -315,6 +365,8 @@ class IPC {
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
+  tray (...args) { return electron.ipcRenderer.invoke('tray', ...args) }
+  untray (...args) { return electron.ipcRenderer.invoke('untray', ...args) }
 
   messages (pattern) {
     electron.ipcRenderer.send('messages', pattern)
