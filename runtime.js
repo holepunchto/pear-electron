@@ -8,11 +8,11 @@ const Pipe = require('bare-pipe')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
-const { isLinux, isWindows } = require('which-runtime')
+const { isLinux, isWindows, isMac } = require('which-runtime')
 const { pathToFileURL, fileURLToPath } = require('url-file-url')
 const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
-const { ERR_INVALID_INPUT } = require('pear-api/errors')
+const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const EXEC = isWindows
@@ -43,8 +43,7 @@ class PearElectron {
     const isFile = link.startsWith('file://')
     const isPath = isPear === false && isFile === false
 
-    let cwd = os.cwd()
-    const originalCwd = cwd
+    const cwd = os.cwd()
     let dir = cwd
     let base = null
     if (key === null) {
@@ -53,12 +52,7 @@ class PearElectron {
       } catch { /* ignore */ }
       base = project(dir, pathname, cwd)
       dir = base.dir
-      if (dir !== cwd) {
-        global.Bare.on('exit', () => os.chdir(originalCwd)) // TODO: remove this once Pear.shutdown is used to close
-        Pear.teardown(() => os.chdir(originalCwd))
-        os.chdir(dir)
-        cwd = dir
-      }
+      if (dir.length > 1 && dir.endsWith('/')) dir = dir.slice(0, -1)
       if (isPath) {
         link = pathToFileURL(path.join(dir, base.entrypoint || '/')).pathname
       }
@@ -66,20 +60,35 @@ class PearElectron {
 
     if (isPath) argv[indices.args.link] = 'file://' + (base.entrypoint || '/')
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
+
     if ((isLinux || isWindows) && !flags.sandbox) argv.splice(indices.args.link, 0, '--no-sandbox')
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
-      bridge: opts.bridge?.addr ?? undefined
+      bridge: opts.bridge?.addr ?? undefined,
+      dir
     })
-    argv = [BOOT, '--runtime-info', info, ...argv]
+    argv = [BOOT, '--rti', info, ...argv]
     const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
-    const sp = spawn(this.bin, argv, {
+    const options = {
       stdio,
       cwd,
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
-    })
+    }
+
+    const sp = spawn(this.bin, argv, options)
+    if (args.appling) {
+      const { appling } = args
+      const applingApp = isMac ? appling.split('.app')[0] + '.app' : appling
+      try {
+        fs.statSync(applingApp)
+      } catch {
+        throw ERR_INVALID_APPLING('Appling does not exist')
+      }
+      if (isMac) spawn('open', [applingApp, '--args', ...argv], options).unref()
+      else spawn(applingApp, argv, options).unref()
+    }
     if (args.detach) return null
     const pipe = sp.stdio[3]
     sp.on('exit', (code) => { Pear.exit(code) })

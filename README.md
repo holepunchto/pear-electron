@@ -19,12 +19,11 @@ import Runtime from 'pear-electron'
 import Bridge from 'pear-bridge'
 
 const runtime = new Runtime()
-await runtime.ready()
 
 const bridge = new Bridge()
 await bridge.ready()
 
-const pipe = runtime.start(bridge.info())
+const pipe = runtime.start({ bridge })
 Pear.teardown(() => pipe.end())
 ```
 
@@ -40,11 +39,13 @@ Create the runtime instances with `new Runtime()`.
 
 Prepare the runtime, runtime binaries for the runtime version may be bootstrapped peer-to-peer at this point. This only runs once per version and any prior bootstraps can be reused for subsequent versions where state hasn't changed. In a production scenario any bootstrapping would be performed in advance by the application distributable.
 
-### `runtime.start(info <String>)`
+### `runtime.start(opts)`
 
-Opens the UI. The `info` string is passed as a `--runtime-info` flag to the UI executable. The `pear-api/state` integration library then includes this flag value as `state.runtimeInfo` which can then be used by `pear-electron`. The `info` string by convention is a JSON string, with the shape, `{ type, data }`.
+Opens the UI. 
 
-In the usage example, `bridge.info()` is passed to `runtime.start()`, `pear-electron` later uses this to determine the bridge localhost address to load with electron.
+#### Options
+
+* `bridge` - An instance of `pear-bridge`.
 
 ## User-Interface API
 
