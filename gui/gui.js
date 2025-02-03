@@ -809,8 +809,8 @@ class GuiCtrl {
     this.parentId = parentId
     this.closed = true
     this.id = null
-    this.runtimeInfo = this.state.runtimeInfo
-    this.bridge = this.runtimeInfo?.bridge ?? null
+    this.rti = this.state.rti
+    this.bridge = this.rti?.bridge ?? null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
@@ -1023,7 +1023,7 @@ class Window extends GuiCtrl {
         preload: require.main.filename,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, runtimeInfo: this.runtimeInfo, isDecal: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1122,7 +1122,7 @@ class Window extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1137,6 +1137,7 @@ class Window extends GuiCtrl {
 
     if (options.afterNativeViewCreated) options.afterNativeViewCreated(this)
     this.view.setBounds({ x: 0, y: 0, width, height })
+
     const viewLoading = this.view.webContents.loadURL(this.entry)
     viewInitialized()
     this.view.webContents.once('did-finish-load', () => { viewLoaded() })
@@ -1331,7 +1332,7 @@ class View extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), runtimeInfo: this.runtimeInfo, parentWcId: this.win.webContents.id, tray })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1601,6 +1602,7 @@ class PearGUI extends ReadyResource {
   }
 
   static async ctrl (type, entry, { state, parentId = 0, ua, sessname = null, appkin }, options = {}, openOptions = {}) {
+    entry = entry || '/'
     ;[entry] = entry.split('+')
     if (entry.slice(0, 2) === './') entry = entry.slice(1)
     if (entry[0] !== '/') entry = `/~${entry}`

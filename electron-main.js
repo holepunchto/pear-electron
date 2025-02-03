@@ -20,6 +20,7 @@ run.running?.catch(console.error)
 
 async function electronMain (cmd) {
   const state = new State({
+    dir: global.Pear.constructor.RTI.dir,
     link: cmd.args.link.replace('_||', '://'), // for Windows
     flags: cmd.flags,
     args: cmd.rest
