@@ -1530,8 +1530,21 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
-    electron.ipcMain.handle('tray', (evt, ...args) => this.tray(...args))
-    electron.ipcMain.handle('untray', (evt, ...args) => this.untray(...args))
+
+    electron.ipcMain.on('tray', (evt, opts) => {
+      const tray = new Tray({
+        opts,
+        state: this.state,
+        onMenuClick: (data) => evt.reply('tray', data)
+      })
+      this.#tray = tray
+    })
+    electron.ipcMain.handle('untray', async () => {
+      if (this.#tray) {
+        await this.#tray.close()
+        this.#tray = null
+      }
+    })
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
       const pipe = this.worker.run(link, args)
@@ -1788,23 +1801,6 @@ class PearGUI extends ReadyResource {
   reports () { return this.ipc.reports() }
 
   permit (params) { return this.ipc.permit(params) }
-
-  tray ({ id, opts }) {
-    const tray = new Tray({
-      opts,
-      state: this.state,
-      ctrl: this.get(id),
-      onMenuClick: (key) => this.ipc.message({ type: 'pear/gui/tray/menuClick', key })
-    })
-    this.#tray = tray
-  }
-
-  untray () {
-    if (this.#tray) {
-      this.#tray.destroy()
-      this.#tray = null
-    }
-  }
 }
 
 class Freelist {
@@ -1842,38 +1838,41 @@ class Freelist {
   }
 }
 
-class Tray {
-  constructor ({ opts, state, ctrl, onMenuClick }) {
+class Tray extends ReadyResource {
+  constructor ({ opts, state, onMenuClick }) {
+    super()
     this.tray = null
 
-    this.platform = process.platform
+    this.opts = opts
     this.state = state
-    this.ctrl = ctrl
     this.onMenuClick = onMenuClick
 
-    this.defaultOs = { ...defaultTrayOs, ...opts.os }
-    this.defaultIcon = defaultTrayIcon
-
-    this.#set(opts)
+    this.ready()
   }
 
-  destroy () {
+  _close () {
     if (this.tray) {
       this.tray.destroy()
     }
   }
 
-  async #set ({ icon, menu }) {
-    if (!this.defaultOs[this.platform]) return
+  async _open () {
+    const { icon, menu, os } = this.opts
 
-    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
-    const hideable = guiOptions.hideable ?? guiOptions[this.platform]?.hideable ?? false
-    if (!hideable) {
-      console.warn('hideable config must be enabled to use tray')
+    const osEnabled = { ...defaultTrayOs, ...os }
+    if (!osEnabled[process.platform]) {
+      console.warn(`Tray is not enabled on platform ${process.platform}`)
       return
     }
 
-    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : this.defaultIcon
+    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const hideable = guiOptions.hideable ?? guiOptions[process.platform]?.hideable ?? false
+    if (!hideable) {
+      console.warn('hideable must be enabled to use tray')
+      return
+    }
+
+    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : defaultTrayIcon
     const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
 
     this.tray = new electron.Tray(iconNativeImg)
@@ -1895,7 +1894,7 @@ class Tray {
       return iconNativeImg
     } catch (err) {
       console.warn(err)
-      return this.defaultIcon
+      return defaultTrayIcon
     }
   }
 }
