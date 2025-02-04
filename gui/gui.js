@@ -1546,6 +1546,11 @@ class PearGUI extends ReadyResource {
         this.#tray = null
       }
     })
+    electron.ipcMain.on('tray/darkMode', (evt) => {
+      electron.nativeTheme.on('updated', () => {
+        evt.reply('tray/darkMode', getDarkMode())
+      })
+    })
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
       const pipe = this.worker.run(link, args)
@@ -1583,12 +1588,6 @@ class PearGUI extends ReadyResource {
         return
       }
       pipe.write(data)
-    })
-
-    electron.ipcMain.on('tray/darkMode', (evt) => {
-      electron.nativeTheme.on('updated', () => {
-        evt.reply('tray/darkMode', getDarkMode())
-      })
     })
   }
 
