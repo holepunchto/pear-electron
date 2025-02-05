@@ -1,4 +1,4 @@
-#!/usr/bin/env pear run -f
+#!/usr/bin/env -S pear run -f
 /* global Pear, Bare */
 const path = require('path')
 const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
