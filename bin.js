@@ -1,5 +1,5 @@
 #!/usr/bin/env pear
-/* global Pear, Bare */
+/* global Pear */
 
 if (!global.Pear && global.process) {
   const { status } = require('child_process').spawnSync('pear', process.argv.slice(1), { stdio: 'inherit' })
@@ -20,7 +20,7 @@ async function pearElectron () {
   const { protocol, drive } = link(runtimes)
 
   const opts = {
-    id: Bare.pid,
+    id: Pear.pid,
     link: protocol + '//' + encode(drive.key) + '/by-arch/',
     dir: path.join(new URL(Pear.config.applink).pathname, 'node_modules', 'pear-electron'),
     // checkout: drive.length,
