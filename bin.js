@@ -1,7 +1,13 @@
-#!/usr/bin/env -S pear run -f
+#!/usr/bin/env pear
 /* global Pear, Bare */
+
+if (!global.Pear && global.process) {
+  const { status } = require('child_process').spawnSync('pear', process.argv.slice(1), { stdio: 'inherit' })
+  process.exit(status)
+}
+
 const path = require('path')
-const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
+const { runtimes } = global.Pear.config.entrypoint.startsWith('/node_modules/.bin/')
   ? require('../pear-electron/package.json').pear
   : require('./package.json').pear
 const IPC = require('pear-ipc')
