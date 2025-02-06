@@ -14,8 +14,7 @@ const { encode } = require('hypercore-id-encoding')
 const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
 const tryboot = require('pear-api/tryboot')
 const link = require('pear-link')()
-const byteSize = require('tiny-byte-size')
-const { outputter, ansi } = require('pear-api/terminal')
+const { outputter, ansi, byteSize } = require('pear-api/terminal')
 
 const output = outputter('dump', {
   dumping: ({ link, dir, list }) => list > -1 ? '' : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,

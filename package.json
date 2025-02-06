@@ -89,7 +89,6 @@
     "safety-catch": "^1.0.2",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
-    "tiny-byte-size": "^1.1.0",
     "url-file-url": "^1.0.4",
     "which-runtime": "^1.2.1"
   },
