@@ -25,7 +25,7 @@ const output = outputter('dump', {
     const ul = upload.total + upload.speed === 0 ? '' : `[⬆ ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
     return {
       output: 'status',
-      message: `${dl}${ul}[ Peers: ${peers} ]`
+      message: `[ Peers: ${peers} ] ${dl}${ul}`
     }
   },
   error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`
