@@ -5,8 +5,7 @@
   "main": "index.js",
   "bin": "bin.js",
   "scripts": {
-    "archdump": "node scripts/bootstrap.js --archdump",
-    "bootstrap": "node scripts/bootstrap.js",
+    "bootstrap": "pear run bin.js",
     "decal": "node scripts/decal.js",
     "bundle": "node scripts/bundle.js",
     "generate": "npm run decal && npm run bundle",
@@ -81,7 +80,7 @@
     "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
     "path": "npm:bare-node-path@^1.0.1",
-    "pear-api": "^1.1.1",
+    "pear-api": "^1.2.2",
     "pear-interface": "^1.0.3",
     "pear-ipc": "^3.2.0",
     "pear-link": "^2.0.6",
