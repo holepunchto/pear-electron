@@ -22,11 +22,11 @@ const output = outputter('dump', {
   file: ({ key, value }) => `${key}${value ? '\n' + value : ''}`,
   complete: () => '\x1b[1A\nBootstrap complete\n',
   stats ({ upload, download, peers }) {
-    const dl = download.total + download.speed === 0 ? '' : `[⬇ ${byteSize(download.total)} - ${byteSize(download.speed)}/s ]`
-    const ul = upload.total + upload.speed === 0 ? '' : `[⬆ ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ]`
+    const dl = download.total + download.speed === 0 ? '' : `[⬇ ${byteSize(download.total)} - ${byteSize(download.speed)}/s ] `
+    const ul = upload.total + upload.speed === 0 ? '' : `[⬆ ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
     return {
       output: 'status',
-      message: `${dl} ${ul} [ Peers: ${peers} ]`
+      message: `${dl}${ul}[ Peers: ${peers} ]`
     }
   },
   error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`
