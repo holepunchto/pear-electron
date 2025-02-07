@@ -1102,8 +1102,16 @@ class Window extends GuiCtrl {
         protocol === url.protocol && (hostname === '*' || hostname === url.hostname) && (port === '' || port === url.port))
       respond({ cancel: isAllowed === false })
     }
+
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const bridgeURL = new URL(this.bridge)
+      const requestURL = new URL(details.url)
+      if (requestURL.host === bridgeURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      }
       next({ requestHeaders: details.requestHeaders })
     }
 
