@@ -808,6 +808,7 @@ class GuiCtrl {
     this.id = null
     this.rti = this.state.rti
     this.bridge = this.rti?.bridge ?? null
+    this.bridgeURL = this.bridge ? new URL(this.bridge) : null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
@@ -1102,8 +1103,15 @@ class Window extends GuiCtrl {
         protocol === url.protocol && (hostname === '*' || hostname === url.hostname) && (port === '' || port === url.port))
       respond({ cancel: isAllowed === false })
     }
+
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const requestURL = new URL(details.url)
+      if (requestURL.host === this.bridgeURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      }
       next({ requestHeaders: details.requestHeaders })
     }
 
