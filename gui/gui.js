@@ -1565,6 +1565,15 @@ class PearGUI extends ReadyResource {
       }
       pipe.write(data)
     })
+
+    electron.nativeTheme.on('updated', () => {
+      const message = { type: 'pear/gui/tray/darkMode', darkMode: getDarkMode() }
+      if (this.ipc.opened) {
+        this.message(message)
+      } else {
+        this.ipc.ready().then(() => this.message(message), noop)
+      }
+    })
   }
 
   async app () {
