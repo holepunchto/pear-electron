@@ -9,7 +9,7 @@ const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
 const { isLinux, isWindows, isMac } = require('which-runtime')
-const { pathToFileURL, fileURLToPath } = require('url-file-url')
+const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
 const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
@@ -21,31 +21,33 @@ const EXEC = isWindows
   : isLinux
     ? 'pear-runtime-app/pear-runtime'
     : 'Pear Runtime.app/Contents/MacOS/Pear Runtime'
-const BOOT = require.resolve('./boot.bundle')
+
 class PearElectron {
   constructor () {
     this.stderr = null
     this.ipc = Pear[Pear.constructor.IPC]
     this.arch = '/node_modules/pear-electron/by-arch/' + require.addon.host
     this.prebuilds = '/node_modules/pear-electron/prebuilds/' + require.addon.host
-    this.boot =  '/node_modules/pear-electron/boot.bundle'
+    this.boot = '/node_modules/pear-electron/boot.bundle'
     this.applink = new URL(Pear.config.applink)
     Pear.teardown(() => this.ipc.close())
   }
 
   async start (opts = {}) {
     if (this.applink.protocol === 'pear:') {
-      const dir = path.join(Pear.config.storage, 'pear-runtimes')
+      const base = path.join(Pear.config.storage, 'pear-runtimes')
       await bootstrap({
         id: Pear.id,
         link: Pear.config.applink,
         only: [this.arch, this.prebuilds, this.boot],
-        dir,
+        dir: base,
         force: true
       }, {
         dumping: ({ list }) => list > -1 ? '' : '\nSyncing UI Runtime\n'
       })
-      this.bin = path.join(dir, this.arch, 'bin', EXEC)
+      this.bin = path.join(base, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
+    } else {
+      this.bin = path.join(this.applink.pathname, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
     }
     const parsed = pear(Pear.argv)
     const cmd = command('run', ...run)
@@ -85,7 +87,7 @@ class PearElectron {
       dir
     })
 
-    argv = [BOOT, '--rti', info, ...argv]
+    argv = [require.resolve('./boot.bundle'), '--rti', info, ...argv]
     const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
     const options = {
       stdio,
@@ -93,6 +95,7 @@ class PearElectron {
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
     }
+
     const sp = spawn(this.bin, argv, options)
     if (args.appling) {
       const { appling } = args
