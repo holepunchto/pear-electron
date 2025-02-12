@@ -8,46 +8,24 @@
     "bootstrap": "pear run bin.js",
     "decal": "node scripts/decal.js",
     "bundle": "node scripts/bundle.js",
-    "generate": "npm run decal && npm run bundle",
-    "prestage": "npm run archdump && npm run generate"
+    "prepare": "npm run decal && npm run bundle",
+    "prestage": "npm run bootstrap && npm run prepare"
   },
   "files": [
     "bin.js",
-    "scripts/",
-    "lib/",
-    "boot.js",
-    "decal.html",
-    "electron-main.js",
-    "fonts.css",
-    "gui/",
+    "boot.bundle",
+    "bootstrap.js",
     "index.js",
-    "preload.js",
     "runtime.js"
   ],
   "pear": {
-    "runtimes": "pear://0.2356.pqbzjhqyonxprx8hghxexnmctw75mr91ewqw5dxe1zmntfyaddqy",
+    "runtimes": "pear://0.3043.sfuy4mdst5rqib69z5juz1injhgtmy5g8gwi7hmzw5g8xpjthcry",
     "name": "pear-electron",
     "stage": {
-      "ignore": [
-        ".git",
-        ".gitignore",
-        ".github",
-        ".DS_Store",
-        ".vscode",
-        ".npmrc",
-        "scripts",
-        "package-lock.json",
-        "node_modules",
-        "node_modules",
-        "gui",
-        "boot.js",
-        "decal.html",
-        "electron-main.js",
-        "fonts.css",
-        "index.js",
-        "preload.js",
-        "README.md",
-        "runtime.js"
+      "skipWarmup": "true",
+      "only": [
+        "by-arch",
+        "prebuilds"
       ]
     }
   },
@@ -71,7 +49,6 @@
     "bare-subprocess": "^4.0.3",
     "bare-tty": "^4.0.2",
     "corestore": "^6.18.4",
-    "fs": "npm:bare-node-fs@^1.0.2",
     "hypercore-id-encoding": "^1.3.0",
     "hyperdrive": "^11.13.3",
     "hyperswarm": "^4.8.4",
@@ -79,8 +56,7 @@
     "localdrive": "^1.12.1",
     "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
-    "path": "npm:bare-node-path@^1.0.1",
-    "pear-api": "^1.2.2",
+    "pear-api": "^1.3.9",
     "pear-interface": "^1.0.3",
     "pear-ipc": "^3.2.0",
     "pear-link": "^2.0.6",
@@ -92,6 +68,10 @@
     "url-file-url": "^1.0.4",
     "which-runtime": "^1.2.1"
   },
+  "bundleDependencies": [
+    "hypercore-id-encoding",
+    "bare-path"
+  ],
   "devDependencies": {
     "@fontsource/open-sans": "^5.1.0",
     "graceful-goodbye": "^1.3.2",
