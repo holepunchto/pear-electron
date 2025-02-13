@@ -20,7 +20,7 @@ async function bundle () {
 
   for (const [key, source] of Object.entries(sources)) {
     cache[key] = true
-    
+
     b.write(key, source)
   }
 
