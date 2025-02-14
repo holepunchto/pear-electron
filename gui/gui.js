@@ -13,6 +13,9 @@ const constants = require('pear-api/constants')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
 
+const defaultTrayOs = { win32: true, linux: true, darwin: true }
+const defaultTrayIcon = require('./icons/tray')
+
 class Menu {
   static PEAR = 0
   static APP = 0
@@ -1287,11 +1290,17 @@ class Window extends GuiCtrl {
   }
 
   async close () {
+    if (this.win?.hideable && this.quitting === false) return this.hide()
     this.closing = true
     electron.app.off('activate', this.#onactivate)
     const closed = await super.close()
     this.closing = false
     return closed
+  }
+
+  async quit () {
+    this.quitting = true
+    return this.close()
   }
 }
 
@@ -1325,13 +1334,18 @@ class View extends GuiCtrl {
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
     session.setUserAgent(ua)
 
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     this.view = new BrowserView({
       ...(options?.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1424,6 +1438,9 @@ class View extends GuiCtrl {
 class PearGUI extends ReadyResource {
   static View = View
   static Window = Window
+
+  #tray
+
   constructor ({ socketPath, connectTimeout, tryboot, state }) {
     super()
     this.state = state
@@ -1493,6 +1510,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('parent', (evt, ...args) => this.parent(...args))
     electron.ipcMain.handle('open', (evt, ...args) => this.open(...args))
     electron.ipcMain.handle('close', (evt, ...args) => this.guiClose(...args))
+    electron.ipcMain.handle('quit', (evt, ...args) => this.quit(...args))
     electron.ipcMain.handle('show', (evt, ...args) => this.show(...args))
     electron.ipcMain.handle('hide', (evt, ...args) => this.hide(...args))
     electron.ipcMain.handle('minimize', (evt, ...args) => this.minimize(...args))
@@ -1527,6 +1545,26 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
+
+    electron.ipcMain.on('tray', (evt, opts) => {
+      const tray = new Tray({
+        opts,
+        state: this.state,
+        onMenuClick: (data) => evt.reply('tray', data)
+      })
+      this.#tray = tray
+    })
+    electron.ipcMain.handle('untray', async () => {
+      if (this.#tray) {
+        await this.#tray.close()
+        this.#tray = null
+      }
+    })
+    electron.ipcMain.on('tray/darkMode', (evt) => {
+      electron.nativeTheme.on('updated', () => {
+        evt.reply('tray/darkMode', getDarkMode())
+      })
+    })
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
       const pipe = this.worker.run(link, args)
@@ -1697,6 +1735,8 @@ class PearGUI extends ReadyResource {
   // guiClose because ReadyResource needs close (affects internal naming only)
   guiClose ({ id }) { return this.getCtrl(id).close() }
 
+  quit ({ id }) { return this.get(id).quit() }
+
   show ({ id }) { return this.getCtrl(id).show() }
 
   hide ({ id }) { return this.getCtrl(id).hide() }
@@ -1819,6 +1859,74 @@ class Freelist {
       yield item
     }
   }
+}
+
+class Tray extends ReadyResource {
+  constructor ({ opts, state, onMenuClick }) {
+    super()
+    this.tray = null
+
+    this.opts = opts
+    this.state = state
+    this.onMenuClick = onMenuClick
+
+    this.ready()
+  }
+
+  _close () {
+    if (this.tray) {
+      this.tray.destroy()
+    }
+  }
+
+  async _open () {
+    const { icon, menu, os } = this.opts
+
+    const osEnabled = { ...defaultTrayOs, ...os }
+    if (!osEnabled[process.platform]) {
+      console.warn(`Tray is not enabled on platform ${process.platform}`)
+      return
+    }
+
+    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const hideable = guiOptions.hideable ?? guiOptions[process.platform]?.hideable ?? false
+    if (!hideable) {
+      console.warn('hideable must be enabled to use tray')
+      return
+    }
+
+    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : defaultTrayIcon
+    const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
+
+    this.tray = new electron.Tray(iconNativeImg)
+    this.tray.on('click', () => this.onMenuClick('click'))
+    const contextMenu = electron.Menu.buildFromTemplate(menuTemplate)
+    this.tray.setContextMenu(contextMenu)
+  }
+
+  async #getIconNativeImg (icon) {
+    try {
+      const iconUrl = `${this.state.sidecar}/${icon}`
+      const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
+      if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
+
+      const iconBuffer = Buffer.from(await res.arrayBuffer())
+      const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
+      if (iconNativeImg.isEmpty()) throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
+
+      return iconNativeImg
+    } catch (err) {
+      console.warn(err)
+      return defaultTrayIcon
+    }
+  }
+}
+
+function getDarkMode () {
+  const { shouldUseHighContrastColors, shouldUseInvertedColorScheme, shouldUseDarkColors } = electron.nativeTheme
+  if (shouldUseHighContrastColors) return true
+  else if (shouldUseInvertedColorScheme) return !shouldUseDarkColors
+  return shouldUseDarkColors
 }
 
 function parseConfigNumber (value, field) {
