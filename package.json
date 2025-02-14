@@ -1,6 +1,6 @@
 {
   "name": "pear-electron",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
   "bin": "bin.js",
