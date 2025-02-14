@@ -12,6 +12,7 @@ const { isLinux, isWindows, isMac } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
+const Logger = require('pear-api/logger')
 const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
@@ -30,6 +31,7 @@ class PearElectron {
     this.prebuilds = '/node_modules/pear-electron/prebuilds/' + require.addon.host
     this.boot = '/node_modules/pear-electron/boot.bundle'
     this.applink = new URL(Pear.config.applink)
+    this.LOG = new Logger(Logger.settings.log ? { labels: ['runtime-bootstrap'] } : {})
     Pear.teardown(() => this.ipc.close())
   }
 
@@ -41,9 +43,8 @@ class PearElectron {
         link: Pear.config.applink,
         only: [this.arch, this.prebuilds, this.boot],
         dir: base,
-        force: true
-      }, {
-        dumping: ({ list }) => list > -1 ? '' : '\nSyncing UI Runtime\n'
+        force: true,
+        log: (msg) => this.LOG.info('runtime-bootstrap', msg)
       })
       this.bin = path.join(base, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
     } else {

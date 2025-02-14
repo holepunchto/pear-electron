@@ -4,7 +4,7 @@ const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/consta
 const tryboot = require('pear-api/tryboot')
 const { outputter, ansi, byteSize } = require('pear-api/terminal')
 
-async function bootstrap (opts, outputs = {}) {
+async function bootstrap (opts) {
   const output = outputter('dump', {
     dumping: ({ link, dir, list }) => list > -1 ? '' : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,
     file: ({ key, value }) => `${key}${value ? '\n' + value : ''}`,
@@ -17,8 +17,7 @@ async function bootstrap (opts, outputs = {}) {
         message: `[ Peers: ${peers} ] ${dl}${ul}`
       }
     },
-    error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`,
-    ...outputs
+    error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`
   })
   const ipc = new IPC.Client({
     lock: PLATFORM_LOCK,
@@ -27,7 +26,7 @@ async function bootstrap (opts, outputs = {}) {
     connect: tryboot
   })
   await ipc.ready()
-  await output(false, ipc.dump(opts))
+  await output({ json: false, log: opts.log }, ipc.dump(opts))
   await ipc.close()
 }
 
