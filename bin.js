@@ -1,36 +1,30 @@
-#!/usr/bin/env pear run -f
-/* global Pear, Bare */
-const path = require('path')
-const { runtimes } = Pear.config.entrypoint.startsWith('/node_modules/.bin')
-  ? require('../pear-electron/package.json').pear
-  : require('./package.json').pear
-const IPC = require('pear-ipc')
+#!/usr/bin/env pear
+if (!global.Pear && global.process) {
+  const { status } = require('child_process').spawnSync('pear', process.argv.slice(1), { stdio: 'inherit', shell: true })
+  process.exit(status)
+}
+
+const path = require('bare-path')
+const installed = global.Pear.config.entrypoint.startsWith('/node_modules/.bin/')
+const pkg = installed ? require('../pear-electron/package.json') : require('./package.json')
+const { runtimes } = pkg.pear
 const { encode } = require('hypercore-id-encoding')
-const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
-const tryboot = require('pear-api/tryboot')
 const link = require('pear-link')()
+const bootstrap = installed ? require('../pear-electron/bootstrap') : require('./bootstrap')
 
 async function pearElectron () {
   const { protocol, drive } = link(runtimes)
-
+  const root = new URL(global.Pear.config.applink).pathname
   const opts = {
-    id: Bare.pid,
-    link: protocol + '//' + encode(drive.key) + '/by-arch/',
-    dir: path.join(new URL(Pear.config.applink).pathname, 'node_modules', 'pear-electron'),
+    id: global.Pear.pid,
+    dir: installed ? path.join(root, 'node_modules', 'pear-electron') : root,
+    link: protocol + '//' + encode(drive.key),
+    only: installed ? ['/by-arch', '/prebuilds'] : ['/by-arch'],
     // checkout: drive.length,
     force: true
 
   }
-  const ipc = new IPC.Client({
-    lock: PLATFORM_LOCK,
-    socketPath: SOCKET_PATH,
-    connectTimeout: CONNECT_TIMEOUT,
-    connect: tryboot
-  })
-  await ipc.ready()
-  const stream = ipc.dump(opts)
-  for await (const output of stream) console.log(output)
-  await ipc.close()
+  await bootstrap(opts)
 }
 
 pearElectron().catch(console.error)

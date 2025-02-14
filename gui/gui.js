@@ -528,35 +528,35 @@ class App {
 
       const { dev, devtools, stage } = state
       const show = (dev || !stage)
-      const unfilteredUiOptions = state.options.ui?.options ?? {}
+      const prefiltered = state.options?.gui ?? {}
 
       const guiOptions = {
-        autoresize: unfilteredUiOptions.autoresize,
-        backgroundColor: unfilteredUiOptions.backgroundColor,
-        decal: unfilteredUiOptions.decal,
-        width: parseConfigNumber(unfilteredUiOptions.width, 'gui.width'),
-        height: parseConfigNumber(unfilteredUiOptions.height, 'gui.height'),
-        x: parseConfigNumber(unfilteredUiOptions.x, 'gui.x'),
-        y: parseConfigNumber(unfilteredUiOptions.y, 'gui.y'),
-        center: unfilteredUiOptions.center,
-        minWidth: parseConfigNumber(unfilteredUiOptions.minWidth, 'gui.minWidth'),
-        minHeight: parseConfigNumber(unfilteredUiOptions.minHeight, 'gui.minHeight'),
-        maxWidth: parseConfigNumber(unfilteredUiOptions.maxWidth, 'gui.maxWidth'),
-        maxHeight: parseConfigNumber(unfilteredUiOptions.maxHeight, 'gui.maxHeight'),
-        resizable: unfilteredUiOptions.resizable,
-        movable: unfilteredUiOptions.movable,
-        minimizable: unfilteredUiOptions.minimizable,
-        maximizable: unfilteredUiOptions.maximizable,
-        closable: unfilteredUiOptions.closable,
-        focusable: unfilteredUiOptions.focusable,
-        alwaysOnTop: unfilteredUiOptions.alwaysOnTop,
-        fullscreen: unfilteredUiOptions.fullscreen,
-        kiosk: unfilteredUiOptions.kiosk,
-        autoHideMenuBar: unfilteredUiOptions.autoHideMenuBar,
-        hasShadow: unfilteredUiOptions.hasShadow,
-        opacity: unfilteredUiOptions.opacity,
-        transparent: unfilteredUiOptions.transparent,
-        hideable: unfilteredUiOptions.hideable ?? unfilteredUiOptions[process.platform]?.hideable ?? false
+        autoresize: prefiltered.autoresize,
+        backgroundColor: prefiltered.backgroundColor,
+        decal: prefiltered.decal,
+        width: parseConfigNumber(prefiltered.width, 'gui.width'),
+        height: parseConfigNumber(prefiltered.height, 'gui.height'),
+        x: parseConfigNumber(prefiltered.x, 'gui.x'),
+        y: parseConfigNumber(prefiltered.y, 'gui.y'),
+        center: prefiltered.center,
+        minWidth: parseConfigNumber(prefiltered.minWidth, 'gui.minWidth'),
+        minHeight: parseConfigNumber(prefiltered.minHeight, 'gui.minHeight'),
+        maxWidth: parseConfigNumber(prefiltered.maxWidth, 'gui.maxWidth'),
+        maxHeight: parseConfigNumber(prefiltered.maxHeight, 'gui.maxHeight'),
+        resizable: prefiltered.resizable,
+        movable: prefiltered.movable,
+        minimizable: prefiltered.minimizable,
+        maximizable: prefiltered.maximizable,
+        closable: prefiltered.closable,
+        focusable: prefiltered.focusable,
+        alwaysOnTop: prefiltered.alwaysOnTop,
+        fullscreen: prefiltered.fullscreen,
+        kiosk: prefiltered.kiosk,
+        autoHideMenuBar: prefiltered.autoHideMenuBar,
+        hasShadow: prefiltered.hasShadow,
+        opacity: prefiltered.opacity,
+        transparent: prefiltered.transparent,
+        hideable: prefiltered.hideable ?? prefiltered[process.platform]?.hideable ?? false
       }
 
       const decalSession = electron.session.fromPartition('persist:pear')
@@ -811,6 +811,7 @@ class GuiCtrl {
     this.id = null
     this.rti = this.state.rti
     this.bridge = this.rti?.bridge ?? null
+    this.bridgeURL = this.bridge ? new URL(this.bridge) : null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
@@ -1015,7 +1016,7 @@ class Window extends GuiCtrl {
       height,
       width,
       frame: false,
-      ...(isMac && this.state.options.platform?.__legacyTitlebar ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 12, y: 16 }, titleBarOverlay: true } : (isMac ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 0, y: 0 }, titleBarOverlay: true } : {})),
+      ...(isMac && { titleBarStyle: 'hidden', trafficLightPosition: { x: 0, y: 0 }, titleBarOverlay: true }),
       ...(isMac && this.state?.alias === 'keet' && this.state?.appling?.path ? { icon: path.join(path.dirname(this.state.appling.path), 'resources', 'app', 'icon.ico') } : {}),
       show,
       backgroundColor: options.backgroundColor || DEF_BG,
@@ -1105,8 +1106,15 @@ class Window extends GuiCtrl {
         protocol === url.protocol && (hostname === '*' || hostname === url.hostname) && (port === '' || port === url.port))
       respond({ cancel: isAllowed === false })
     }
+
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const requestURL = new URL(details.url)
+      if (requestURL.host === this.bridgeURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      }
       next({ requestHeaders: details.requestHeaders })
     }
 

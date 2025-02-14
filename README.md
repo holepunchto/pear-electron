@@ -800,7 +800,7 @@ The `pear-electron` library is a Pear User Interface Runtime Library, as such `p
 * When loaded into a UI,  `pear-electron` is the UI API
 * When loaded into non-UI (i.e app entrypoint js file), `pear-electron` is the runtime initializor
   * When there is no runtime binary on the system, `pear-electron` performs bootstrapping of the UI runtime executable, into `<pear-dir>/interfaces/pear-electron/<semver>`
-* The `pear-electron` repo is also self-bootstrapping and generates the runtime drive (with `by-arch`, `prebuilds` and `boot.bundle`), which can then be staged with Pear. The pear link for the staged `pear-electron` contents in `pear-electron` `package.json` `pear.ui.runtime` field is then set, with fork and length included. This locks runtime builds for a given semver to a specific runtime drive checkout.
+* The `pear-electron` repo is also self-bootstrapping and generates the runtime drive (with `by-arch`, `prebuilds` and `boot.bundle`), which can then be staged with Pear. The pear link for the staged `pear-electron` contents in `pear-electron` `package.json` `pear.gui.runtime` field is then set, with fork and length included. This locks runtime builds for a given semver to a specific runtime drive checkout.
   * This is what `pear-electron` bootstraps from during `runtime.ready()`.
 
 

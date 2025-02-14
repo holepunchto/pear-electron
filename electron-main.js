@@ -25,7 +25,6 @@ async function electronMain (cmd) {
     flags: cmd.flags,
     args: cmd.rest
   })
-  State.storage(state)
 
   if (state.error) {
     console.error(state.error)
