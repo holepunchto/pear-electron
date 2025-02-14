@@ -25,8 +25,9 @@ async function bootstrap (opts) {
     connectTimeout: CONNECT_TIMEOUT,
     connect: tryboot
   })
+  const { json = false, log, ...options } = opts
   await ipc.ready()
-  await output({ json: false, log: opts.log }, ipc.dump(opts))
+  await output({ json, log }, ipc.dump(options))
   await ipc.close()
 }
 
