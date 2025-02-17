@@ -31,12 +31,12 @@ class PearElectron {
     this.prebuilds = '/node_modules/pear-electron/prebuilds/' + require.addon.host
     this.boot = '/node_modules/pear-electron/boot.bundle'
     this.applink = new URL(Pear.config.applink)
-    this.LOG = new Logger(Logger.settings.log ? { labels: ['runtime-bootstrap'] } : {})
+    this.LOG = new Logger(Logger.flags.log ? { labels: ['runtime-bootstrap'] } : {})
     Pear.teardown(() => this.ipc.close())
   }
 
   #logTransforms () {
-    if (this.LOG.OFF === false) return
+    if (this.LOG.INF === false) return
     return {
       dumping: ({ link, dir, list }) => list > -1 ? '' : { message: ['Bootstrapping runtime from peers', 'from: ' + link, 'into: ' + dir] },
       file: ({ key }) => key,
