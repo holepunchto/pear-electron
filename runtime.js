@@ -50,9 +50,9 @@ class PearElectron {
     } else {
       this.bin = path.join(this.applink.pathname, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
     }
-    const parsed = pear(Pear.argv)
+    const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)
-    let argv = parsed.rest.slice(parsed.indices.rest)
+    let argv = parsed.rest
     const { args, indices, flags } = cmd.parse(argv)
     let link = Pear.config.link
     const { drive, pathname } = parseLink(link)
