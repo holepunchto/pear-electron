@@ -9,7 +9,7 @@ module.exports = (state) => {
   const { isMac, isWindows, platform } = require('which-runtime')
   const API = require('pear-api')
   const GUI = require('./gui')
-  const { parentWcId, env, id, rti, ...config } = state
+  const { parentWcId, env, id, rti, tray, ...config } = state
   const isDecal = state.isDecal || false
   if (config.key?.type === 'Buffer') config.key = Buffer.from(config.key.data)
   const dir = config.dir

@@ -35,6 +35,9 @@ module.exports = class PearGUI {
 
     API = class extends API {
       static UI = Symbol('ui')
+
+      #untray
+
       constructor (ipc, state) {
         const worker = new Worker({ ipc })
         super(ipc, state, { teardown, worker })
@@ -52,6 +55,14 @@ module.exports = class PearGUI {
           },
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
+
+        this.tray.scaleFactor = state.tray?.scaleFactor
+        this.tray.darkMode = state.tray?.darkMode
+
+        electron.ipcRenderer.on('tray/darkMode', (e, data) => {
+          this.tray.darkMode = data
+        })
+        electron.ipcRenderer.send('tray/darkMode')
 
         const kGuiCtrl = Symbol('gui:ctrl')
 
@@ -93,6 +104,7 @@ module.exports = class PearGUI {
           fullscreen () { return ipc.fullscreen({ id: this.id }) }
           restore () { return ipc.restore({ id: this.id }) }
           close () { return ipc.close({ id: this.id }) }
+          quit () { return ipc.quit({ id: this.id }) }
           dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
           isVisible () { return ipc.isVisible({ id: this.id }) }
           isMinimized () { return ipc.isMinimized({ id: this.id }) }
@@ -259,6 +271,38 @@ module.exports = class PearGUI {
         return this[this.constructor.UI].View
       }
 
+      tray = async (opts = {}, listener) => {
+        const ipc = this[Symbol.for('pear.ipc')]
+        opts = {
+          ...opts,
+          menu: opts.menu ?? {
+            show: `Show ${state.name}`,
+            quit: 'Quit'
+          }
+        }
+        listener = listener ?? ((key) => {
+          if (key === 'click' || key === 'show') {
+            this.Window.self.show()
+            this.Window.self.focus({ steal: true })
+            return
+          }
+          if (key === 'quit') {
+            this.Window.self.quit()
+          }
+        })
+
+        const untray = async () => {
+          if (this.#untray) {
+            await this.#untray()
+            this.#untray = null
+          }
+        }
+
+        await untray()
+        this.#untray = ipc.tray(opts, listener)
+        return untray
+      }
+
       exit = (code) => {
         process.exitCode = code
         electron.ipcRenderer.sendSync('exit', code)
@@ -315,6 +359,15 @@ class IPC {
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
+
+  tray (opts, listener) {
+    electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
+    electron.ipcRenderer.send('tray', opts)
+    return () => {
+      electron.ipcRenderer.removeAllListeners('tray')
+      return electron.ipcRenderer.invoke('untray')
+    }
+  }
 
   messages (pattern) {
     electron.ipcRenderer.send('messages', pattern)
