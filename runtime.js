@@ -35,6 +35,16 @@ class PearElectron {
     Pear.teardown(() => this.ipc.close())
   }
 
+  #logTransforms () {
+    if (this.LOG.OFF === false) return
+    return {
+      dumping: ({ link, dir, list }) => list > -1 ? '' : { message: ['Bootstrapping runtime from peers', 'from: ' + link, 'into: ' + dir] },
+      file: ({ key }) => key,
+      complete: () => 'Bootstrap complete',
+      error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`
+    }
+  }
+
   async start (opts = {}) {
     if (this.applink.protocol === 'pear:') {
       const base = path.join(Pear.config.storage, 'pear-runtimes')
@@ -45,7 +55,7 @@ class PearElectron {
         dir: base,
         force: true,
         log: (msg) => this.LOG.info('runtime-bootstrap', msg)
-      })
+      }, this.#logTransforms())
       this.bin = path.join(base, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
     } else {
       this.bin = path.join(this.applink.pathname, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
