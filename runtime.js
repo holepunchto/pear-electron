@@ -145,6 +145,7 @@ class PearElectron {
         str.indexOf('dev.i915.perf_stream_paranoid=0') > -1 ||
         str.indexOf('libva error: vaGetDriverNameByIndex() failed') > -1 ||
         str.indexOf('GetVSyncParametersIfAvailable() failed') > -1 ||
+        str.indexOf('Unsupported pixel format: -1') > -1 ||
         (str.indexOf(':ERROR:') > -1 && /:ERROR:.+cache/.test(str))
       if (ignore) return
       this.stderr.write(data)
