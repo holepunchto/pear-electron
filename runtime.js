@@ -14,6 +14,7 @@ const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
 const Logger = require('pear-api/logger')
 const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
+const { ansi, byteSize } = require('pear-api/terminal')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const bootstrap = require('./bootstrap')
@@ -31,12 +32,23 @@ class PearElectron {
     this.prebuilds = '/node_modules/pear-electron/prebuilds/' + require.addon.host
     this.boot = '/node_modules/pear-electron/boot.bundle'
     this.applink = new URL(Pear.config.applink)
-    this.LOG = new Logger(Logger.flags.log ? { labels: ['runtime-bootstrap'] } : {})
+    this.LOG = new Logger({ labels: ['runtime-bootstrap'] })
     Pear.teardown(() => this.ipc.close())
   }
 
-  #logTransforms () {
-    if (this.LOG.INF === false) return
+  #outs () {
+    if (this.LOG.INF === false) {
+      return {
+        stats ({ upload, download, peers }) {
+          const dl = download.total + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.total)} - ${byteSize(download.speed)}/s ] `
+          const ul = upload.total + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
+          return {
+            output: 'status',
+            message: `Bootstrapping Runtime [ Peers: ${peers} ] ${dl}${ul}`
+          }
+        }
+      }
+    }
     return {
       dumping: ({ link, dir, list }) => list > -1 ? '' : { message: ['Bootstrapping runtime from peers', 'from: ' + link, 'into: ' + dir] },
       file: ({ key }) => key,
@@ -55,7 +67,7 @@ class PearElectron {
         dir: base,
         force: true,
         log: (msg) => this.LOG.info('runtime-bootstrap', msg)
-      }, this.#logTransforms())
+      }, this.#outs())
       this.bin = path.join(base, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
     } else {
       this.bin = path.join(this.applink.pathname, 'node_modules', 'pear-electron', 'by-arch', require.addon.host, 'bin', EXEC)
