@@ -8,7 +8,7 @@
     "bootstrap": "pear run bin.js",
     "decal": "node scripts/decal.js",
     "bundle": "node scripts/bundle.js",
-    "prepare": "npm run decal && npm run bundle",
+    "prepare": "npm --ignore-scripts i && npm run decal && npm run bundle",
     "prestage": "npm run bootstrap && npm run prepare"
   },
   "files": [
@@ -57,7 +57,7 @@
     "localdrive": "^1.12.1",
     "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
-    "pear-api": "^1.5.0",
+    "pear-api": "^1.6.0",
     "pear-interface": "^1.0.3",
     "pear-ipc": "^3.2.0",
     "pear-link": "^2.0.6",
