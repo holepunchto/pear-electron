@@ -13,21 +13,17 @@
   },
   "files": [
     "bin.js",
-    "boot.bundle",
+    "boot.js",
     "bootstrap.js",
+    "electron-main.js",
+    "gui/",
     "index.js",
+    "preload.js",
     "runtime.js"
   ],
   "pear": {
     "runtimes": "pear://0.3043.pqbzjhqyonxprx8hghxexnmctw75mr91ewqw5dxe1zmntfyaddqy",
-    "name": "pear-electron",
-    "stage": {
-      "skipWarmup": "true",
-      "only": [
-        "by-arch",
-        "prebuilds"
-      ]
-    }
+    "name": "pear-electron"
   },
   "keywords": [
     "pear",
