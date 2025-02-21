@@ -1895,7 +1895,7 @@ class Tray extends ReadyResource {
       return
     }
 
-    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : defaultTrayIcon
+    const iconNativeImg = await this.#getIconNativeImg(icon)
     const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
 
     this.tray = new electron.Tray(iconNativeImg)
@@ -1906,6 +1906,8 @@ class Tray extends ReadyResource {
 
   async #getIconNativeImg (icon) {
     try {
+      if (!icon) return defaultTrayIcon
+
       const iconUrl = `${this.state.sidecar}/${icon}`
       const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
       if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
@@ -1914,7 +1916,14 @@ class Tray extends ReadyResource {
       const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
       if (iconNativeImg.isEmpty()) throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
 
-      return iconNativeImg
+      const trayIconSize = isWindows ? { width: 16, height: 16 } : { width: 22, height: 22 }
+      const scaledIconNativeImg = iconNativeImg.resize(trayIconSize)
+
+      if (isMac) {
+        scaledIconNativeImg.setTemplateImage(true)
+      }
+
+      return scaledIconNativeImg
     } catch (err) {
       console.warn(err)
       return defaultTrayIcon
