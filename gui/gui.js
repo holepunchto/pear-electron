@@ -423,7 +423,6 @@ class App {
       let devtoolsBlurPolling = null
       wc.on('devtools-opened', () => {
         devtoolsBlurPolling = setInterval(() => {
-          if (this.menu.globalReloaderActive === false) return
           if (wc.isDevToolsFocused() === false) this.menu.devtoolsReloaderUnlisten()
         }, 150)
       })
