@@ -53,7 +53,8 @@ module.exports = class PearGUI {
             camera: () => ipc.askForMediaAccess({ id, media: 'camera' }),
             screen: () => ipc.askForMediaAccess({ id, media: 'screen' })
           },
-          desktopSources: (options = {}) => ipc.desktopSources(options)
+          desktopSources: (options = {}) => ipc.desktopSources(options),
+          getPathForFile: (file) => electron.webUtils.getPathForFile(file)
         }
 
         this.tray.scaleFactor = state.tray?.scaleFactor
