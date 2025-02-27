@@ -27,7 +27,7 @@ async function bundle () {
     const prebuilds = key.slice(key.indexOf('/prebuilds/'))
     const prebuild = prebuilds.slice(0, prebuilds.lastIndexOf('/') + 1) + hash.toString('hex') + extname
     await drive.put(prebuild, addon)
-    return prebuild
+    return '..' + prebuild
   })
   await drive.put('/boot.bundle', rebundle.toBuffer())
   console.log('boot.bundle generated')
