@@ -625,6 +625,11 @@ class App {
           }
         }
       })
+
+      electron.app.once('before-quit', () => {
+        ctrl.quitting = true
+      })
+
       this.id = ctrl.id
       await this.starting
     } catch (err) {
@@ -948,7 +953,7 @@ class GuiCtrl {
 
     const closeListener = (e) => {
       e.preventDefault()
-      if (this.win.hideable) return
+      if (this.win.hideable && this.quitting === false) return
       if (this.unload) {
         this.unload({ type: 'close' })
       }
@@ -962,6 +967,7 @@ class GuiCtrl {
   }
 
   completeUnload (action) {
+    this.quitting = true
     this.unloaded()
     if (action.type === 'close') this.close()
   }
