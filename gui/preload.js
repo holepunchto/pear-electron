@@ -42,6 +42,7 @@ module.exports = class PearGUI {
         const worker = new Worker({ ipc })
         super(ipc, state, { teardown, worker })
         this[Symbol.for('pear.ipc')] = ipc
+        const kGuiCtrl = Symbol('gui:ctrl')
         const media = {
           status: {
             microphone: () => ipc.getMediaAccessStatus({ id, media: 'microphone' }),
@@ -64,7 +65,48 @@ module.exports = class PearGUI {
         })
         electron.ipcRenderer.send('tray/darkMode')
 
-        const kGuiCtrl = Symbol('gui:ctrl')
+        electron.ipcRenderer.on('app/found', (e, result) => {
+          this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
+        })
+
+        class Found extends streamx.Readable {
+          #id = null
+          #rid = null
+          #stream = null
+          #listener = (data) => {
+            this.push(data.result)
+          }
+          constructor (rid, id) {
+            this.#rid = rid
+            this.#id = id
+            this.#stream = this.messages({ type: 'pear-electron/app/found', rid: this.#rid })
+            this.#stream.on('data', this.#listener)
+          }
+          
+          proceed () {
+            return ipc.find({ id: this.#id, next: true })
+          }
+
+          clear () {
+            if (this.destroyed) throw Error('Nothing to clear, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'clear' }).finally(() => this.destroy())
+          }
+
+          keep () { 
+            if (this.destroyed) throw Error('Nothing to keep, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'keep' }).finally(() => this.destroy())
+          }
+
+          activate () {
+            if (this.destroyed) throw Error('Nothing to activate, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'activate' }).finally(() => this.destroy())
+          }
+
+          _destroy () {
+            this.#stream.destroy()
+            return this.clear() 
+          }
+        }
 
         class Parent extends EventEmitter {
           #id
@@ -75,7 +117,10 @@ module.exports = class PearGUI {
               this.emit('message', ...args)
             })
           }
-
+          async find (options) { 
+            const rid = await ipc.find({ id: this.#id, options })
+            return new Found(rid, this.#id)
+          }
           send (...args) { return electron.ipcRenderer.send('send-to', this.#id, ...args) }
           focus (options = null) { return ipc.parent({ act: 'focus', id: this.#id, options }) }
           blur () { return ipc.parent({ act: 'blur', id: this.#id }) }
@@ -93,23 +138,28 @@ module.exports = class PearGUI {
           isClosed () { return ipc.parent({ act: 'isClosed', id: this.#id }) }
         }
 
-        class Self {
-          constructor (id) { this.id = id }
-          focus (options = null) { return ipc.focus({ id: this.id, options }) }
-          blur () { return ipc.blur({ id: this.id }) }
-          show () { return ipc.show({ id: this.id }) }
-          hide () { return ipc.hide({ id: this.id }) }
-          minimize () { return ipc.minimize({ id: this.id }) }
-          maximize () { return ipc.maximize({ id: this.id }) }
-          fullscreen () { return ipc.fullscreen({ id: this.id }) }
-          restore () { return ipc.restore({ id: this.id }) }
-          close () { return ipc.close({ id: this.id }) }
-          quit () { return ipc.quit({ id: this.id }) }
-          dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
-          isVisible () { return ipc.isVisible({ id: this.id }) }
-          isMinimized () { return ipc.isMinimized({ id: this.id }) }
-          isMaximized () { return ipc.isMaximized({ id: this.id }) }
-          isFullscreen () { return ipc.isFullscreen({ id: this.id }) }
+        class App {
+          #id = null
+          constructor (id) { this.#id = id }
+          async find (options) { 
+            const rid = await ipc.find({ id: this.#id, options })
+            return new Found(rid, this.#id)
+          }
+          focus (options = null) { return ipc.focus({ id: this.#id, options }) }
+          blur () { return ipc.blur({ id: this.#id }) }
+          show () { return ipc.show({ id: this.#id }) }
+          hide () { return ipc.hide({ id: this.#id }) }
+          minimize () { return ipc.minimize({ id: this.#id }) }
+          maximize () { return ipc.maximize({ id: this.#id }) }
+          fullscreen () { return ipc.fullscreen({ id: this.#id }) }
+          restore () { return ipc.restore({ id: this.#id }) }
+          close () { return ipc.close({ id: this.#id }) }
+          quit () { return ipc.quit({ id: this.#id }) }
+          dimensions (options = null) { return ipc.dimensions({ id: this.#id, options }) }
+          isVisible () { return ipc.isVisible({ id: this.#id }) }
+          isMinimized () { return ipc.isMinimized({ id: this.#id }) }
+          isMaximized () { return ipc.isMaximized({ id: this.#id }) }
+          isFullscreen () { return ipc.isFullscreen({ id: this.#id }) }
         }
 
         class GuiCtrl extends EventEmitter {
@@ -123,10 +173,8 @@ module.exports = class PearGUI {
           }
 
           static get self () {
-            Object.defineProperty(this, 'self', {
-              value: new Self(electron.ipcRenderer.sendSync('id'))
-            })
-            return this.self
+            console.warn('Pear.Window.self & Pear.View.self are deprecated use require(\'pear-electron\').app')
+            return Pear[Pear.constructor.UI].app
           }
 
           constructor (entry, at, options = at) {
@@ -150,6 +198,13 @@ module.exports = class PearGUI {
             electron.ipcRenderer.removeListener('send', this.#listener)
             this.#listener = null
           }
+
+          async find (options) { 
+            const rid = await ipc.find({ id: this.id, options })
+            return new Found(rid, this.id)
+          }
+          
+          send (...args) { return electron.ipcRenderer.send('send-to', this.id, ...args) }
 
           async open (opts) {
             if (this.id === null) {
@@ -216,8 +271,6 @@ module.exports = class PearGUI {
           }
 
           isClosed () { return ipc.isClosed({ id: this.id }) }
-
-          send (...args) { return electron.ipcRenderer.send('send-to', this.id, ...args) }
         }
 
         class Window extends GuiCtrl {
@@ -226,11 +279,17 @@ module.exports = class PearGUI {
 
         class View extends GuiCtrl { static [kGuiCtrl] = 'view' }
 
+        const kDecal = Symbol('decal')
         class PearElectron {
           Window = Window
           View = View
           media = media
-          static DECAL = Symbol('decal')
+          #app = null
+          get app () {
+            if (this.#app) return this.#app
+            this.#app = new App(electron.ipcRenderer.sendSync('id'))
+            return this.#app
+          }
           warming () {
             electron.ipcRenderer.send('warming')
             const stream = new streamx.Readable()
@@ -244,7 +303,7 @@ module.exports = class PearGUI {
 
           constructor () {
             if (state.isDecal) {
-              this[this.constructor.DECAL] = {
+              this[kDecal] = {
                 ipc,
                 'hypercore-id-encoding': require('hypercore-id-encoding'),
                 'pear-api/constants': require('pear-api/constants')
@@ -310,6 +369,7 @@ module.exports = class PearGUI {
     }
     this.api = new API(this.ipc, state, teardown)
   }
+  
 }
 
 class IPC {

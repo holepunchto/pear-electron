@@ -53,6 +53,110 @@ Opens the UI.
 const ui = require('pear-electron')
 ```
 
+### `ui.app <Object>`
+
+UI Application controls
+
+### `const success = await app.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus current view or window.
+
+### `const success = await app.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur current view or window.
+
+### `const success = await app.show()`
+
+Resolves to: `<Boolean>`
+
+Show current view or window.
+
+### `const success = await app.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide current view or window.
+
+### `const sourceId = await app.getMediaSourceId()`
+
+Get the sourceId of the current window or view.
+
+**References**
+
+* [win.getMediaSourceId()](const-sourceId--await-wingetMediaSourceId)
+
+
+### `const success = await app.minimize()`
+
+Resolves to: `<Boolean>`
+
+Minimize current window.
+
+### `const success = await app.maximize()`
+
+Resolves to: `<Boolean>`
+
+Maximize current window.
+
+### `const success = await app.restore()`
+
+Resolves to: `<Boolean>`
+
+Unmaximize/unminimize the current window if it is currently maximized/minimized.
+
+### `const success = await app.close()`
+
+Resolves to: `<Boolean>`
+
+Closes the current view or window.
+
+
+### `const isVisible = await app.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the current window or view is visible.
+
+### `const isMaximized = await app.isMaximized()`
+
+Resolves to: `<Boolean>`
+
+### `const isMinimized = await app.isMinimized()`
+
+Resolves to: `<Boolean>`
+
+### `const found = await app.find(options <Object>)`
+
+Resolves to: `<Found> extends <streamx.Readable>`
+
+Find and select text, emit matches as data events.
+
+**Options**
+* text `<String>` - search term
+* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+#### `await found.proceed()`
+
+Find & select next match, emit result as stream data.
+
+#### `await found.clear()`
+
+Stop search and clear matching text selection. Implies destroy.
+
+#### `await found.keep()`
+
+Stop search and convert matching text selection to text highlight. Implies destroy.
+
+#### `await found.activate()`
+
+Stop search and simulate a click event on the selected match. Implies destroy.
+
+
 ### `ui.media <Object>`
 
 Media interface
@@ -250,11 +354,6 @@ Resolves to: `<Boolean>`
 
 Unmaximize/unminimize the window if it is currently maximized/minimized.
 
-### `await win.send(...args)`
-
-Send arguments to the window. They will be serialized with `JSON.stringify`.
-
-
 ### `const sourceId = await win.getMediaSourceId()`
 
 Resolves to: `<String>`
@@ -265,6 +364,38 @@ Correlates to the `id` property of objects in the array returned from [ui.media.
 
 * [ui.media.desktopSources](#const-sources--await-appmediadesktopsourcesoptions-object)
 * https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
+
+### `await win.send(...args)`
+
+Send arguments to the window. They will be serialized with `JSON.stringify`.
+
+### `const found = await win.find(options <Object>)`
+
+Resolves to: `<Found> extends <streamx.Readable>`
+
+Find and select text, emit matches as data events.
+
+**Options**
+* text `<String>` - search term
+* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+#### `await found.proceed()`
+
+Find & select next match, emit result as stream data.
+
+#### `await found.clear()`
+
+Stop search and clear matching text selection. Implies destroy.
+
+#### `await found.keep()`
+
+Stop search and convert matching text selection to text highlight. Implies destroy.
+
+#### `await found.activate()`
+
+Stop search and simulate a click event on the selected match. Implies destroy.
+
 
 ### `const dimensions = await win.dimensions()`
 
@@ -417,10 +548,6 @@ Resolves to: `<Boolean>`
 
 Blur the view.
 
-### `await view.send(...args)`
-
-Send arguments to the view. They will be serialized with `JSON.stringify`.
-
 ### `const sourceId = await view.getMediaSourceId()`
 
 Resolves to: `<String>`
@@ -431,6 +558,37 @@ Supplies the `id` property of objects in the array returned from [ui.media.deskt
 
 * [ui.media.desktopSources](#const-sources---await-appmediadesktopsources-options)
 * https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
+
+### `await view.send(...args)`
+
+Send arguments to the view. They will be serialized with `JSON.stringify`.
+
+### `const found = await win.find(options <Object>)`
+
+Resolves to: `<Found> extends <streamx.Readable>`
+
+Find and select text, emit matches as data events.
+
+**Options**
+* text `<String>` - search term
+* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+#### `await found.proceed()`
+
+Find & select next match, emit result as stream data.
+
+#### `await found.clear()`
+
+Stop search and clear matching text selection. Implies destroy.
+
+#### `await found.keep()`
+
+Stop search and convert matching text selection to text highlight. Implies destroy.
+
+#### `await found.activate()`
+
+Stop search and simulate a click event on the selected match. Implies destroy.
 
 ### `const dimensions = await view.dimensions()`
 
@@ -495,88 +653,7 @@ Whether the view is closed.
 
 ### `const { self } = ui.Window`  `const { self } = ui.View`
 
-### `const success = await self.focus()`
-
-Resolves to: `<Boolean>`
-
-Focus current view or window.
-
-### `const success = await self.blur()`
-
-Resolves to: `<Boolean>`
-
-Blur current view or window.
-
-### `const success = await self.show()`
-
-Resolves to: `<Boolean>`
-
-Show current view or window.
-
-### `const success = await self.hide()`
-
-Resolves to: `<Boolean>`
-
-Hide current view or window.
-
-### `const sourceId = await self.getMediaSourceId()`
-
-Get the sourceId of the current window or view.
-
-**References**
-
-* [win.getMediaSourceId()](const-sourceId--await-wingetMediaSourceId)
-
-
-### `const success = await self.minimize()`
-
-Resolves to: `<Boolean>`
-
-Minimize current window.
-
-Throws a `TypeError` if `self` is a view.
-
-### `const success = await self.maximize()`
-
-Resolves to: `<Boolean>`
-
-Maximize current window.
-
-Throws a `TypeError` if `self` is a view.
-
-### `const success = await self.restore()`
-
-Resolves to: `<Boolean>`
-
-Unmaximize/unminimize the current window if it is currently maximized/minimized.
-
-Throws a `TypeError` if `self` is a view.
-
-
-### `const success = await self.close()`
-
-Resolves to: `<Boolean>`
-
-Closes the current view or window.
-
-
-### `const isVisible = await self.isVisible()`
-
-Resolves to: `<Boolean>`
-
-Whether the current window or view is visible.
-
-### `const isMaximized = await self.isMaximized()`
-Resolves to: `<Boolean>`
-
-Whether the current window is maximized. Throws a `TypeError` if `self` is a view.
-
-
-### `const isMinimized = await self.isMinimized()`
-
-Resolves to: `<Boolean>`
-
-Whether the current window is minimized. Throws a `TypeError` if `self` is a view.
+> DEPRECATED use `ui.app`.
 
 ### `const { parent } = ui.Window`  `const { parent } = ui.View`
 
@@ -670,6 +747,34 @@ Whether the parent window is maximized. Throws a `TypeError` if `parent` is a vi
 Resolves to: `<Boolean>`
 
 Whether the parent window is minimized. Throws a `TypeError` if `parent` is a view.
+
+### `const found = await parent.find(options <Object>)`
+
+Resolves to: `<Found> extends <streamx.Readable>`
+
+Find and select text, emit matches as data events.
+
+**Options**
+* text `<String>` - search term
+* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+#### `await found.proceed()`
+
+Find & select next match, emit result as stream data.
+
+#### `await found.clear()`
+
+Stop search and clear matching text selection. Implies destroy.
+
+#### `await found.keep()`
+
+Stop search and convert matching text selection to text highlight. Implies destroy.
+
+#### `await found.activate()`
+
+Stop search and simulate a click event on the selected match. Implies destroy.
+
 
 ## Web APIs
 

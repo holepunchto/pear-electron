@@ -847,6 +847,25 @@ class GuiCtrl {
     this.win?.webContents.on('will-navigate', this.nav)
     this.view?.webContents.setWindowOpenHandler(handler(this.view.webContents))
     this.view?.webContents.on('will-navigate', this.nav)
+    const { webContents } = (this.view || this.win)
+    webContents.on('found-in-page', (evt, result) => {
+      electron.ipcMain.send('app/found', result)
+    })
+  }
+
+  find (options) {
+    const { webContents } = (this.view || this.win)
+    const { text, next, stop, ...opts } = options
+    if (stop) {
+      webContents.stopFindInPage(stop)
+      return 0
+    }
+    if (next) {
+      opts.findNext = true
+      webContents.findInPage('', opts)
+      return 0
+    }
+    return webContents.findInPage(text, opts)
   }
 
   async focus ({ steal = true } = {}) {
@@ -1518,6 +1537,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('setMaximizable', (evt, ...args) => this.setMaximizable(...args))
     electron.ipcMain.handle('fullscreen ', (evt, ...args) => this.fullscreen(...args))
     electron.ipcMain.handle('restore', (evt, ...args) => this.restore(...args))
+    electron.ipcMain.handle('find', (evt, ...args) => this.find(...args))
     electron.ipcMain.handle('focus', (evt, ...args) => this.focus(...args))
     electron.ipcMain.handle('blur', (evt, ...args) => this.blur(...args))
     electron.ipcMain.handle('dimensions', (evt, ...args) => this.dimensions(...args))
@@ -1669,6 +1689,7 @@ class PearGUI extends ReadyResource {
         guiClose () { return false },
         show () { return false },
         hide () { return false },
+        find () { return 0 },
         focus () { return false },
         blur () { return false },
         dimensions () { return null },
@@ -1678,8 +1699,8 @@ class PearGUI extends ReadyResource {
         isMaximized () { return false },
         isMinimized () { return false },
         isClosed () { return true },
-        unloading () { },
-        completeUnload () { }
+        unloading () {},
+        completeUnload () {}
       }
     }
     return instance
@@ -1751,6 +1772,8 @@ class PearGUI extends ReadyResource {
   fullscreen ({ id }) { return this.getCtrl(id).fullscreen() }
 
   restore ({ id }) { return this.getCtrl(id).restore() }
+
+  find ({ id, options }) { return this.getCtrl(id).find(options) }
 
   focus ({ id, options }) { return this.getCtrl(id).focus(options) }
 
