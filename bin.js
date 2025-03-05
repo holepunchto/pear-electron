@@ -11,13 +11,12 @@ const { runtimes } = pkg.pear
 const { encode } = require('hypercore-id-encoding')
 const link = require('pear-link')()
 const bootstrap = installed ? require('../pear-electron/bootstrap') : require('./bootstrap')
-
 async function pearElectron () {
   const { protocol, drive } = link(runtimes)
-  const root = new URL(global.Pear.config.applink).pathname
+  const { pathname } = new URL(global.Pear.config.applink)
   const opts = {
     id: global.Pear.pid,
-    dir: installed ? path.join(root, 'node_modules', 'pear-electron') : root,
+    dir: installed ? path.join(pathname, 'node_modules', 'pear-electron') : pathname,
     link: protocol + '//' + encode(drive.key),
     only: installed ? ['/by-arch', '/prebuilds'] : ['/by-arch'],
     // checkout: drive.length,
@@ -28,3 +27,4 @@ async function pearElectron () {
 }
 
 pearElectron().catch(console.error)
+

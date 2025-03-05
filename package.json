@@ -6,7 +6,7 @@
   "bin": "bin.js",
   "scripts": {
     "bootstrap": "pear run bin.js",
-    "decal": "node scripts/decal.js",
+    "decal": "pear run scripts/decal.js",
     "bundle": "pear run scripts/bundle.js",
     "prepare": "npm --ignore-scripts i && npm run decal && npm run bundle"
   },
@@ -20,6 +20,11 @@
   "pear": {
     "runtimes": "pear://0.3043.sfuy4mdst5rqib69z5juz1injhgtmy5g8gwi7hmzw5g8xpjthcry",
     "name": "pear-electron",
+    "presets": {
+      "stage": {
+        "ignore": ["/node_modules/**/prebuilds"]
+      }
+    },
     "stage": {
       "skipWarmup": "true",
       "only": [
