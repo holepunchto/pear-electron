@@ -279,7 +279,6 @@ module.exports = class PearGUI {
 
         class View extends GuiCtrl { static [kGuiCtrl] = 'view' }
 
-        const kDecal = Symbol('decal')
         class PearElectron {
           Window = Window
           View = View
@@ -303,7 +302,7 @@ module.exports = class PearGUI {
 
           constructor () {
             if (state.isDecal) {
-              this[kDecal] = {
+              this.DECAL = {
                 ipc,
                 'hypercore-id-encoding': require('hypercore-id-encoding'),
                 'pear-api/constants': require('pear-api/constants')
