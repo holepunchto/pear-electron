@@ -15,7 +15,7 @@ async function bundle () {
     'path', 'child_process', 'repl', 'url', 'tty', 'module', 'process', 'timers', 'inspector',
     'rocksdb-native'
   ]
-  const bundle = await pack(drive, '/boot.js', { resolve: resolve, target, builtins })
+  const bundle = await pack(drive, '/boot.js', { resolve, target, builtins })
   const rebundle = await unpack(bundle, { addons: true, files: false }, async (key) => {
     const extIx = key.lastIndexOf('.')
     if (extIx === -1) return key

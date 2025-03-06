@@ -240,19 +240,19 @@ module.exports = (state) => {
       this.#demax = () => this.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #min () { await PearElectron.Window.self.minimize() }
+    async #min () { await PearElectron.app.minimize() }
     async #max (e) {
-      if (isMac) await PearElectron.Window.self.fullscreen()
-      else await PearElectron.Window.self.maximize()
+      if (isMac) await PearElectron.app.fullscreen()
+      else await PearElectron.app.maximize()
       e.target.root.querySelector('#ctrl').classList.add('max')
     }
 
     async #restore (e) {
-      await PearElectron.Window.self.restore()
+      await PearElectron.app.restore()
       e.target.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #close () { await PearElectron.Window.self.close() }
+    async #close () { await PearElectron.app.close() }
     #win () {
       return `
     <style>

@@ -1,4 +1,4 @@
-/* eslint-env browser */
+/* eslint-env browser */ /* globals Pear */
 'use strict'
 const streamx = require('streamx')
 const { EventEmitter } = require('events')
@@ -76,13 +76,15 @@ module.exports = class PearGUI {
           #listener = (data) => {
             this.push(data.result)
           }
+
           constructor (rid, id) {
+            super()
             this.#rid = rid
             this.#id = id
             this.#stream = this.messages({ type: 'pear-electron/app/found', rid: this.#rid })
             this.#stream.on('data', this.#listener)
           }
-          
+
           proceed () {
             return ipc.find({ id: this.#id, next: true })
           }
@@ -92,7 +94,7 @@ module.exports = class PearGUI {
             return ipc.find({ id: this.#id, stop: 'clear' }).finally(() => this.destroy())
           }
 
-          keep () { 
+          keep () {
             if (this.destroyed) throw Error('Nothing to keep, already destroyed')
             return ipc.find({ id: this.#id, stop: 'keep' }).finally(() => this.destroy())
           }
@@ -104,7 +106,7 @@ module.exports = class PearGUI {
 
           _destroy () {
             this.#stream.destroy()
-            return this.clear() 
+            return this.clear()
           }
         }
 
@@ -117,10 +119,12 @@ module.exports = class PearGUI {
               this.emit('message', ...args)
             })
           }
-          async find (options) { 
+
+          async find (options) {
             const rid = await ipc.find({ id: this.#id, options })
             return new Found(rid, this.#id)
           }
+
           send (...args) { return electron.ipcRenderer.send('send-to', this.#id, ...args) }
           focus (options = null) { return ipc.parent({ act: 'focus', id: this.#id, options }) }
           blur () { return ipc.parent({ act: 'blur', id: this.#id }) }
@@ -139,27 +143,28 @@ module.exports = class PearGUI {
         }
 
         class App {
-          #id = null
-          constructor (id) { this.#id = id }
-          async find (options) { 
-            const rid = await ipc.find({ id: this.#id, options })
-            return new Found(rid, this.#id)
+          id = null
+          constructor (id) { this.id = id }
+          async find (options) {
+            const rid = await ipc.find({ id: this.id, options })
+            return new Found(rid, this.id)
           }
-          focus (options = null) { return ipc.focus({ id: this.#id, options }) }
-          blur () { return ipc.blur({ id: this.#id }) }
-          show () { return ipc.show({ id: this.#id }) }
-          hide () { return ipc.hide({ id: this.#id }) }
-          minimize () { return ipc.minimize({ id: this.#id }) }
-          maximize () { return ipc.maximize({ id: this.#id }) }
-          fullscreen () { return ipc.fullscreen({ id: this.#id }) }
-          restore () { return ipc.restore({ id: this.#id }) }
-          close () { return ipc.close({ id: this.#id }) }
-          quit () { return ipc.quit({ id: this.#id }) }
-          dimensions (options = null) { return ipc.dimensions({ id: this.#id, options }) }
-          isVisible () { return ipc.isVisible({ id: this.#id }) }
-          isMinimized () { return ipc.isMinimized({ id: this.#id }) }
-          isMaximized () { return ipc.isMaximized({ id: this.#id }) }
-          isFullscreen () { return ipc.isFullscreen({ id: this.#id }) }
+
+          focus (options = null) { return ipc.focus({ id: this.id, options }) }
+          blur () { return ipc.blur({ id: this.id }) }
+          show () { return ipc.show({ id: this.id }) }
+          hide () { return ipc.hide({ id: this.id }) }
+          minimize () { return ipc.minimize({ id: this.id }) }
+          maximize () { return ipc.maximize({ id: this.id }) }
+          fullscreen () { return ipc.fullscreen({ id: this.id }) }
+          restore () { return ipc.restore({ id: this.id }) }
+          close () { return ipc.close({ id: this.id }) }
+          quit () { return ipc.quit({ id: this.id }) }
+          dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
+          isVisible () { return ipc.isVisible({ id: this.id }) }
+          isMinimized () { return ipc.isMinimized({ id: this.id }) }
+          isMaximized () { return ipc.isMaximized({ id: this.id }) }
+          isFullscreen () { return ipc.isFullscreen({ id: this.id }) }
         }
 
         class GuiCtrl extends EventEmitter {
@@ -199,11 +204,11 @@ module.exports = class PearGUI {
             this.#listener = null
           }
 
-          async find (options) { 
+          async find (options) {
             const rid = await ipc.find({ id: this.id, options })
             return new Found(rid, this.id)
           }
-          
+
           send (...args) { return electron.ipcRenderer.send('send-to', this.id, ...args) }
 
           async open (opts) {
@@ -211,7 +216,7 @@ module.exports = class PearGUI {
               await new Promise(setImmediate) // needed for windows/views opening on app load
               this.#rxtx()
               this.id = await ipc.ctrl({
-                parentId: this.self.id,
+                parentId: Pear[Pear.constructor.UI].app.id,
                 type: this.constructor[kGuiCtrl],
                 entry: this.entry,
                 options: this.options,
@@ -289,6 +294,7 @@ module.exports = class PearGUI {
             this.#app = new App(electron.ipcRenderer.sendSync('id'))
             return this.#app
           }
+
           warming () {
             electron.ipcRenderer.send('warming')
             const stream = new streamx.Readable()
@@ -302,7 +308,7 @@ module.exports = class PearGUI {
 
           constructor () {
             if (state.isDecal) {
-              this.DECAL = {
+              this.constructor.DECAL = {
                 ipc,
                 'hypercore-id-encoding': require('hypercore-id-encoding'),
                 'pear-api/constants': require('pear-api/constants')
@@ -340,12 +346,12 @@ module.exports = class PearGUI {
         }
         listener = listener ?? ((key) => {
           if (key === 'click' || key === 'show') {
-            this.Window.self.show()
-            this.Window.self.focus({ steal: true })
+            Pear[Pear.constructor.UI].app.show()
+            Pear[Pear.constructor.UI].app.focus({ steal: true })
             return
           }
           if (key === 'quit') {
-            this.Window.self.quit()
+            Pear[Pear.constructor.UI].app.quit()
           }
         })
 
@@ -368,7 +374,6 @@ module.exports = class PearGUI {
     }
     this.api = new API(this.ipc, state, teardown)
   }
-  
 }
 
 class IPC {
