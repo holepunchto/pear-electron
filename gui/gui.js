@@ -1715,7 +1715,7 @@ class PearGUI extends ReadyResource {
   }
 
   async askForMediaAccess ({ id, media }) {
-    if (isLinux || isWindows) return false
+    if (isLinux) return false
     if (media === 'screen') {
       return electron.systemPreferences.getMediaAccessStatus(media)
     }
