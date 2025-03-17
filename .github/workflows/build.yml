@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - name: Pear
-        run: npx pear && pear sidecar shutdown && echo "pear://3oh9mxcft8rsq3mocxzi7s8hhb7zw8s55nuca95ffsqzd6oyy4zo" > $(npm list -g pear --depth=0 --parseable)/pear.key && npx pear
+        run: npx pear && npx pear sidecar shutdown && echo "pear://3oh9mxcft8rsq3mocxzi7s8hhb7zw8s55nuca95ffsqzd6oyy4zo" > $(npm list -g pear --depth=0 --parseable)/pear.key && npx pear
 
   build:
     needs: prepare
