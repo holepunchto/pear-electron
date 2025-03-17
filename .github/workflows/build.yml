@@ -8,6 +8,10 @@ on:
         description: Channel to build
         required: true
         default: 'dev'
+      next:
+        type: boolean
+        description: Enable next mode
+        required: false
   workflow_dispatch:
     inputs:
       channel:
@@ -28,6 +32,10 @@ on:
         options:
           - false
           - true
+      next:
+        type: boolean
+        description: Enable next mode
+        required: false
 
 run-name: Build ${{ inputs.channel }}
 
