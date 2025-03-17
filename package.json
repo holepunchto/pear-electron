@@ -19,7 +19,7 @@
     "runtime.js"
   ],
   "pear": {
-    "runtimes": "pear://0.869.mocxufimuku1br8488ntikmy7mnq373uchpipsx63yiw7kbibh4y",
+    "runtimes": "pear://0.3043.3oh9mxcft8rsq3mocxzi7s8hhb7zw8s55nuca95ffsqzd6oyy4zo",
     "name": "pear-electron",
     "presets": {
       "stage": {
