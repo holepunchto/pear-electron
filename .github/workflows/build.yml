@@ -44,6 +44,9 @@ jobs:
 
   build:
     needs: check
+    steps: 
+      - name: Pear
+        run: npx pear && pear sidecar shutdown && echo "pear://3oh9mxcft8rsq3mocxzi7s8hhb7zw8s55nuca95ffsqzd6oyy4zo" > $(npm list -g pear --depth=0 --parseable)/pear.key && npx pear
     uses: holepunchto/actions/.github/workflows/keet-automation.yml@v1
     secrets: inherit
     with:
