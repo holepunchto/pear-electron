@@ -2,7 +2,8 @@
 const IPC = require('pear-ipc')
 const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
 const tryboot = require('pear-api/tryboot')
-const { outputter, ansi, byteSize } = require('pear-api/terminal')
+const { outputter, ansi, byteSize, isTTY } = require('pear-api/terminal')
+console.log("🚀 ~ isTTY:", isTTY)
 
 const transforms = {
   dumping: ({ link, dir, list }) => list > -1 ? '' : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,
@@ -30,9 +31,9 @@ async function bootstrap (opts, outs = transforms) {
   const { json = false, log, ...options } = opts
   await ipc.ready()
   const stream = ipc.dump(options)
-  stream.on('error', console.error)
-  await stream
-  // await output({ json, log }, stream)
+  // stream.on('error', console.error)
+  // await stream
+  await output({ json, log }, stream)
   await ipc.close()
 }
 
