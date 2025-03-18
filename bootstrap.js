@@ -29,8 +29,11 @@ async function bootstrap (opts, outs = transforms) {
   })
   const { json = false, log, ...options } = opts
   await ipc.ready()
+  console.log("🚀 ~ bootstrap ~ ready")
   await output({ json, log }, ipc.dump(options))
+  console.log("🚀 ~ bootstrap ~ output")
   await ipc.close()
+  console.log("🚀 ~ bootstrap ~ close")
 }
 
 module.exports = bootstrap
