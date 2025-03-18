@@ -28,12 +28,12 @@ async function bootstrap (opts, outs = transforms) {
   })
   const { json = false, log, ...options } = opts
   await ipc.ready()
+  const stream = ipc.dump(options)
   if (isTTY) {
     const output = outputter('dump', outs)
     await output({ json, log }, stream)
   } else {
     await new Promise((resolve, reject) => {
-      const stream = ipc.dump(options)
       stream.on('error', reject)
       stream.on('end', resolve)
     })
