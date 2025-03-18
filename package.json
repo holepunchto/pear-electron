@@ -9,7 +9,7 @@
     "decal": "pear run scripts/decal.js",
     "bundle": "pear run scripts/bundle.js",
     "prepare": "npm --ignore-scripts i && npm run decal && npm run bundle",
-    "prestage": "npm run bootstrap && echo done"
+    "prestage": "npm run bootstrap && npm run bundle"
   },
   "files": [
     "bin.js",
