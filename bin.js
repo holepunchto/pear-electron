@@ -10,7 +10,9 @@ const pkg = installed ? require('../pear-electron/package.json') : require('./pa
 const { runtimes } = pkg.pear
 const { encode } = require('hypercore-id-encoding')
 const link = require('pear-link')()
+const { isTTY } = require('pear-api/terminal')
 const bootstrap = installed ? require('../pear-electron/bootstrap') : require('./bootstrap')
+
 async function pearElectron () {
   const { protocol, drive } = link(runtimes)
   const { pathname } = new URL(global.Pear.config.applink)
@@ -19,6 +21,7 @@ async function pearElectron () {
     dir: installed ? path.join(pathname, 'node_modules', 'pear-electron') : pathname,
     link: protocol + '//' + encode(drive.key),
     only: installed ? ['/by-arch', '/prebuilds'] : ['/by-arch'],
+    json: !isTTY,
     // checkout: drive.length,
     force: true
 
