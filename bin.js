@@ -6,7 +6,6 @@ if (!global.Pear && global.process) {
 
 const path = require('bare-path')
 const installed = global.Pear.config.entrypoint.startsWith('/node_modules/.bin/')
-console.log("🚀 ~ installed:", installed)
 const pkg = installed ? require('../pear-electron/package.json') : require('./package.json')
 const { runtimes } = pkg.pear
 const { encode } = require('hypercore-id-encoding')
