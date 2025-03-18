@@ -20,7 +20,6 @@ const transforms = {
 }
 
 async function bootstrap (opts, outs = transforms) {
-  const output = outputter('dump', outs)
   const ipc = new IPC.Client({
     lock: PLATFORM_LOCK,
     socketPath: SOCKET_PATH,
@@ -29,7 +28,17 @@ async function bootstrap (opts, outs = transforms) {
   })
   const { json = false, log, ...options } = opts
   await ipc.ready()
-  await output({ json: !isTTY ? true : json, log }, ipc.dump(options))
+  const stream = ipc.dump(options)
+  if (isTTY) {
+    const output = outputter('dump', outs)
+    await output({ json, log }, stream)
+  } else {
+    await new Promise((resolve, reject) => {
+      stream.on('error', reject)
+      stream.on('end', resolve)
+      stream.on('data', console.log)
+    })
+  }
   await ipc.close()
 }
 
