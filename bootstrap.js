@@ -31,7 +31,8 @@ async function bootstrap (opts, outs = transforms) {
   await ipc.ready()
   const stream = ipc.dump(options)
   stream.on('error', console.error)
-  await output({ json, log }, stream)
+  await stream
+  // await output({ json, log }, stream)
   await ipc.close()
 }
 
