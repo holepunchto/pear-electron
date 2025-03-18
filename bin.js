@@ -20,6 +20,7 @@ async function pearElectron () {
     link: protocol + '//' + encode(drive.key),
     only: installed ? ['/by-arch', '/prebuilds'] : ['/by-arch'],
     // checkout: drive.length,
+    json: true,
     force: true
 
   }
