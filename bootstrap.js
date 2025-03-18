@@ -33,8 +33,8 @@ async function bootstrap (opts, outs = transforms) {
   stream.on('close', () => console.log('closed'))
   stream.on('end', () => console.log('end'))
   stream.on('error', (err) => console.log('error', err))
-  await stream
-  // await output({ json, log }, stream)
+  // await stream
+  await output({ json, log }, stream)
   await ipc.close()
 }
 
