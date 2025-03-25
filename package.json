@@ -81,6 +81,7 @@
     "bare-module": "^4.8.0",
     "graceful-goodbye": "^1.3.2",
     "pear-pack": "^1.0.1",
-    "redhat-overpass-font": "^1.0.0"
+    "redhat-overpass-font": "^1.0.0",
+    "rocksdb-native": "^3.5.5"
   }
 }
