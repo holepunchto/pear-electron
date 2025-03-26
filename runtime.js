@@ -102,7 +102,7 @@ class PearElectron {
     if (isPath) argv[indices.args.link] = 'file://' + (base.entrypoint || '/')
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
-    if ((isLinux || isWindows) && !flags.sandbox) argv.splice(indices.args.link, 0, '--no-sandbox')
+    if ((isLinux || isWindows) && indices.flags.sandbox === undefined) argv.splice(indices.args.link, 0, '--no-sandbox')
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
