@@ -19,9 +19,9 @@
     "runtime.js"
   ],
   "pear": {
-    "runtimes": "pear://0.874.ckt1njenyargh9ngxbnyi4hq41wwjauubqku6none6cpt7wdzego",
+    "runtimes": "pear://0.880.ckt1njenyargh9ngxbnyi4hq41wwjauubqku6none6cpt7wdzego",
     "name": "pear-electron",
-    "presets": {
+    "pattern": {
       "stage": {
         "ignore": [
           "/node_modules/**/prebuilds"
@@ -64,7 +64,7 @@
     "localdrive": "^1.12.1",
     "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
-    "pear-api": "^1.6.16",
+    "pear-api": "^1.6.20",
     "pear-interface": "^1.0.3",
     "pear-ipc": "^3.2.0",
     "pear-link": "^2.0.6",

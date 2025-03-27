@@ -502,15 +502,7 @@ class App {
 
     const { state } = this
 
-    this.starting = this.ipc.start({
-      startId: state.startId,
-      args: state.args,
-      flags: state.flags,
-      env: state.env,
-      dir: state.dir,
-      link: state.link,
-      cmdArgs: process.argv.slice(1)
-    })
+    this.starting = this.ipc.identify({ startId: global.Pear.constructor.RTI.startId, startWait: true })
 
     this.starting.catch(async (err) => {
       await this.report({ err })
@@ -562,11 +554,8 @@ class App {
 
       decalSession.setUserAgent('Pear Platform')
       const entry = state.route
-      const identify = await this.ipc.identify({ startId: state.startId })
-      const { id } = identify
 
-      state.update({ id, config: state.constructor.configFrom(state) })
-      this.ipc.id = id
+      state.update({ config: state.constructor.configFrom(state) })
 
       const ctrl = await PearGUI.ctrl('window', entry, { state }, {
         ...guiOptions,
@@ -611,10 +600,9 @@ class App {
             if (state.type === 'commonjs') {
               throw new Error('"type": "commonjs" or no "type" in application package.json. Pear Desktop Applications are native EcmaScript Module (ESM) syntax only (CJS modules can be consumed, but applications must be ESM). To opt into ESM, set the package.json "type" field to "module".')
             }
-
-            const { bail } = await this.starting
-            if (bail) return false
-            state.update({ config: await this.ipc.config() })
+            const { id } = await this.starting
+            const config = await this.ipc.config()
+            state.update({ id, config })
             applyGuiOptions(app.win, state.config.options.gui ?? {})
             if (app.closing) return false
             return true

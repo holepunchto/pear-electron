@@ -107,11 +107,12 @@ class PearElectron {
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
       bridge: opts.bridge?.addr ?? undefined,
+      startId: Pear.config.startId,
       dir
     })
 
     argv = [require.resolve('./boot.bundle'), '--rti', info, ...argv]
-    const stdio = args.detach ? 'ignore' : ['ignore', 'inherit', 'pipe', 'pipe']
+    const stdio = args.detach ? ['ignore', 'ignore', 'ignore', 'overlapped'] : ['ignore', 'inherit', 'pipe', 'overlapped']
     const options = {
       stdio,
       cwd,
@@ -131,9 +132,10 @@ class PearElectron {
       if (isMac) spawn('open', [applingApp, '--args', ...argv], options).unref()
       else spawn(applingApp, argv, options).unref()
     }
-    if (args.detach) return null
-    const pipe = sp.stdio[3]
     sp.on('exit', (code) => { Pear.exit(code) })
+    const pipe = sp.stdio[3]
+    if (args.detach) return pipe
+
     this.stderr = tty.isTTY(2) ? new tty.WriteStream(2) : new Pipe(2)
 
     const onerr = (data) => {
