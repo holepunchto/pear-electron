@@ -58,5 +58,4 @@ jobs:
       job: pear-electron
       channel: ${{ inputs.channel }}
       commit: ${{ inputs.custom-commit || github.sha }}
-      next: true
       dry-run: ${{ inputs.dry-run }}
