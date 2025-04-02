@@ -39,11 +39,5 @@ jobs:
           path: /tmp/pear-archdump
           key: ${{ matrix.os }}-corestore
 
-      - name: Pear
-        run: npx pear && pear sidecar shutdown && echo "pear://3oh9mxcft8rsq3mocxzi7s8hhb7zw8s55nuca95ffsqzd6oyy4zo" > $(npm list -g pear --depth=0 --parseable)/pear.key && npx pear 
-
-      - name: Bootstrap
-        run: npm run bootstrap
-
       - name: Lint
         run: npm run lint
