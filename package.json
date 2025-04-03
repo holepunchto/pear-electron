@@ -20,7 +20,7 @@
     "runtime.js"
   ],
   "pear": {
-    "runtimes": "pear://0.880.ckt1njenyargh9ngxbnyi4hq41wwjauubqku6none6cpt7wdzego",
+    "bootstrap": "pear://0.879.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "name": "pear-electron",
     "pattern": {
       "stage": {
@@ -57,21 +57,12 @@
     "bare-pipe": "^4.0.3",
     "bare-subprocess": "^5.0.2",
     "bare-tty": "^5.0.1",
-    "corestore": "^6.18.4",
     "hypercore-id-encoding": "^1.3.0",
-    "hyperdrive": "^11.13.3",
-    "hyperswarm": "^4.8.4",
     "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
-    "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
     "pear-api": "^1.6.20",
-    "pear-interface": "^1.0.3",
     "pear-ipc": "^3.2.0",
-    "pear-link": "^2.0.6",
-    "pear-updater-bootstrap": "github:holepunchto/pear-updater-bootstrap#corestore-option",
-    "rache": "^1.0.0",
-    "safety-catch": "^1.0.2",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
     "url-file-url": "^1.0.4",
@@ -79,11 +70,15 @@
   },
   "devDependencies": {
     "@fontsource/open-sans": "^5.1.0",
-    "bare-module": "^4.8.0",
-    "graceful-goodbye": "^1.3.2",
+    "crc-universal": "^1.0.4",
+    "fs-native-extensions": "^1.4.2",
+    "pear-interface": "^1.0.3",
     "pear-pack": "^1.0.1",
+    "quickbit-universal": "^2.2.0",
     "redhat-overpass-font": "^1.0.0",
     "rocksdb-native": "^3.5.5",
-    "standard": "^17.1.2"
+    "sodium-native": "^5.0.1",
+    "standard": "^17.1.2",
+    "udx-native": "^1.17.6"
   }
 }
