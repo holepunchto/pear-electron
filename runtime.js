@@ -75,7 +75,7 @@ class PearElectron {
     const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)
     let argv = parsed.rest
-    const { args, indices, flags } = cmd.parse(argv)
+    const { args, indices } = cmd.parse(argv)
     let link = Pear.config.link
     const { drive, pathname } = parseLink(link)
     const entry = isWindows ? path.normalize(pathname.slice(1)) : pathname
