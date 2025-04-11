@@ -1580,7 +1580,7 @@ class PearGUI extends ReadyResource {
         this.pipes.free(id)
         evt.reply('workerPipeClose')
       })
-      pipe.on('data', (data) => { evt.reply('workerPipeData', data) })
+      pipe.on('data', (data) => { evt.reply('workerPipeData', { data, id }) })
       pipe.on('end', () => { evt.reply('workerPipeEnd') })
       pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
     })

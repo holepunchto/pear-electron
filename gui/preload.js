@@ -480,7 +480,9 @@ class IPC {
       electron.ipcRenderer.send('workerPipeClose', id)
     })
 
-    electron.ipcRenderer.on('workerPipeData', (e, data) => { stream.push(data) })
+    electron.ipcRenderer.on('workerPipeData', (e, args) => {
+      if (args.id === id) stream.push(args.data)
+    })
     return stream
   }
 
