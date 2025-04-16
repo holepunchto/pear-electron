@@ -3,9 +3,9 @@
   "version": "1.1.11",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
-  "bin": "bin.js",
+  "bin":  "bin/index.js",
   "scripts": {
-    "bootstrap": "pear run bin.js",
+    "bootstrap": "pear run bin/index.js",
     "decal": "pear run scripts/decal.js",
     "bundle": "pear run scripts/bundle.js",
     "prepare": "npm --ignore-scripts i && npm run decal && npm run bundle",
@@ -13,22 +13,15 @@
     "lint": "standard"
   },
   "files": [
-    "bin.js",
+    "bin/",
     "boot.bundle",
     "bootstrap.js",
     "index.js",
     "runtime.js"
   ],
   "pear": {
-    "bootstrap": "pear://0.949.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "name": "pear-electron",
-    "pattern": {
-      "stage": {
-        "ignore": [
-          "/node_modules/**/prebuilds"
-        ]
-      }
-    },
+    "bootstrap": "pear://0.949.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "stage": {
       "skipWarmup": "true",
       "only": [
