@@ -1,9 +1,9 @@
 {
   "name": "pear-electron",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
-  "bin":  "bin/index.js",
+  "bin": "bin/index.js",
   "scripts": {
     "bootstrap": "pear run bin/index.js",
     "decal": "pear run scripts/decal.js",
