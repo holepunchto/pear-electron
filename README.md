@@ -29,6 +29,8 @@ Pear.teardown(() => pipe.end())
 
 Call `runtime.start` to open the UI.
 
+> NOTE: naming the import `Runtime` instead of `PearElectron` is intentional, for two reasons. The `pear-electron` import resolves to a runtime start library or a User Interface library depending on environment and using `Runtime` and `ui` as assigned names means switching out `pear-electron` with an equivalent alternative only involves changing the two `pear-electron` import specifiers.
+
 ## Initialization API
 
 ### `new Runtime() -> runtime`
@@ -60,6 +62,8 @@ Inside the pear-electron runtime desktop application, pear-electron resolves to 
 ```js
 import ui from 'pear-electron'
 ```
+
+> NOTE: naming the import `ui` instead of `PearElectron` is intentional, for two reasons. The `pear-electron` import resolves to a runtime start library or a User Interface library depending on environment and using `Runtime` and `ui` as assigned names means switching out `pear-electron` with an equivalent alternative only involves changing the two `pear-electron` import specifiers.
 
 ### `ui.app <Object>`
 
