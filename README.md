@@ -49,8 +49,16 @@ Opens the UI.
 
 ## User-Interface API
 
+Inside the pear-electron runtime desktop application, pear-electron resolves to a UI control API.
+
+**index.html**:
+```html
+<script src="./app.js" type="module">
+```
+
+**app.js**:
 ```js
-const ui = require('pear-electron')
+import ui from 'pear-electron'
 ```
 
 ### `ui.app <Object>`
