@@ -2,9 +2,7 @@
 'use strict'
 const fs = require('bare-fs')
 const os = require('bare-os')
-const tty = require('bare-tty')
 const path = require('bare-path')
-const Pipe = require('bare-pipe')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
