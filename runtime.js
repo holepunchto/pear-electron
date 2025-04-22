@@ -133,7 +133,6 @@ class PearElectron {
     const pipe = sp.stdio[3]
     if (args.detach) return pipe
 
-
     const onerr = (data) => {
       const str = data.toString()
       const ignore = str.indexOf('DevTools listening on ws://') > -1 ||
