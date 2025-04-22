@@ -2,9 +2,7 @@
 'use strict'
 const fs = require('bare-fs')
 const os = require('bare-os')
-const tty = require('bare-tty')
 const path = require('bare-path')
-const Pipe = require('bare-pipe')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
@@ -26,7 +24,6 @@ const EXEC = isWindows
 
 class PearElectron {
   constructor () {
-    this.stderr = null
     this.ipc = Pear[Pear.constructor.IPC]
     this.arch = '/node_modules/pear-electron/by-arch/' + require.addon.host
     this.prebuilds = '/node_modules/pear-electron/prebuilds/' + require.addon.host
@@ -136,8 +133,6 @@ class PearElectron {
     const pipe = sp.stdio[3]
     if (args.detach) return pipe
 
-    this.stderr = tty.isTTY(2) ? new tty.WriteStream(2) : new Pipe(2)
-
     const onerr = (data) => {
       const str = data.toString()
       const ignore = str.indexOf('DevTools listening on ws://') > -1 ||
@@ -150,7 +145,7 @@ class PearElectron {
         str.indexOf('Unsupported pixel format: -1') > -1 ||
         (str.indexOf(':ERROR:') > -1 && /:ERROR:.+cache/.test(str))
       if (ignore) return
-      this.stderr.write(data)
+      fs.writeSync(2, data)
     }
     sp.stderr.on('data', onerr)
     return pipe
