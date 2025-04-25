@@ -1916,7 +1916,7 @@ class Tray extends ReadyResource {
 
   async #getIconNativeImg (icon) {
     try {
-      const iconUrl = `${this.bridgeURL}/${icon}`
+      const iconUrl = `${this.state.rti.bridge}/${icon}`
       const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
       if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
 
