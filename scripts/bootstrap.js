@@ -11,7 +11,8 @@ const opts = {
   id: Pear.pid,
   dir: pathname,
   link: pear.bootstrap,
-  only: ['/by-arch', '/prebuilds', '/boot.bundle'],
+  only: ['/by-arch', '/prebuilds'],
+  force: true,
   json: !isTTY
 }
 
