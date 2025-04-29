@@ -41,7 +41,6 @@ class PearElectron {
   #outs () {
     if (this.LOG.INF === false) {
       return {
-        dumping: ({ link, dir }) => 'Syncing runtime from peers\nfrom: ' + link + '\ninto: ' + dir + '\n',
         stats ({ upload, download, peers }) {
           const dl = download.total + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.total)} - ${byteSize(download.speed)}/s ] `
           const ul = upload.total + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
@@ -50,7 +49,6 @@ class PearElectron {
             message: `Syncing Runtime [ Peers: ${peers} ] ${dl}${ul}`
           }
         },
-        byteDiff,
         final (asset) {
           if (asset.forced === false && asset.inserted === false) return {}
           return 'Sync Complete'
