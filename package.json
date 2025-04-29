@@ -3,28 +3,27 @@
   "version": "1.2.1",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
-  "bin": "bin/index.js",
+  "bin": "bin.js",
   "scripts": {
-    "bootstrap": "pear run bin/index.js",
+    "bootstrap": "pear run scripts/bootstrap.js",
     "decal": "pear run scripts/decal.js",
     "bundle": "pear run scripts/bundle.js",
-    "prepare": "npm --ignore-scripts i && npm run decal && npm run bundle",
-    "prestage": "npm run bootstrap && npm run bundle",
+    "prestage": "npm run bootstrap && npm run decal && npm run bundle",
     "lint": "standard"
   },
   "files": [
-    "bin/",
-    "boot.bundle",
     "bootstrap.js",
     "index.js",
-    "runtime.js"
+    "runtime.js",
+    "via.js"
   ],
   "pear": {
     "name": "pear-electron",
-    "bootstrap": "pear://0.949.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
+    "bootstrap": "pear://0.935.xw1owedec9guoyqa47cn5ea5abqpy1oss4acptmk73x3erfktiay",
     "stage": {
       "skipWarmup": "true",
       "only": [
+        "boot.bundle",
         "by-arch",
         "prebuilds"
       ]
@@ -52,8 +51,8 @@
     "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
-    "pear-api": "^1.6.20",
-    "pear-ipc": "^3.2.0",
+    "pear-api": "^1.9.0",
+    "pear-ipc": "^6.1.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
     "url-file-url": "^1.0.4",

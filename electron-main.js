@@ -39,11 +39,10 @@ async function electronMain (cmd) {
     tryboot,
     state
   })
-
   await gui.ready()
-
   // note: would be unhandled rejection on failure, but should never fail:
-  if (await gui.ipc.wakeup(state.link, state.storage, state.key === null ? state.dir : null, state.link?.startsWith('pear://dev'))) {
+  const wakeup = await gui.ipc.wakeup(state.link, state.storage, state.key === null ? state.dir : null, true)
+  if (wakeup) {
     electron.app.quit(0)
     return
   }
@@ -51,6 +50,7 @@ async function electronMain (cmd) {
   electron.ipcMain.on('send-to', (e, id, channel, message) => { electron.webContents.fromId(id)?.send(channel, message) })
 
   const app = await gui.app()
+
   app.unloading().then(async () => {
     await app.close()
   }) // note: would be unhandled rejection on failure, but should never fail

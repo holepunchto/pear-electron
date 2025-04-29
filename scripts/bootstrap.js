@@ -1,8 +1,19 @@
 'use strict'
+/* global Pear */
 const IPC = require('pear-ipc')
 const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
 const tryboot = require('pear-api/tryboot')
-const { outputter, ansi, byteSize } = require('pear-api/terminal')
+const { outputter, ansi, byteSize, isTTY } = require('pear-api/terminal')
+const { pear } = require('../package.json')
+const { pathname } = new URL(Pear.config.applink)
+
+const opts = {
+  id: Pear.pid,
+  dir: pathname,
+  link: pear.bootstrap,
+  only: ['/by-arch', '/prebuilds', '/boot.bundle'],
+  json: !isTTY
+}
 
 const transforms = {
   dumping: ({ link, dir, list }) => list > -1 ? '' : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,
@@ -33,4 +44,4 @@ async function bootstrap (opts, outs = transforms) {
   await ipc.close()
 }
 
-module.exports = bootstrap
+bootstrap(opts).catch(console.error)
