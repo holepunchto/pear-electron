@@ -122,30 +122,30 @@ class PearElectron {
     })
 
     argv = ['boot.bundle', '--rti', info, ...argv]
-    const stdio = args.detach ? ['ignore', 'ignore', 'ignore', 'overlapped'] : ['ignore', 'inherit', 'pipe', 'overlapped']
+    const stdio = args.detach
+      ? ['ignore', 'ignore', 'ignore', isWindows ? 'overlapped' : 'pipe']
+      : ['ignore', 'inherit', 'pipe', isWindows ? 'overlapped' : 'pipe']
     const options = {
       stdio,
       cwd,
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
     }
-
-    const sp = spawn(this.bin, argv, options)
+    let sp = null
     if (args.appling) {
       const { appling } = args
       const applingApp = isMac ? appling.split('.app')[0] + '.app' : appling
-      try {
-        fs.statSync(applingApp)
-      } catch {
-        throw ERR_INVALID_APPLING('Appling does not exist')
-      }
-      if (isMac) spawn('open', [applingApp, '--args', ...argv], options).unref()
-      else spawn(applingApp, argv, options).unref()
+      if (fs.existsSync(applingApp) === false) throw ERR_INVALID_APPLING('Appling does not exist')
+      if (isMac) sp = spawn('open', [applingApp, '--args', ...argv], options)
+      else sp = spawn(applingApp, argv, options)
+    } else {
+      sp = spawn(this.bin, argv, options)
     }
 
-    // TODO: teardown flow
+    sp.on('exit', (code) => { Pear.exitCode = code })
 
     const pipe = sp.stdio[3]
+
     if (args.detach) return pipe
 
     const onerr = (data) => {
