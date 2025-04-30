@@ -51,7 +51,7 @@ class PearElectron {
         },
         final (asset) {
           if (asset.forced === false && asset.inserted === false) return {}
-          return 'Sync Complete'
+          return 'Synced\x1b[K'
         }
       }
     }
