@@ -547,7 +547,7 @@ class App {
         hasShadow: prefiltered.hasShadow,
         opacity: prefiltered.opacity,
         transparent: prefiltered.transparent,
-        hideable: prefiltered.hideable ?? prefiltered[process.platform]?.hideable ?? false
+        closeHides: prefiltered.closeHides ?? prefiltered[process.platform]?.closeHides ?? false
       }
 
       const decalSession = electron.session.fromPartition('persist:pear')
@@ -730,7 +730,7 @@ function applyGuiOption (win, key, value) {
       win.setSize(w, h, false)
       return value ? win.setBackgroundColor('#00000000') : win.setBackgroundColor('#000')
     }
-    case 'hideable': win.hideable = value
+    case 'closeHides': win.closeHides = value
   }
 }
 
@@ -955,7 +955,7 @@ class GuiCtrl {
 
     const closeListener = (e) => {
       e.preventDefault()
-      if (this.win.hideable) return
+      if (this.win.closeHides) return
       if (this.unload) {
         this.unload({ type: 'close' })
       }
@@ -1050,7 +1050,7 @@ class Window extends GuiCtrl {
     })
 
     this.win.on('close', (evt) => {
-      if (this.win.hideable && this.quitting === false) {
+      if (this.win.closeHides && this.quitting === false) {
         evt.preventDefault()
         this.win.hide()
       } else {
@@ -1296,7 +1296,7 @@ class Window extends GuiCtrl {
   }
 
   async close () {
-    if (this.win?.hideable && this.quitting === false) return this.hide()
+    if (this.win?.closeHides && this.quitting === false) return this.hide()
     this.closing = true
     electron.app.off('activate', this.#onactivate)
     const closed = await super.close()
@@ -1549,9 +1549,14 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('message', (evt, ...args) => this.message(...args))
     electron.ipcMain.handle('checkpoint', (evt, ...args) => this.checkpoint(...args))
     electron.ipcMain.handle('versions', (evt, ...args) => this.versions(...args))
-    electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
+
+    electron.ipcMain.handle('restart', (evt, ...args) => {
+      const ctrl = this.getCtrl(evt.sender.id)
+      if (ctrl) ctrl.quitting = true
+      return this.restart(...args)
+    })
 
     electron.ipcMain.on('tray', (evt, opts) => {
       const tray = new Tray({
@@ -1899,9 +1904,9 @@ class Tray extends ReadyResource {
     }
 
     const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
-    const hideable = guiOptions.hideable ?? guiOptions[process.platform]?.hideable ?? false
-    if (!hideable) {
-      console.warn('hideable must be enabled to use tray')
+    const closeHides = guiOptions.closeHides ?? guiOptions[process.platform]?.closeHides ?? false
+    if (!closeHides) {
+      console.warn('closeHides must be enabled to use tray')
       return
     }
 
