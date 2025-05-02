@@ -13,7 +13,6 @@ const parseLink = require('pear-api/parse-link')
 const Logger = require('pear-api/logger')
 const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
 const { ansi, byteSize, byteDiff, outputter } = require('pear-api/terminal')
-const { Pipe } = require('pear-api/worker')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const pkg = require('./package.json')
@@ -124,8 +123,8 @@ class PearElectron {
 
     argv = ['boot.bundle', '--rti', info, ...argv]
     const stdio = args.detach
-      ? ['ignore', 'ignore', 'ignore', 'pipe', 'pipe']
-      : ['ignore', 'inherit', 'pipe', 'pipe', 'pipe']
+      ? ['ignore', 'ignore', 'ignore', 'overlapped']
+      : ['ignore', 'inherit', 'pipe', 'overlapped']
     const options = {
       stdio,
       cwd,
@@ -145,7 +144,7 @@ class PearElectron {
 
     sp.on('exit', (code) => { Pear.exitCode = code })
 
-    const pipe = new Pipe([sp.stdio[3], sp.stdio[4]])
+    const pipe = sp.stdio[3]
 
     if (args.detach) return pipe
 
