@@ -13,6 +13,8 @@ class Worker extends require('pear-api/worker') {
   }
 
   run (link, args = []) { return this.#ipc.workerRun(link, args) }
+
+  pipe () { return this.#ipc.workerPipe() }
 }
 
 module.exports = class PearGUI {
@@ -461,6 +463,34 @@ class IPC {
   workerRun (link, args) {
     const id = electron.ipcRenderer.sendSync('workerPipeId')
     electron.ipcRenderer.send('workerRun', link, args)
+    const stream = new streamx.Duplex({
+      write (data, cb) {
+        electron.ipcRenderer.send('workerPipeWrite', id, data)
+        cb()
+      },
+      final (cb) {
+        electron.ipcRenderer.send('workerPipeEnd', id)
+        cb()
+      }
+    })
+    electron.ipcRenderer.on('workerPipeError', (e, stack) => {
+      stream.emit('error', new Error('Worker PipeError (from electron-main): ' + stack))
+    })
+    electron.ipcRenderer.on('workerPipeClose', () => { stream.destroy() })
+    electron.ipcRenderer.on('workerPipeEnd', () => { stream.end() })
+    stream.once('close', () => {
+      electron.ipcRenderer.send('workerPipeClose', id)
+    })
+
+    electron.ipcRenderer.on('workerPipeData', (e, args) => {
+      if (args.id === id) stream.push(args.data)
+    })
+    return stream
+  }
+
+  workerPipe () {
+    const id = electron.ipcRenderer.sendSync('workerPipeId')
+    electron.ipcRenderer.send('workerPipe')
     const stream = new streamx.Duplex({
       write (data, cb) {
         electron.ipcRenderer.send('workerPipeWrite', id, data)
