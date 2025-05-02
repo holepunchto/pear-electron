@@ -1,5 +1,6 @@
 'use strict'
 const electron = require('electron')
+const fs = require('fs')
 const { resolve } = require('path')
 const unixPathResolve = require('unix-path-resolve')
 const { once } = require('events')
@@ -1602,8 +1603,18 @@ class PearGUI extends ReadyResource {
       pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
     })
 
-    electron.ipcMain.on('workerPipeId', (evt) => {
-      evt.returnValue = this.pipes.nextId()
+    electron.ipcMain.on('workerPipeId', (evt, ofParent) => {
+      if (ofParent) {
+        try {
+          const stat = fs.fstatSync(3)
+          const hasPipe = stat.isFIFO() || stat.isSocket()
+          if (hasPipe === false) evt.returnValue = -1
+        } catch {
+          evt.returnValue = -1
+        }
+      }
+
+      if (evt.returnValue !== -1) evt.returnValue = this.pipes.nextId()
       return evt.returnValue
     })
 

@@ -483,13 +483,14 @@ class IPC {
     })
 
     electron.ipcRenderer.on('workerPipeData', (e, args) => {
-      if (args.id === id) stream.push(args.data)
+      if (args.id === id) stream.push(Buffer.from(args.data))
     })
     return stream
   }
 
   workerPipe () {
     const id = electron.ipcRenderer.sendSync('workerPipeId')
+    if (id === -1) return null
     electron.ipcRenderer.send('workerPipe')
     const stream = new streamx.Duplex({
       write (data, cb) {
@@ -511,7 +512,7 @@ class IPC {
     })
 
     electron.ipcRenderer.on('workerPipeData', (e, args) => {
-      if (args.id === id) stream.push(args.data)
+      if (args.id === id) stream.push(Buffer.from(args.data))
     })
     return stream
   }
