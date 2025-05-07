@@ -31,6 +31,16 @@
       ]
     }
   },
+  "standard": {
+    "globals": [
+      "Bare",
+      "Pear",
+      "LOG"
+    ],
+    "ignore": [
+      "template"
+    ]
+  },
   "keywords": [
     "pear",
     "runtime",
