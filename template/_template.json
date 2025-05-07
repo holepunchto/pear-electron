@@ -25,7 +25,7 @@
     {
       "name": "minWidth",
       "validation": "(value) => Number.isInteger(+value)",
-      "prompt": "min. width",
+      "prompt": "min width",
       "msg": "must be an integer",
       "default": 500,
       "override": ["pear", "gui", "minWidth"],
