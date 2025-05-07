@@ -25,7 +25,9 @@
       "only": [
         "boot.bundle",
         "by-arch",
-        "prebuilds"
+        "CHANGELOG.md",
+        "prebuilds",
+        "template"
       ]
     }
   },

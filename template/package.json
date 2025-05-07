@@ -1,0 +1,29 @@
+{
+  "name": "__name__",
+  "main": "index.js",
+  "type": "module",
+  "pear": {
+    "via": "pear-electron",
+    "name": "__name__",
+    "gui": {
+      "main": "ui/index.html",
+      "width": 900,
+      "height": 500,
+      "minWidth": 500,
+      "backgroundColor": "#1F2430"
+    }
+  },
+  "license": "__license__",
+  "scripts": {
+    "dev": "pear run -d .",
+    "test": "brittle test/*.test.js"
+  },
+  "devDependencies": {
+    "brittle": "^3.0.0",
+    "pear-interface": "^1.0.0"
+  },
+  "dependencies": {
+    "pear-bridge": "^1.1.0",
+    "pear-electron": "^1.3.13"
+  }
+}
