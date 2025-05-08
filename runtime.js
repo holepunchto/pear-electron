@@ -12,7 +12,7 @@ const constants = require('pear-api/constants')
 const parseLink = require('pear-api/parse-link')
 const Logger = require('pear-api/logger')
 const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
-const { ansi, byteSize, byteDiff, outputter } = require('pear-api/terminal')
+const { ansi, byteSize, indicator, outputter } = require('pear-api/terminal')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const pkg = require('./package.json')
@@ -56,11 +56,14 @@ class PearElectron {
       }
     }
     return {
-      dumping: ({ link, dir }) => 'Syncing runtime from peers\nfrom: ' + link + '\ninto: ' + dir + '\n',
-      byteDiff,
-      file: ({ key }) => key,
-      complete: () => 'Asset fetch complete',
-      error: (err) => `Asset fetch Failure (code: ${err.code || 'none'}) ${err.stack}`
+      dumping: ({ link, dir }) => this.LOG.format('INF', 'Syncing runtime from peers\nfrom: ' + link + '\ninto: ' + dir + '\n'),
+      byteDiff: ({ type, sizes, message }) => {
+        sizes = sizes.map((size) => (size > 0 ? '+' : '') + byteSize(size)).join(', ')
+        return this.LOG.format('INF', indicator(type, 'diff') + ' ' + message + ' (' + sizes + ')')
+      },
+      file: ({ key }) => this.LOG.format('INF', key),
+      complete: () => this.LOG.format('INF', 'Asset fetch complete'),
+      error: (err) => this.LOG.format('INF', `Asset fetch Failure (code: ${err.code || 'none'}) ${err.stack}`)
     }
   }
 
@@ -79,6 +82,7 @@ class PearElectron {
   }
 
   async start (opts = {}) {
+    this.LOG.info('Fetching asset & determining bin path')
     this.bin = await this.#asset(opts)
     // if disk tampered then resync:
     if (fs.existsSync(this.bin) === false) this.bin = await this.#asset(opts, true)
@@ -133,16 +137,21 @@ class PearElectron {
     }
     let sp = null
     if (args.appling) {
+      this.LOG.info('Spawning UI (appling)')
       const { appling } = args
       const applingApp = isMac ? appling.split('.app')[0] + '.app' : appling
       if (fs.existsSync(applingApp) === false) throw ERR_INVALID_APPLING('Appling does not exist')
       if (isMac) sp = spawn('open', [applingApp, '--args', ...argv], options)
       else sp = spawn(applingApp, argv, options)
     } else {
+      this.LOG.info('Spawning UI (asset)')
       sp = spawn(this.bin, argv, options)
     }
 
-    sp.on('exit', (code) => { Pear.exitCode = code })
+    sp.on('exit', (code) => {
+      this.LOG.info('UI exited with code', code)
+      Pear.exitCode = code
+    })
 
     const pipe = sp.stdio[3]
 
