@@ -1584,11 +1584,11 @@ class PearGUI extends ReadyResource {
       const id = this.pipes.alloc(pipe)
       pipe.on('close', () => {
         this.pipes.free(id)
-        evt.reply('workerPipeClose')
+        evt.reply('workerPipeClose', { id })
       })
       pipe.on('data', (data) => { evt.reply('workerPipeData', { data, id }) })
-      pipe.on('end', () => { evt.reply('workerPipeEnd') })
-      pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
+      pipe.on('end', () => { evt.reply('workerPipeEnd', { id }) })
+      pipe.on('error', (err) => { evt.reply('workerPipeError', { id, stack: err.stack }) })
     })
 
     electron.ipcMain.on('workerRun', (evt, link, args) => {
@@ -1596,11 +1596,11 @@ class PearGUI extends ReadyResource {
       const id = this.pipes.alloc(pipe)
       pipe.on('close', () => {
         this.pipes.free(id)
-        evt.reply('workerPipeClose')
+        evt.reply('workerPipeClose', { id })
       })
       pipe.on('data', (data) => { evt.reply('workerPipeData', { data, id }) })
-      pipe.on('end', () => { evt.reply('workerPipeEnd') })
-      pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
+      pipe.on('end', () => { evt.reply('workerPipeEnd', { id }) })
+      pipe.on('error', (err) => { evt.reply('workerPipeError', { id, stack: err.stack }) })
     })
 
     electron.ipcMain.on('workerPipeId', (evt, ofParent) => {
