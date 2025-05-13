@@ -646,9 +646,9 @@ class App {
         resolve(false)
       }
     })
-    const pipes = [...this.gui.pipes]
-    const closingPipes = pipes.map((pipe) => new Promise((resolve) => { pipe.once('close', resolve) }))
-    const unloaders = [...closingPipes, ...PearGUI.ctrls().map((ctrl) => {
+    const streams = [...this.gui.streams]
+    const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
+    const unloaders = [...closingStreams, ...PearGUI.ctrls().map((ctrl) => {
       const closed = () => ctrl.closed
       if (!ctrl.unload) {
         if (ctrl.unloader) return ctrl.unloader.then(closed, closed)
@@ -657,7 +657,7 @@ class App {
       ctrl.unload({ type: 'close' })
       return ctrl.unloader.then(closed, closed)
     })]
-    for (const pipe of pipes) pipe.end()
+    for (const stream of streams) stream.end()
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
@@ -1468,7 +1468,7 @@ class PearGUI extends ReadyResource {
       connect: tryboot
     })
     this.worker = new Worker()
-    this.pipes = new Freelist()
+    this.streams = new Freelist()
     this.ipc.once('close', () => this.close())
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
@@ -1552,6 +1552,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('versions', (evt, ...args) => this.versions(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
+    electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
 
     electron.ipcMain.handle('restart', (evt, ...args) => {
       const ctrl = this.getCtrl(evt.sender.id)
@@ -1579,31 +1580,15 @@ class PearGUI extends ReadyResource {
       })
     })
 
-    electron.ipcMain.on('workerPipe', (evt) => {
-      const pipe = this.worker.pipe()
-      const id = this.pipes.alloc(pipe)
-      pipe.on('close', () => {
-        this.pipes.free(id)
-        evt.reply('workerPipeClose')
-      })
-      pipe.on('data', (data) => { evt.reply('workerPipeData', { data, id }) })
-      pipe.on('end', () => { evt.reply('workerPipeEnd') })
-      pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
+    electron.ipcMain.on('pipe', (evt) => {
+      this.#stream(this.worker.pipe(), evt)
     })
 
-    electron.ipcMain.on('workerRun', (evt, link, args) => {
-      const pipe = this.worker.run(link, args)
-      const id = this.pipes.alloc(pipe)
-      pipe.on('close', () => {
-        this.pipes.free(id)
-        evt.reply('workerPipeClose')
-      })
-      pipe.on('data', (data) => { evt.reply('workerPipeData', { data, id }) })
-      pipe.on('end', () => { evt.reply('workerPipeEnd') })
-      pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
+    electron.ipcMain.on('run', (evt, link, args) => {
+      this.#stream(this.worker.run(link, args), evt)
     })
 
-    electron.ipcMain.on('workerPipeId', (evt, ofParent) => {
+    electron.ipcMain.on('streamId', (evt, ofParent) => {
       if (ofParent) {
         try {
           const stat = fs.fstatSync(3)
@@ -1614,30 +1599,42 @@ class PearGUI extends ReadyResource {
         }
       }
 
-      if (evt.returnValue !== -1) evt.returnValue = this.pipes.nextId()
+      if (evt.returnValue !== -1) evt.returnValue = this.streams.nextId()
       return evt.returnValue
     })
 
-    electron.ipcMain.on('workerPipeEnd', (evt, id) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) return
-      pipe.end()
+    electron.ipcMain.on('streamEnd', (evt, id) => {
+      const stream = this.streams.from(id)
+      if (!stream) return
+      stream.end()
     })
 
-    electron.ipcMain.on('workerPipeClose', (evt, id) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) return
-      pipe.destroy()
+    electron.ipcMain.on('streamClose', (evt, id) => {
+      const stream = this.streams.from(id)
+      if (!stream) return
+      stream.destroy()
     })
 
-    electron.ipcMain.on('workerPipeWrite', (evt, id, data) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) {
-        console.error('Unexpected workerPipe error (unknown id)')
+    electron.ipcMain.on('streamWrite', (evt, id, data) => {
+      const stream = this.streams.from(id)
+      if (!stream) {
+        console.error('Unexpected electron-main stream error (unknown id)')
         return
       }
-      pipe.write(data)
+      stream.write(data)
     })
+  }
+
+  #stream (stream, evt) {
+    const id = this.streams.alloc(stream)
+    stream.on('close', () => {
+      this.streams.free(id)
+      evt.reply('streamClose', { id })
+    })
+    stream.on('data', (data) => { evt.reply('streamData', { data, id }) })
+    stream.on('end', () => { evt.reply('streamEnd', { id }) })
+    stream.on('error', (err) => { evt.reply('streamErr', { id, stack: err.stack }) })
+    return id
   }
 
   async app () {
@@ -1856,6 +1853,8 @@ class PearGUI extends ReadyResource {
   get (params) { return this.ipc.get(params) }
 
   exists (params) { return this.ipc.exists(params) }
+
+  compare (params) { return this.ipc.compare(params) }
 
   warming () { return this.ipc.warming() }
 

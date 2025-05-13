@@ -12,9 +12,9 @@ class Worker extends require('pear-api/worker') {
     this.#ipc = ipc
   }
 
-  run (link, args = []) { return this.#ipc.workerRun(link, args) }
+  run (link, args = []) { return this.#ipc.run(link, args) }
 
-  pipe () { return this.#ipc.workerPipe() }
+  pipe () { return this.#ipc.pipe() }
 }
 
 module.exports = class PearGUI {
@@ -425,6 +425,7 @@ class IPC {
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
+  compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
@@ -446,77 +447,44 @@ class IPC {
     return stream
   }
 
-  warming () {
-    electron.ipcRenderer.send('warming')
-    const stream = new streamx.Readable()
-    electron.ipcRenderer.on('warming', (e, data) => { stream.push(data) })
-    return stream
-  }
-
-  reports () {
-    electron.ipcRenderer.send('reports')
-    const stream = new streamx.Readable()
-    electron.ipcRenderer.on('reports', (e, data) => { stream.push(data) })
-    return stream
-  }
-
-  workerRun (link, args) {
-    const id = electron.ipcRenderer.sendSync('workerPipeId')
-    electron.ipcRenderer.send('workerRun', link, args)
-    const stream = new streamx.Duplex({
-      write (data, cb) {
-        electron.ipcRenderer.send('workerPipeWrite', id, data)
-        cb()
-      },
-      final (cb) {
-        electron.ipcRenderer.send('workerPipeEnd', id)
-        cb()
-      }
-    })
-    electron.ipcRenderer.on('workerPipeError', (e, stack) => {
-      stream.emit('error', new Error('Worker PipeError (from electron-main): ' + stack))
-    })
-    electron.ipcRenderer.on('workerPipeClose', () => { stream.destroy() })
-    electron.ipcRenderer.on('workerPipeEnd', () => { stream.end() })
-    stream.once('close', () => {
-      electron.ipcRenderer.send('workerPipeClose', id)
-    })
-
-    electron.ipcRenderer.on('workerPipeData', (e, args) => {
-      if (args.id === id) stream.push(Buffer.from(args.data))
-    })
-    return stream
-  }
-
-  workerPipe () {
-    const id = electron.ipcRenderer.sendSync('workerPipeId')
-    if (id === -1) return null
-    electron.ipcRenderer.send('workerPipe')
-    const stream = new streamx.Duplex({
-      write (data, cb) {
-        electron.ipcRenderer.send('workerPipeWrite', id, data)
-        cb()
-      },
-      final (cb) {
-        electron.ipcRenderer.send('workerPipeEnd', id)
-        cb()
-      }
-    })
-    electron.ipcRenderer.on('workerPipeError', (e, stack) => {
-      stream.emit('error', new Error('Worker PipeError (from electron-main): ' + stack))
-    })
-    electron.ipcRenderer.on('workerPipeClose', () => { stream.destroy() })
-    electron.ipcRenderer.on('workerPipeEnd', () => { stream.end() })
-    stream.once('close', () => {
-      electron.ipcRenderer.send('workerPipeClose', id)
-    })
-
-    electron.ipcRenderer.on('workerPipeData', (e, args) => {
-      if (args.id === id) stream.push(Buffer.from(args.data))
-    })
-    return stream
-  }
+  warming () { return this.#stream('warming') }
+  reports () { return this.#stream('reports') }
+  run (link, args) { return this.#stream('run', link, args) }
+  pipe () { return this.#stream('pipe') }
+  asset (link, opts = {}) { return this.#stream('asset', link, opts) }
+  dump (link, opts = {}) { return this.#stream('dump', link, opts) }
+  stage (link, opts = {}) { return this.#stream('stage', link, opts) }
+  release (link, opts = {}) { return this.#stream('release', link, opts) }
+  info (link, opts = {}) { return this.#stream('info', link, opts) }
+  seed (link, opts = {}) { return this.#stream('seed', link, opts) }
 
   ref () {}
   unref () {}
+
+  #stream (method, ...args) {
+    const id = electron.ipcRenderer.sendSync('streamId')
+    electron.ipcRenderer.send(method, ...args)
+    const stream = new streamx.Duplex({
+      write (data, cb) {
+        electron.ipcRenderer.send('streamWrite', id, data)
+        cb()
+      },
+      final (cb) {
+        electron.ipcRenderer.send('streamEnd', id)
+        cb()
+      }
+    })
+    electron.ipcRenderer.on('streamError', (e, info) => {
+      if (info.id !== id) return
+      stream.emit('error', new Error('Stream Error (from electron-main): ' + info.stack))
+    })
+    electron.ipcRenderer.on('streamClose', (e, info) => { if (info.id === id) stream.destroy() })
+    electron.ipcRenderer.on('streamEnd', (e, info) => { if (info.id === id) stream.end() })
+    stream.once('close', () => { electron.ipcRenderer.send('streamClose', id) })
+
+    electron.ipcRenderer.on('streamData', (e, args) => {
+      if (args.id === id) stream.push(Buffer.from(args.data))
+    })
+    return stream
+  }
 }

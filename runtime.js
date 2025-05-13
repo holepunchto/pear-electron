@@ -9,9 +9,9 @@ const { command } = require('paparam')
 const { isLinux, isWindows, isMac } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-api/constants')
-const parseLink = require('pear-api/parse-link')
+const plink = require('pear-api/link')
 const Logger = require('pear-api/logger')
-const { ERR_INVALID_INPUT, ERR_INVALID_APPLING } = require('pear-api/errors')
+const { ERR_INVALID_APPLING } = require('pear-api/errors')
 const { ansi, byteSize, indicator, outputter } = require('pear-api/terminal')
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
@@ -91,8 +91,7 @@ class PearElectron {
     let argv = parsed.rest
     const { args, indices } = cmd.parse(argv)
     let link = Pear.config.link
-    const { drive, pathname } = parseLink(link)
-    const entry = isWindows ? path.normalize(pathname.slice(1)) : pathname
+    const { drive, pathname, hash, search } = plink.parse(link)
     const { key } = drive
     const isPear = link.startsWith('pear://')
     const isFile = link.startsWith('file://')
@@ -102,18 +101,15 @@ class PearElectron {
     let dir = cwd
     let base = null
     if (key === null) {
-      try {
-        dir = fs.statSync(entry).isDirectory() ? entry : path.dirname(entry)
-      } catch { /* ignore */ }
-      base = project(dir, pathname, cwd)
+      base = project(pathname, pathname, cwd)
       dir = base.dir
       if (dir.length > 1 && dir.endsWith('/')) dir = dir.slice(0, -1)
       if (isPath) {
-        link = pathToFileURL(path.join(dir, base.entrypoint || '/')).pathname
+        link = pathToFileURL(path.join(dir, base.entrypoint || '/')) + search + hash
+        argv[indices.args.link] = link
       }
     }
 
-    if (isPath) argv[indices.args.link] = 'file://' + (base.entrypoint || '/')
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
     if ((isLinux || isWindows) && indices.flags.sandbox === undefined) argv.splice(indices.args.link, 0, '--no-sandbox')
@@ -185,11 +181,11 @@ function project (dir, origin, cwd) {
     if (err.code !== 'ENOENT' && err.code !== 'EISDIR' && err.code !== 'ENOTDIR') throw err
   }
   const parent = path.dirname(dir)
-  if (parent === dir || parent.startsWith(cwd) === false) {
+  if (parent === dir) {
     const normalizedOrigin = !isWindows ? origin : path.normalize(origin.slice(1))
     const cwdIsOrigin = path.relative(cwd, normalizedOrigin).length === 0
     const condition = cwdIsOrigin ? `at "${cwd}"` : normalizedOrigin.includes(cwd) ? `from "${normalizedOrigin}" up to "${cwd}"` : `at "${normalizedOrigin}"`
-    throw ERR_INVALID_INPUT(`A valid package.json file with pear field must exist ${condition}`)
+    throw ERR_INVALID_PROJECT_DIR(`A valid package.json file with pear field must exist ${condition}`)
   }
   return project(parent, origin, cwd)
 }
