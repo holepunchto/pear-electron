@@ -11,6 +11,7 @@ const IPC = require('pear-ipc')
 const ReadyResource = require('ready-resource')
 const Worker = require('pear-api/worker')
 const constants = require('pear-api/constants')
+const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
 
@@ -1025,6 +1026,7 @@ class Window extends GuiCtrl {
       frame: false,
       ...(isMac && { titleBarStyle: 'hidden', trafficLightPosition: { x: 0, y: 0 }, titleBarOverlay: true }),
       ...(isMac && this.state?.alias === 'keet' && this.state?.appling?.path ? { icon: path.join(path.dirname(this.state.appling.path), 'resources', 'app', 'icon.ico') } : {}),
+      ...(isLinux && { icon: linuxIcon }),
       show,
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
@@ -1553,6 +1555,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
     electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
+    electron.ipcMain.handle('badge', (evt, ...args) => this.badge(...args))
 
     electron.ipcMain.handle('restart', (evt, ...args) => {
       const ctrl = this.getCtrl(evt.sender.id)
@@ -1861,6 +1864,15 @@ class PearGUI extends ReadyResource {
   reports () { return this.ipc.reports() }
 
   permit (params) { return this.ipc.permit(params) }
+
+  badge ({ id, count }) {
+    if (!isLinux) {
+      return electron.app.setBadgeCount(count)
+    } else {
+      this.get(id).win.setIcon(linuxBadgeIcon(count))
+      return true
+    }
+  }
 }
 
 class Freelist {
@@ -1894,6 +1906,35 @@ class Freelist {
     for (const item of this.alloced) {
       if (item === null) continue
       yield item
+    }
+  }
+}
+
+function linuxBadgeIcon (n) {
+  if (n < 1) {
+    return require('./icons/linux')
+  } else {
+    switch (n) {
+      case 1:
+        return require('./icons/badge-1')
+      case 2:
+        return require('./icons/badge-2')
+      case 3:
+        return require('./icons/badge-3')
+      case 4:
+        return require('./icons/badge-4')
+      case 5:
+        return require('./icons/badge-5')
+      case 6:
+        return require('./icons/badge-6')
+      case 7:
+        return require('./icons/badge-7')
+      case 8:
+        return require('./icons/badge-8')
+      case 9:
+        return require('./icons/badge-9')
+      default:
+        return require('./icons/badge-more')
     }
   }
 }

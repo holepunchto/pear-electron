@@ -58,6 +58,10 @@ module.exports = class PearGUI {
           },
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
+        this.badge = (count) => {
+          if (!Number.isInteger(+count)) throw new Error('argument must be an integer')
+          return ipc.badge({ id, count })
+        }
 
         this.tray.scaleFactor = state.tray?.scaleFactor
         this.tray.darkMode = state.tray?.darkMode
@@ -426,6 +430,7 @@ class IPC {
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
+  badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
