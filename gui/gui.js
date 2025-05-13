@@ -1,6 +1,5 @@
 'use strict'
 const electron = require('electron')
-const fs = require('fs')
 const { resolve } = require('path')
 const unixPathResolve = require('unix-path-resolve')
 const { once } = require('events')
@@ -1482,22 +1481,36 @@ class PearGUI extends ReadyResource {
       return (event.returnValue = instance.parentId)
     })
 
-    electron.ipcMain.on('warming', (event) => {
-      const warming = this.warming()
-      warming.on('data', (data) => event.reply('warming', data))
-      warming.on('end', () => {
-        warming.end()
-        event.reply('warming', null)
-      })
+    electron.ipcMain.on('warming', (evt) => {
+      this.#stream(this.ipc.warming(), evt)
     })
 
-    electron.ipcMain.on('reports', (event) => {
-      const reports = this.reports()
-      reports.on('data', (data) => event.reply('reports', data))
-      reports.on('end', () => {
-        reports.end()
-        event.reply('reports', null)
-      })
+    electron.ipcMain.on('reports', (evt) => {
+      this.#stream(this.ipc.reports(), evt)
+    })
+
+    electron.ipcMain.on('asset', (evt, opts = {}) => {
+      this.#stream(this.ipc.asset(opts), evt)
+    })
+
+    electron.ipcMain.on('dump', (evt, opts = {}) => {
+      this.#stream(this.ipc.dump(opts), evt)
+    })
+
+    electron.ipcMain.on('stage', (evt, opts = {}) => {
+      this.#stream(this.ipc.stage(opts), evt)
+    })
+
+    electron.ipcMain.on('release', (evt, opts = {}) => {
+      this.#stream(this.ipc.release(opts), evt)
+    })
+
+    electron.ipcMain.on('info', (evt, opts = {}) => {
+      this.#stream(this.ipc.info(opts), evt)
+    })
+
+    electron.ipcMain.on('seed', (evt, opts = {}) => {
+      this.#stream(this.ipc.seed(opts), evt)
     })
 
     electron.ipcMain.on('messages', (event, pattern) => {
@@ -1588,18 +1601,8 @@ class PearGUI extends ReadyResource {
       this.#stream(this.worker.run(link, args), evt)
     })
 
-    electron.ipcMain.on('streamId', (evt, ofParent) => {
-      if (ofParent) {
-        try {
-          const stat = fs.fstatSync(3)
-          const hasPipe = stat.isFIFO() || stat.isSocket()
-          if (hasPipe === false) evt.returnValue = -1
-        } catch {
-          evt.returnValue = -1
-        }
-      }
-
-      if (evt.returnValue !== -1) evt.returnValue = this.streams.nextId()
+    electron.ipcMain.on('streamId', (evt) => {
+      evt.returnValue = this.streams.nextId()
       return evt.returnValue
     })
 
