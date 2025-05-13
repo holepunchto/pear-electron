@@ -1,6 +1,6 @@
 {
   "name": "pear-electron",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
   "bin": "bin.js",
@@ -19,7 +19,7 @@
   ],
   "pear": {
     "name": "pear-electron",
-    "bootstrap": "pear://0.2621.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
+    "bootstrap": "pear://0.2625.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "stage": {
       "skipWarmup": "true",
       "only": [

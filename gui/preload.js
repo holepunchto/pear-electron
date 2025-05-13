@@ -451,12 +451,12 @@ class IPC {
   reports () { return this.#stream('reports') }
   run (link, args) { return this.#stream('run', link, args) }
   pipe () { return this.#stream('pipe') }
-  asset (link, opts = {}) { return this.#stream('asset', link, opts) }
-  dump (link, opts = {}) { return this.#stream('dump', link, opts) }
-  stage (link, opts = {}) { return this.#stream('stage', link, opts) }
-  release (link, opts = {}) { return this.#stream('release', link, opts) }
-  info (link, opts = {}) { return this.#stream('info', link, opts) }
-  seed (link, opts = {}) { return this.#stream('seed', link, opts) }
+  asset (link, opts = {}) { return this.#stream('asset', { ...opts, link }) }
+  dump (link, opts = {}) { return this.#stream('dump', { ...opts, link }) }
+  stage (link, opts = {}) { return this.#stream('stage', { ...opts, link }) }
+  release (link, opts = {}) { return this.#stream('release', { ...opts, link }) }
+  info (link, opts = {}) { return this.#stream('info', { ...opts, link }) }
+  seed (link, opts = {}) { return this.#stream('seed', { ...opts, link }) }
 
   ref () {}
   unref () {}
