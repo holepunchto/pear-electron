@@ -18,9 +18,9 @@ const pear = require('pear-api/cmd')
 const pkg = require('./package.json')
 
 const bin = (name = Pear.config.name) => {
-  const name = name[0].toUpperCase() + name.slice(1)
-  const app = isMac ? name + ' Runtime.app' : name + '-runtime-app'
-  const exe = isWindows ? name + 'Runtime.exe' : (isMac ? 'Contents/MacOS/' + name + ' Runtime' : name + '-runtime')
+  const formatedName = name[0].toUpperCase() + name.slice(1)
+  const app = isMac ? formatedName + ' Runtime.app' : name + '-runtime-app'
+  const exe = isWindows ? formatedName + 'Runtime.exe' : (isMac ? 'Contents/MacOS/' + formatedName + ' Runtime' : Pear.config.name + '-runtime')
   return isWindows ? 'bin\\' + app + '\\' + exe : (isMac ? 'bin/' + app + '/' + exe : 'bin/' + app + '/' + exe)
 }
 
