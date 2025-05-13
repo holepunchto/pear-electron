@@ -17,6 +17,13 @@ const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const pkg = require('./package.json')
 
+const bin = (name = Pear.config.name) => {
+  const name = name[0].toUpperCase() + name.slice(1)
+  const app = isMac ? name + ' Runtime.app' : name + '-runtime-app'
+  const exe = isWindows ? name + 'Runtime.exe' : (isMac ? 'Contents/MacOS/' + name + ' Runtime' : name + '-runtime')
+  return isWindows ? 'bin\\' + app + '\\' + exe : (isMac ? 'bin/' + app + '/' + exe : 'bin/' + app + '/' + exe)
+}
+
 const BIN = isWindows
   ? 'bin\\pear-runtime-app\\Pear Runtime.exe'
   : isMac
@@ -63,8 +70,8 @@ class PearElectron {
   async #asset (opts, force = false) {
     const output = outputter('asset', this.#outs())
     const json = false
-    const bootstrap = opts.bootstrap ?? pkg.pear.bootstrap
-    const executable = BIN
+    const bootstrap = opts.bootstrap?.link ?? opts.bootstrap ?? pkg.pear.bootstrap
+    const executable = opts.bootstrap ? bin(opts.bootstrap.name) : BIN
     const stream = Pear.asset(bootstrap, {
       only: ['/boot.bundle', '/by-arch/' + require.addon.host, '/prebuilds/' + require.addon.host],
       force
