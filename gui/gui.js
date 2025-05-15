@@ -1609,10 +1609,10 @@ class PearGUI extends ReadyResource {
       return evt.returnValue
     })
 
-    electron.ipcMain.on('streamEnd', (evt, id) => {
+    electron.ipcMain.on('streamEnd', (evt, id, data) => {
       const stream = this.streams.from(id)
       if (!stream) return
-      stream.end()
+      stream.end(data)
     })
 
     electron.ipcMain.on('streamClose', (evt, id) => {
@@ -1635,11 +1635,14 @@ class PearGUI extends ReadyResource {
     const id = this.streams.alloc(stream)
     stream.on('close', () => {
       this.streams.free(id)
-      evt.reply('streamClose', { id })
+      evt.reply('streamClose', id)
     })
-    stream.on('data', (data) => { evt.reply('streamData', { data, id }) })
-    stream.on('end', () => { evt.reply('streamEnd', { id }) })
-    stream.on('error', (err) => { evt.reply('streamErr', { id, stack: err.stack }) })
+    stream.on('data', (data) => { evt.reply('streamData', id, data) })
+    stream.on('end', () => {
+      evt.reply('streamData', id, null)
+      evt.reply('streamEnd', id)
+    })
+    stream.on('error', (err) => { evt.reply('streamErr', id, err.stack) })
     return id
   }
 

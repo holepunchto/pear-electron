@@ -453,44 +453,53 @@ class IPC {
     return stream
   }
 
-  warming () { return this.#stream('warming') }
-  reports () { return this.#stream('reports') }
-  run (link, args) { return this.#stream('run', link, args) }
-  pipe () { return this.#stream('pipe') }
-  asset (link, opts = {}) { return this.#stream('asset', { ...opts, link }) }
-  dump (link, opts = {}) { return this.#stream('dump', { ...opts, link }) }
-  stage (link, opts = {}) { return this.#stream('stage', { ...opts, link }) }
-  release (link, opts = {}) { return this.#stream('release', { ...opts, link }) }
-  info (link, opts = {}) { return this.#stream('info', { ...opts, link }) }
-  seed (link, opts = {}) { return this.#stream('seed', { ...opts, link }) }
+  warming () { return new Stream('warming') }
+  reports () { return new Stream('reports') }
+  run (link, args) { return new Stream('run', link, args) }
+  pipe () { return new Stream('pipe') }
+  asset (opts = {}) { return new Stream('asset', opts) }
+  dump (opts = {}) { return new Stream('dump', opts) }
+  stage (opts = {}) { return new Stream('stage', opts) }
+  release (opts = {}) { return new Stream('release', opts) }
+  info (opts = {}) { return new Stream('info', opts) }
+  seed (opts = {}) { return new Stream('seed', opts) }
 
   ref () {}
   unref () {}
+}
 
-  #stream (method, ...args) {
-    const id = electron.ipcRenderer.sendSync('streamId')
-    electron.ipcRenderer.send(method, ...args)
-    const stream = new streamx.Duplex({
-      write (data, cb) {
-        electron.ipcRenderer.send('streamWrite', id, data)
-        cb()
-      },
-      final (cb) {
-        electron.ipcRenderer.send('streamEnd', id)
-        cb()
-      }
-    })
-    electron.ipcRenderer.on('streamError', (e, info) => {
-      if (info.id !== id) return
-      stream.emit('error', new Error('Stream Error (from electron-main): ' + info.stack))
-    })
-    electron.ipcRenderer.on('streamClose', (e, info) => { if (info.id === id) stream.destroy() })
-    electron.ipcRenderer.on('streamEnd', (e, info) => { if (info.id === id) stream.end() })
-    stream.once('close', () => { electron.ipcRenderer.send('streamClose', id) })
+class Stream extends streamx.Duplex {
+  #id = null
+  #method = null
+  #guard (fn) {
+    return (evt, id, ...args) => {
+      if (id !== this.#id) return
+      fn(...args)
+    }
+  }
 
-    electron.ipcRenderer.on('streamData', (e, args) => {
-      if (args.id === id) stream.push(Buffer.from(args.data))
-    })
-    return stream
+  constructor (method, ...args) {
+    super()
+    this.#method = method
+    this.#id = electron.ipcRenderer.sendSync('streamId')
+    electron.ipcRenderer.send(this.#method, ...args)
+    electron.ipcRenderer.on('streamError', this.#guard((stack) => {
+      this.destroy(new Error('Stream Error (from electron-main): ' + stack))
+    }))
+    electron.ipcRenderer.on('streamClose', this.#guard(() => this.destroy()))
+    electron.ipcRenderer.on('streamEnd', this.#guard(() => this.end()))
+    electron.ipcRenderer.on('streamData', this.#guard((data) => { this.push(data) }))
+
+    this.once('close', () => { electron.ipcRenderer.send('streamClose', this.#id) })
+  }
+
+  _write (data, cb) {
+    electron.ipcRenderer.send('streamWrite', this.#id, data)
+    cb()
+  }
+
+  _final (cb) {
+    electron.ipcRenderer.send('streamEnd', this.#id)
+    cb()
   }
 }

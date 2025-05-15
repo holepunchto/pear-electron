@@ -77,7 +77,7 @@ class PearElectron {
       force
     })
     const asset = await output(json, stream)
-    if (asset === null) throw new Error('Failed to determine runtime asset from sidecar')
+    if (asset === null || !asset?.path) throw new Error('Failed to determine runtime asset from sidecar')
     return path.join(asset.path, 'by-arch', require.addon.host, executable)
   }
 
