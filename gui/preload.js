@@ -297,6 +297,11 @@ module.exports = class PearGUI {
             return this.#app
           }
 
+          badge = (count) => {
+            if (!Number.isInteger(+count)) throw new Error('argument must be an integer')
+            return ipc.badge({ id, count })
+          }
+
           warming () {
             electron.ipcRenderer.send('warming')
             const stream = new streamx.Readable()
@@ -426,6 +431,7 @@ class IPC {
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
+  badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
