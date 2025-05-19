@@ -21,11 +21,12 @@ module.exports = (api) => {
 
     #untray
 
-    constructor (ipc, state) {
+    constructor (ipc, state, teardown) {
       const worker = new Worker({ ipc })
       super(ipc, state, { teardown, worker })
       this[Symbol.for('pear.ipc')] = ipc
       const kGuiCtrl = Symbol('gui:ctrl')
+      const id = ipc.sendSync('id')
       const media = {
         status: {
           microphone: () => ipc.getMediaAccessStatus({ id, media: 'microphone' }),

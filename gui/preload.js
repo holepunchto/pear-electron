@@ -1,7 +1,7 @@
-/* eslint-env browser */ /* globals Pear */
+/* eslint-env browser */
 'use strict'
-const streamx = require('streamx')
 const api = require('../api')
+const streamx = require('streamx')
 const Iambus = require('iambus')
 const electron = require('electron')
 
