@@ -1565,6 +1565,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('message', (evt, ...args) => this.message(...args))
     electron.ipcMain.handle('checkpoint', (evt, ...args) => this.checkpoint(...args))
     electron.ipcMain.handle('versions', (evt, ...args) => this.versions(...args))
+    electron.ipcMain.handle('updated', (evt, ...args) => this.updated(...args))
     electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
     electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
@@ -1856,6 +1857,8 @@ class PearGUI extends ReadyResource {
   checkpoint (state) { return this.ipc.checkpoint(state) }
 
   versions () { return this.ipc.versions() }
+
+  updated () { return this.ipc.updated() }
 
   restart (opts = {}) { return this.ipc.restart(opts) }
 
