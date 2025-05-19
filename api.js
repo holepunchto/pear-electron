@@ -329,7 +329,7 @@ module.exports = (api) => {
       opts = {
         ...opts,
         menu: opts.menu ?? {
-          show: `Show ${state.name}`,
+          show: `Show ${this.state.name}`,
           quit: 'Quit'
         }
       }
