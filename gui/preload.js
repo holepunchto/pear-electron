@@ -99,15 +99,14 @@ class IPC {
     return stream
   }
 
-  messageStream (id) {
-    const stream = new streamx.Readable({ read () {} })
-    electron.ipcRenderer.on('send', (e, targetId, ...args) => {
-      if (targetId === id) stream.push(args)
-    })
-    return stream
-  }
-
   sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
+  receiveFrom (id, fn) {
+    const handler = (e, targetId, ...args) => {
+      if (targetId === id) fn(...args)
+    }
+    electron.ipcRenderer.on('send', handler)
+    return () => electron.ipcRenderer.removeListener('send', handler)
+  }
 
   getId () { return electron.ipcRenderer.sendSync('id') }
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }

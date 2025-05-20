@@ -95,12 +95,11 @@ module.exports = (api) => {
 
       class Parent extends EventEmitter {
         #id
-        #messageStream
+        #unlisten
         constructor (id) {
           super()
           this.#id = id
-          this.#messageStream = ipc.messageStream(id)
-          this.#messageStream.on('data', (args) => {
+          this.#unlisten = ipc.receiveFrom(id, (...args) => {
             this.emit('message', ...args)
           })
         }
@@ -154,7 +153,7 @@ module.exports = (api) => {
 
       class GuiCtrl extends EventEmitter {
         #listener = null
-        #messageStream = null
+        #unlisten = null
 
         static get parent () {
           Object.defineProperty(this, 'parent', {
@@ -181,14 +180,13 @@ module.exports = (api) => {
 
         #rxtx () {
           this.#listener = (...args) => this.emit('message', ...args)
-          this.#messageStream = ipc.messageStream(this.id)
-          this.#messageStream.on('data', this.#listener)
+          this.#unlisten = ipc.receiveFrom(this.id, this.#listener)
         }
 
         #unrxtx () {
-          if (this.#messageStream) {
-            this.#messageStream.destroy()
-            this.#messageStream = null
+          if (this.#unlisten) {
+            this.#unlisten()
+            this.#unlisten = null
           }
           this.#listener = null
         }
