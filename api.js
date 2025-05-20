@@ -14,6 +14,8 @@ class Worker extends require('pear-api/worker') {
 
   pipe () { return this.#ipc.pipe() }
 }
+const IPC = require('./gui/ipc')
+module.exports.IPC = IPC
 
 module.exports = (api) => {
   class API extends api {
