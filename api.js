@@ -3,6 +3,7 @@
 const streamx = require('streamx')
 const { EventEmitter } = require('events')
 const noop = () => {}
+const IPC = require('./gui/ipc')
 class Worker extends require('pear-api/worker') {
   #ipc = null
   constructor ({ ref = noop, unref = noop, ipc } = {}) {
@@ -14,8 +15,6 @@ class Worker extends require('pear-api/worker') {
 
   pipe () { return this.#ipc.pipe() }
 }
-const IPC = require('./gui/ipc')
-module.exports.IPC = IPC
 
 module.exports = (api) => {
   class API extends api {
@@ -364,3 +363,5 @@ module.exports = (api) => {
 
   return API
 }
+
+module.exports.IPC = IPC
