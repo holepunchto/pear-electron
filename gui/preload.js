@@ -37,7 +37,6 @@ class IPC {
   parent (...args) { return electron.ipcRenderer.invoke('parent', ...args) }
   open (...args) { return electron.ipcRenderer.invoke('open', ...args) }
   close (...args) { return electron.ipcRenderer.invoke('close', ...args) }
-  sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
   show (...args) { return electron.ipcRenderer.invoke('show', ...args) }
   hide (...args) { return electron.ipcRenderer.invoke('hide', ...args) }
   minimize (...args) { return electron.ipcRenderer.invoke('minimize', ...args) }
@@ -107,6 +106,8 @@ class IPC {
     })
     return stream
   }
+
+  sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
 
   getId () { return electron.ipcRenderer.sendSync('id') }
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
