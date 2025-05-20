@@ -19,7 +19,7 @@
   ],
   "pear": {
     "name": "pear-electron",
-    "bootstrap": "pear://0.6313.dqgs5prptqozgwzanes31atj1imzbf5dfg4tgpgkp5mke83oziyy",
+    "bootstrap": "pear://0.2627.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "stage": {
       "skipWarmup": "true",
       "only": [
