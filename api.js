@@ -26,7 +26,7 @@ module.exports = (api) => {
       super(ipc, state, { teardown, worker })
       this[Symbol.for('pear.ipc')] = ipc
       const kGuiCtrl = Symbol('gui:ctrl')
-      const id = ipc.sendSync('id')
+      const id = ipc.getId()
       const media = {
         status: {
           microphone: () => ipc.getMediaAccessStatus({ id, media: 'microphone' }),
@@ -44,12 +44,11 @@ module.exports = (api) => {
       this.tray.scaleFactor = state.tray?.scaleFactor
       this.tray.darkMode = state.tray?.darkMode
 
-      ipc.on('tray/darkMode', (e, data) => {
+      ipc.trayDarkMode().on('data', (data) => {
         this.tray.darkMode = data
       })
-      ipc.send('tray/darkMode')
 
-      ipc.on('app/found', (e, result) => {
+      ipc.appFound().on('data', (result) => {
         this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
       })
 
@@ -96,10 +95,12 @@ module.exports = (api) => {
 
       class Parent extends EventEmitter {
         #id
+        #messageStream
         constructor (id) {
           super()
           this.#id = id
-          ipc.on('send', (e, ...args) => {
+          this.#messageStream = ipc.messageStream(id)
+          this.#messageStream.on('data', (args) => {
             this.emit('message', ...args)
           })
         }
@@ -109,7 +110,7 @@ module.exports = (api) => {
           return new Found(rid, this.#id)
         }
 
-        send (...args) { return ipc.send('send-to', this.#id, ...args) }
+        send (...args) { return ipc.sendTo(this.#id, ...args) }
         focus (options = null) { return ipc.parent({ act: 'focus', id: this.#id, options }) }
         blur () { return ipc.parent({ act: 'blur', id: this.#id }) }
         show () { return ipc.parent({ act: 'show', id: this.#id }) }
@@ -153,10 +154,11 @@ module.exports = (api) => {
 
       class GuiCtrl extends EventEmitter {
         #listener = null
+        #messageStream = null
 
         static get parent () {
           Object.defineProperty(this, 'parent', {
-            value: new Parent(ipc.sendSync('parentId'))
+            value: new Parent(ipc.getParentId())
           })
           return this.parent
         }
@@ -178,13 +180,16 @@ module.exports = (api) => {
         }
 
         #rxtx () {
-          this.#listener = (e, ...args) => this.emit('message', ...args)
-          ipc.on('send', this.#listener)
+          this.#listener = (...args) => this.emit('message', ...args)
+          this.#messageStream = ipc.messageStream(this.id)
+          this.#messageStream.on('data', this.#listener)
         }
 
         #unrxtx () {
-          if (this.#listener === null) return
-          ipc.removeListener('send', this.#listener)
+          if (this.#messageStream) {
+            this.#messageStream.destroy()
+            this.#messageStream = null
+          }
           this.#listener = null
         }
 
@@ -193,7 +198,7 @@ module.exports = (api) => {
           return new Found(rid, this.id)
         }
 
-        send (...args) { return ipc.send('send-to', this.id, ...args) }
+        send (...args) { return ipc.sendTo(this.id, ...args) }
 
         async open (opts) {
           if (this.id === null) {
@@ -275,7 +280,7 @@ module.exports = (api) => {
         #app = null
         get app () {
           if (this.#app) return this.#app
-          this.#app = new App(ipc.sendSync('id'))
+          this.#app = new App(ipc.getId())
           return this.#app
         }
 
@@ -284,12 +289,7 @@ module.exports = (api) => {
           return ipc.badge({ id, count })
         }
 
-        warming () {
-          ipc.send('warming')
-          const stream = new streamx.Readable()
-          ipc.on('warming', (e, data) => { stream.push(data) })
-          return stream
-        }
+        warming () { return ipc.warming() }
 
         async get (key) {
           return Buffer.from(await ipc.get(key)).toString('utf-8')
@@ -358,7 +358,7 @@ module.exports = (api) => {
 
     exit = (code) => {
       process.exitCode = code
-      this.ipc.sendSync('exit', code)
+      this.ipc.exit(code)
     }
   }
 

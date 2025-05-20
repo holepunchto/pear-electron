@@ -37,10 +37,7 @@ class IPC {
   parent (...args) { return electron.ipcRenderer.invoke('parent', ...args) }
   open (...args) { return electron.ipcRenderer.invoke('open', ...args) }
   close (...args) { return electron.ipcRenderer.invoke('close', ...args) }
-  send (...args) { return electron.ipcRenderer.send(...args) }
-  on (channel, listener) { return electron.ipcRenderer.on(channel, listener) }
-  sendSync (...args) { return electron.ipcRenderer.sendSync(...args) }
-  removeListener (...args) { return electron.ipcRenderer.removeListener('send', ...args) }
+  sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
   show (...args) { return electron.ipcRenderer.invoke('show', ...args) }
   hide (...args) { return electron.ipcRenderer.invoke('hide', ...args) }
   minimize (...args) { return electron.ipcRenderer.invoke('minimize', ...args) }
@@ -103,6 +100,20 @@ class IPC {
     return stream
   }
 
+  messageStream (id) {
+    const stream = new streamx.Readable({ read () {} })
+    electron.ipcRenderer.on('send', (e, targetId, ...args) => {
+      if (targetId === id) stream.push(args)
+    })
+    return stream
+  }  
+
+  getId () { return electron.ipcRenderer.sendSync('id') }
+  getParentId () { return electron.ipcRenderer.sendSync('parentId') }
+  exit (code) { return electron.ipcRenderer.sendSync('exit', code) }
+
+  trayDarkMode () { return new Stream('tray/darkMode') }
+  appFound () { return new Stream('app/found') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
   run (link, args) { return new Stream('run', link, args) }
