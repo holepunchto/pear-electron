@@ -106,7 +106,7 @@ class IPC {
       if (targetId === id) stream.push(args)
     })
     return stream
-  }  
+  }
 
   getId () { return electron.ipcRenderer.sendSync('id') }
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
