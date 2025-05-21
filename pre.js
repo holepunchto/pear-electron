@@ -1,7 +1,7 @@
 'use strict'
 /* global Pear */
 const Localdrive = require('localdrive')
-
+const cenc = require('compact-encoding')
 function srcs (html) {
   return [
     ...(html.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<script\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gis))
@@ -15,20 +15,18 @@ async function configure (options) {
   const html = (await drive.get(options.gui.main)).toString()
   const entrypoints = srcs(html)
   stage.entrypoints = Array.isArray(stage.entrypoints) ? [...stage.entrypoints, ...entrypoints] : entrypoints
-
-  options.via = undefined
   options.stage = stage
-
   return options
 }
 
 Pear.pipe.on('end', () => { Pear.pipe.end() })
 
-Pear.pipe.once('data', (options) => {
-  configure(JSON.parse(options)).then((config) => {
-    Pear.pipe.end(JSON.stringify(config))
+Pear.pipe.once('data', (data) => {
+  const options = cenc.decode(cenc.any, data)
+  configure(options).then((config) => {
+    const buffer = cenc.encode(cenc.any, { tag: 'configure', data: config })
+    Pear.pipe.end(buffer)
   }, (err) => {
-    Pear.pipe.destroy()
-    console.error(err)
+    Pear.pipe.destroy(err)
   })
 })

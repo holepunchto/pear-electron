@@ -3,7 +3,7 @@
   "main": "index.js",
   "type": "module",
   "pear": {
-    "via": "pear-electron",
+    "pre": "pear-electron",
     "name": "__name__",
     "gui": {
       "main": "ui/index.html",

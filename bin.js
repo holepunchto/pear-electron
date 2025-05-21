@@ -5,5 +5,5 @@ if (!global.Pear && global.process) {
   process.exit(status)
 }
 if (Pear.pipe === undefined) throw new Error('Incompatible with current Pear version (must be v2+)')
-if (Pear.pipe === null) throw new Error('This is a via bin: must have Pear.pipe')
-require('../pear-electron/via')
+if (Pear.pipe === null) throw new Error('This is a pre script: must have Pear.pipe')
+require('./pre')

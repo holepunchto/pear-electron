@@ -16,4 +16,4 @@ async function bundle () {
   console.log('boot.bundle & prebuilds generated')
 }
 
-bundle().catch(console.error)
+module.exports = bundle().catch(console.error)

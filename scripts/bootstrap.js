@@ -45,4 +45,4 @@ async function bootstrap (opts, outs = transforms) {
   await ipc.close()
 }
 
-bootstrap(opts).catch(console.error)
+module.exports = bootstrap(opts).catch(console.error)
