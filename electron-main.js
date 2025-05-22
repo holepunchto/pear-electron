@@ -3,6 +3,7 @@ const electron = require('electron')
 const { isWindows, isMac, isLinux } = require('which-runtime')
 const { command } = require('paparam')
 const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
+const API = require('pear-api')
 const crasher = require('pear-api/crasher')
 const tryboot = require('pear-api/tryboot')
 const rundef = require('pear-api/cmd/run')
@@ -39,6 +40,7 @@ async function electronMain (cmd) {
     tryboot,
     state
   })
+  global.Pear = new API(gui.ipc, state)
   await gui.ready()
   // note: would be unhandled rejection on failure, but should never fail:
   const wakeup = await gui.ipc.wakeup(state.link, state.storage, state.key === null ? state.dir : null, true)
