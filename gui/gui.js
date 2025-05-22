@@ -1591,15 +1591,12 @@ class PearGUI extends ReadyResource {
         this.#tray = null
       }
     })
-
     electron.ipcMain.on('system-theme', (evt) => {
-      this.#stream(this.ipc.systemTheme(), evt)
+      electron.nativeTheme.on('updated', () => {
+        evt.reply('system-theme', { mode: getDarkMode() ? 'dark' : 'light' })
+      })
     })
 
-    electron.ipcMain.on('found', (evt) => {
-      this.#stream(this.ipc.found(), evt)
-    })
-    
     electron.ipcMain.on('pipe', (evt) => {
       this.#stream(this.worker.pipe(), evt)
     })
