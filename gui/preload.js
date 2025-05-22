@@ -4,18 +4,6 @@ const streamx = require('streamx')
 const { EventEmitter } = require('events')
 const Iambus = require('iambus')
 const electron = require('electron')
-const noop = () => {}
-class Worker extends require('pear-api/worker') {
-  #ipc = null
-  constructor ({ ref = noop, unref = noop, ipc } = {}) {
-    super({ ref, unref })
-    this.#ipc = ipc
-  }
-
-  run (link, args = []) { return this.#ipc.run(link, args) }
-
-  pipe () { return this.#ipc.pipe() }
-}
 
 module.exports = class PearGUI {
   constructor ({ API, state }) {
@@ -37,13 +25,13 @@ module.exports = class PearGUI {
 
     API = class extends API {
       static UI = Symbol('ui')
-
-      #untray
+      #ipc = null
+      #pipe = null
+      #untray = null
 
       constructor (ipc, state) {
-        const worker = new Worker({ ipc })
-        super(ipc, state, { teardown, worker })
-        this[Symbol.for('pear.ipc')] = ipc
+        super(ipc, state, { teardown })
+        this.#ipc = ipc
         const kGuiCtrl = Symbol('gui:ctrl')
         const media = {
           status: {
@@ -372,6 +360,14 @@ module.exports = class PearGUI {
         await untray()
         this.#untray = ipc.tray(opts, listener)
         return untray
+      }
+
+      run (link, args = []) { return this.#ipc.run(link, args) }
+
+      get pipe () {
+        if (this.#pipe !== null) return this.#pipe
+        this.#pipe = this.#ipc.pipe()
+        return this.#pipe
       }
 
       exit = (code) => {
