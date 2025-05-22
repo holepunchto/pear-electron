@@ -840,7 +840,7 @@ class GuiCtrl {
     this.view?.webContents.on('will-navigate', this.nav)
     const { webContents } = (this.view || this.win)
     webContents.on('found-in-page', (evt, result) => {
-      electron.ipcMain.send('app/found', result)
+      electron.ipcMain.send('found', result)
     })
   }
 
@@ -1593,9 +1593,9 @@ class PearGUI extends ReadyResource {
         this.#tray = null
       }
     })
-    electron.ipcMain.on('tray/darkMode', (evt) => {
+    electron.ipcMain.on('system-theme', (evt) => {
       electron.nativeTheme.on('updated', () => {
-        evt.reply('tray/darkMode', getDarkMode())
+        evt.reply('system-theme', { mode: getDarkMode() ? 'dark' : 'light' })
       })
     })
 
