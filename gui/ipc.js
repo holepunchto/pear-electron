@@ -86,8 +86,8 @@ module.exports = class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   exit (code) { return electron.ipcRenderer.sendSync('exit', code) }
 
-  trayDarkMode () { return new Stream('tray/darkMode') }
-  appFound () { return new Stream('app/found') }
+  systemTheme () { return new Stream('system-theme') }
+  found () { return new Stream('found') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
   run (link, args) { return new Stream('run', link, args) }

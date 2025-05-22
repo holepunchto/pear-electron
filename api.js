@@ -45,11 +45,11 @@ module.exports = (api) => {
       this.tray.scaleFactor = state.tray?.scaleFactor
       this.tray.darkMode = state.tray?.darkMode
 
-      ipc.trayDarkMode().on('data', (data) => {
-        this.tray.darkMode = data
+      ipc.systemTheme().on('data', ({mode}) => {
+        this.tray.darkMode = mode === 'dark'
       })
 
-      ipc.appFound().on('data', (result) => {
+      ipc.found().on('data', (result) => {
         this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
       })
 
