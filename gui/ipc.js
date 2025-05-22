@@ -47,13 +47,12 @@ module.exports = class IPC {
   message (...args) { return electron.ipcRenderer.invoke('message', ...args) }
   checkpoint (...args) { return electron.ipcRenderer.invoke('checkpoint', ...args) }
   versions (...args) { return electron.ipcRenderer.invoke('versions', ...args) }
+  updated (...args) { return electron.ipcRenderer.invoke('updated', ...args) }
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
-
-  found (fn) { electron.ipcRenderer.on('found', (e, result) => fn(result)) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
@@ -74,6 +73,8 @@ module.exports = class IPC {
     const stream = bus.sub(pattern)
     return stream
   }
+  
+  found (fn) { electron.ipcRenderer.on('found', (e, result) => fn(result)) }
 
   sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
   receiveFrom (id, fn) {
