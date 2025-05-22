@@ -646,9 +646,7 @@ class App {
         resolve(false)
       }
     })
-    const streams = [...this.gui.streams]
-    const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
-    const unloaders = [...closingStreams, ...PearGUI.ctrls().map((ctrl) => {
+    const unloaders = PearGUI.ctrls().map((ctrl) => {
       const closed = () => ctrl.closed
       if (!ctrl.unload) {
         if (ctrl.unloader) return ctrl.unloader.then(closed, closed)
@@ -656,11 +654,15 @@ class App {
       }
       ctrl.unload({ type: 'close' })
       return ctrl.unloader.then(closed, closed)
-    })]
-    for (const stream of streams) stream.end()
+    })
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
+    const streams = [...this.gui.streams]
+    for (const stream of streams) stream.end()
+    const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
+    await Promise.allSettled(closingStreams)
+
     this.closed = true
     return result
   }
