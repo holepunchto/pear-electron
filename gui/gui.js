@@ -8,7 +8,7 @@ const { isMac, isLinux, isWindows } = require('which-runtime')
 const hypercoreid = require('hypercore-id-encoding')
 const IPC = require('pear-ipc')
 const ReadyResource = require('ready-resource')
-const Worker = require('pear-api/worker')
+const API = require('pear-api')
 const constants = require('pear-api/constants')
 const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
@@ -16,6 +16,8 @@ const kCtrl = Symbol('pear.gui.ctrl')
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
+
+const Pear = new API()
 
 class Menu {
   static PEAR = 0
@@ -1470,7 +1472,6 @@ class PearGUI extends ReadyResource {
       },
       connect: tryboot
     })
-    this.worker = new Worker()
     this.streams = new Freelist()
     this.ipc.once('close', () => this.close())
 
@@ -1600,11 +1601,11 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('pipe', (evt) => {
-      this.#stream(this.worker.pipe(), evt)
+      this.#stream(Pear.pipe, evt)
     })
 
     electron.ipcMain.on('run', (evt, link, args) => {
-      this.#stream(this.worker.run(link, args), evt)
+      this.#stream(Pear.run(link, args), evt)
     })
 
     electron.ipcMain.on('streamId', (evt) => {
