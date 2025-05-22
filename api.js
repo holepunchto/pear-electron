@@ -49,9 +49,7 @@ module.exports = (api) => {
         this.tray.darkMode = mode === 'dark'
       })
 
-      ipc.found().on('data', (result) => {
-        this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
-      })
+      ipc.found((result) => { this.message({ type: 'pear-electron/app/found', rid: result.requestId, result }) })
 
       class Found extends streamx.Readable {
         #id = null

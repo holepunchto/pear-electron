@@ -53,6 +53,8 @@ module.exports = class IPC {
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
 
+  found (fn) { electron.ipcRenderer.on('found', (e, result) => fn(result)) }
+
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
     electron.ipcRenderer.send('tray', opts)
@@ -87,7 +89,6 @@ module.exports = class IPC {
   exit (code) { return electron.ipcRenderer.sendSync('exit', code) }
 
   systemTheme () { return new Stream('system-theme') }
-  found () { return new Stream('found') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
   run (link, args) { return new Stream('run', link, args) }
