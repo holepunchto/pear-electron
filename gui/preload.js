@@ -27,7 +27,6 @@ module.exports = class PearGUI {
       static UI = Symbol('ui')
       #ipc = null
       #pipe = null
-      #untray = null
 
       constructor (ipc, state) {
         super(ipc, state, { teardown })
@@ -46,14 +45,6 @@ module.exports = class PearGUI {
           },
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
-
-        this.tray.scaleFactor = state.tray?.scaleFactor
-        this.tray.darkMode = state.tray?.darkMode
-
-        electron.ipcRenderer.on('tray/darkMode', (e, data) => {
-          this.tray.darkMode = data
-        })
-        electron.ipcRenderer.send('tray/darkMode')
 
         electron.ipcRenderer.on('app/found', (e, result) => {
           this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
@@ -134,10 +125,56 @@ module.exports = class PearGUI {
 
         class App {
           id = null
-          constructor (id) { this.id = id }
+          #untray = null
+          constructor (id) {
+            this.id = id
+            this.tray.scaleFactor = state.tray?.scaleFactor
+            this.tray.darkMode = state.tray?.darkMode
+            electron.ipcRenderer.on('tray/darkMode', (e, data) => {
+              this.tray.darkMode = data
+            })
+            electron.ipcRenderer.send('tray/darkMode')
+          }
+
           async find (options) {
             const rid = await ipc.find({ id: this.id, options })
             return new Found(rid, this.id)
+          }
+
+          badge (count) {
+            if (!Number.isInteger(+count)) throw new Error('argument must be an integer')
+            return ipc.badge({ id: this.id, count })
+          }
+
+          async tray (opts = {}, listener) {
+            opts = {
+              ...opts,
+              menu: opts.menu ?? {
+                show: `Show ${state.name}`,
+                quit: 'Quit'
+              }
+            }
+            listener = listener ?? ((key) => {
+              if (key === 'click' || key === 'show') {
+                this.show()
+                this.focus({ steal: true })
+                return
+              }
+              if (key === 'quit') {
+                this.quit()
+              }
+            })
+
+            const untray = async () => {
+              if (this.#untray) {
+                await this.#untray()
+                this.#untray = null
+              }
+            }
+
+            await untray()
+            this.#untray = ipc.tray(opts, listener)
+            return untray
           }
 
           focus (options = null) { return ipc.focus({ id: this.id, options }) }
@@ -285,11 +322,6 @@ module.exports = class PearGUI {
             return this.#app
           }
 
-          badge = (count) => {
-            if (!Number.isInteger(+count)) throw new Error('argument must be an integer')
-            return ipc.badge({ id, count })
-          }
-
           warming () {
             electron.ipcRenderer.send('warming')
             const stream = new streamx.Readable()
@@ -328,38 +360,6 @@ module.exports = class PearGUI {
       get View () {
         console.warn('Pear.View is deprecated use require(\'pear-electron\').View')
         return this[this.constructor.UI].View
-      }
-
-      tray = async (opts = {}, listener) => {
-        const ipc = this[Symbol.for('pear.ipc')]
-        opts = {
-          ...opts,
-          menu: opts.menu ?? {
-            show: `Show ${state.name}`,
-            quit: 'Quit'
-          }
-        }
-        listener = listener ?? ((key) => {
-          if (key === 'click' || key === 'show') {
-            Pear[Pear.constructor.UI].app.show()
-            Pear[Pear.constructor.UI].app.focus({ steal: true })
-            return
-          }
-          if (key === 'quit') {
-            Pear[Pear.constructor.UI].app.quit()
-          }
-        })
-
-        const untray = async () => {
-          if (this.#untray) {
-            await this.#untray()
-            this.#untray = null
-          }
-        }
-
-        await untray()
-        this.#untray = ipc.tray(opts, listener)
-        return untray
       }
 
       run (link, args = []) { return this.#ipc.run(link, args) }
