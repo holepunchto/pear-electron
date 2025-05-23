@@ -136,17 +136,17 @@ module.exports = class PearGUI {
             electron.ipcRenderer.send('tray/darkMode')
           }
 
-          async find (options) {
+          find = async (options) => {
             const rid = await ipc.find({ id: this.id, options })
             return new Found(rid, this.id)
           }
 
-          badge (count) {
+          badge = (count) => {
             if (!Number.isInteger(+count)) throw new Error('argument must be an integer')
             return ipc.badge({ id: this.id, count })
           }
 
-          async tray (opts = {}, listener) {
+          tray = async (opts = {}, listener) => {
             opts = {
               ...opts,
               menu: opts.menu ?? {
@@ -177,21 +177,21 @@ module.exports = class PearGUI {
             return untray
           }
 
-          focus (options = null) { return ipc.focus({ id: this.id, options }) }
-          blur () { return ipc.blur({ id: this.id }) }
-          show () { return ipc.show({ id: this.id }) }
-          hide () { return ipc.hide({ id: this.id }) }
-          minimize () { return ipc.minimize({ id: this.id }) }
-          maximize () { return ipc.maximize({ id: this.id }) }
-          fullscreen () { return ipc.fullscreen({ id: this.id }) }
-          restore () { return ipc.restore({ id: this.id }) }
-          close () { return ipc.close({ id: this.id }) }
-          quit () { return ipc.quit({ id: this.id }) }
+          focus = (options = null) => { return ipc.focus({ id: this.id, options }) }
+          blur = () => { return ipc.blur({ id: this.id }) }
+          show = () => { return ipc.show({ id: this.id }) }
+          hide = () => { return ipc.hide({ id: this.id }) }
+          minimize = () => { return ipc.minimize({ id: this.id }) }
+          maximize = () => { return ipc.maximize({ id: this.id }) }
+          fullscreen = () => { return ipc.fullscreen({ id: this.id }) }
+          restore = () => { return ipc.restore({ id: this.id }) }
+          close = () => { return ipc.close({ id: this.id }) }
+          quit = () => { return ipc.quit({ id: this.id }) }
           dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
-          isVisible () { return ipc.isVisible({ id: this.id }) }
-          isMinimized () { return ipc.isMinimized({ id: this.id }) }
-          isMaximized () { return ipc.isMaximized({ id: this.id }) }
-          isFullscreen () { return ipc.isFullscreen({ id: this.id }) }
+          isVisible = () => { return ipc.isVisible({ id: this.id }) }
+          isMinimized = () => { return ipc.isMinimized({ id: this.id }) }
+          isMaximized = () => { return ipc.isMaximized({ id: this.id }) }
+          isFullscreen = () => { return ipc.isFullscreen({ id: this.id }) }
         }
 
         class GuiCtrl extends EventEmitter {
@@ -231,7 +231,7 @@ module.exports = class PearGUI {
             this.#listener = null
           }
 
-          async find (options) {
+          find = async (options) => {
             const rid = await ipc.find({ id: this.id, options })
             return new Found(rid, this.id)
           }
