@@ -20,7 +20,7 @@ const pkg = require('./package.json')
 const bin = (name = Pear.config.name) => {
   const formatedName = name[0].toUpperCase() + name.slice(1)
   const app = isMac ? formatedName + ' Runtime.app' : name + '-runtime-app'
-  const exe = isWindows ? formatedName + 'Runtime.exe' : (isMac ? 'Contents/MacOS/' + formatedName + ' Runtime' : name + '-runtime')
+  const exe = isWindows ? formatedName + ' Runtime.exe' : (isMac ? 'Contents/MacOS/' + formatedName + ' Runtime' : name + '-runtime')
   return isWindows ? 'bin\\' + app + '\\' + exe : (isMac ? 'bin/' + app + '/' + exe : 'bin/' + app + '/' + exe)
 }
 
