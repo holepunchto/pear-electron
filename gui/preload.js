@@ -186,7 +186,7 @@ module.exports = class PearGUI {
           fullscreen = () => { return ipc.fullscreen({ id: this.id }) }
           restore = () => { return ipc.restore({ id: this.id }) }
           close = () => { return ipc.close({ id: this.id }) }
-          quit = () => { return ipc.quit({ id: this.id }) }
+          quit = () => { return Pear.exit() }
           dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
           isVisible = () => { return ipc.isVisible({ id: this.id }) }
           isMinimized = () => { return ipc.isMinimized({ id: this.id }) }
