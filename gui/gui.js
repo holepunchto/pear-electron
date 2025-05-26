@@ -1578,12 +1578,13 @@ class PearGUI extends ReadyResource {
       return this.restart(...args)
     })
 
-    electron.ipcMain.on('tray', (evt, opts) => {
+    electron.ipcMain.on('tray', async (evt, opts) => {
       const tray = new Tray({
         opts,
         state: this.state,
         onMenuClick: (data) => evt.reply('tray', data)
       })
+      await tray.ready()
       this.#tray = tray
     })
     electron.ipcMain.handle('untray', async () => {
@@ -1957,8 +1958,6 @@ class Tray extends ReadyResource {
     this.opts = opts
     this.state = state
     this.onMenuClick = onMenuClick
-
-    this.ready()
   }
 
   _close () {
@@ -1976,7 +1975,7 @@ class Tray extends ReadyResource {
       return
     }
 
-    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const guiOptions = this.state.options?.gui ?? this.state.config.options?.gui ?? {}
     const closeHides = guiOptions.closeHides ?? guiOptions[process.platform]?.closeHides ?? false
     if (!closeHides) {
       console.warn('closeHides must be enabled to use tray')
