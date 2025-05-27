@@ -121,7 +121,7 @@ class PearElectron {
       dir
     })
 
-    argv = ['boot.bundle', '--rti', info, ...argv]
+    argv = ['run', '--rti', info, ...argv]
     const stdio = args.detach
       ? ['ignore', 'ignore', 'ignore', 'overlapped']
       : ['ignore', 'inherit', 'pipe', 'overlapped']
