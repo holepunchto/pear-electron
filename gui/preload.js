@@ -186,7 +186,7 @@ module.exports = class PearGUI {
           fullscreen = () => { return ipc.fullscreen({ id: this.id }) }
           restore = () => { return ipc.restore({ id: this.id }) }
           close = () => { return ipc.close({ id: this.id }) }
-          quit = () => { return Pear.exit() }
+          quit = () => { return ipc.quit({ id: this.id }) }
           dimensions (options = null) { return ipc.dimensions({ id: this.id, options }) }
           isVisible = () => { return ipc.isVisible({ id: this.id }) }
           isMinimized = () => { return ipc.isMinimized({ id: this.id }) }
@@ -388,6 +388,7 @@ class IPC {
   parent (...args) { return electron.ipcRenderer.invoke('parent', ...args) }
   open (...args) { return electron.ipcRenderer.invoke('open', ...args) }
   close (...args) { return electron.ipcRenderer.invoke('close', ...args) }
+  quit (...args) { return electron.ipcRenderer.invoke('quit', ...args) }
   show (...args) { return electron.ipcRenderer.invoke('show', ...args) }
   hide (...args) { return electron.ipcRenderer.invoke('hide', ...args) }
   minimize (...args) { return electron.ipcRenderer.invoke('minimize', ...args) }
