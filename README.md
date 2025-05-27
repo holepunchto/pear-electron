@@ -19,17 +19,16 @@ import Runtime from 'pear-electron'
 import Bridge from 'pear-bridge'
 
 const runtime = new Runtime()
+await runtime.ready()
 
 const bridge = new Bridge()
 await bridge.ready()
 
-const pipe = runtime.start({ bridge })
+const pipe = runtime.start(bridge.info())
 Pear.teardown(() => pipe.end())
 ```
 
 Call `runtime.start` to open the UI.
-
-> NOTE: naming the import `Runtime` instead of `PearElectron` is intentional, for two reasons. The `pear-electron` import resolves to a runtime start library or a User Interface library depending on environment and using `Runtime` and `ui` as assigned names means switching out `pear-electron` with an equivalent alternative only involves changing the two `pear-electron` import specifiers.
 
 ## Initialization API
 
@@ -41,133 +40,17 @@ Create the runtime instances with `new Runtime()`.
 
 Prepare the runtime, runtime binaries for the runtime version may be bootstrapped peer-to-peer at this point. This only runs once per version and any prior bootstraps can be reused for subsequent versions where state hasn't changed. In a production scenario any bootstrapping would be performed in advance by the application distributable.
 
-### `runtime.start(opts)`
+### `runtime.start(info <String>)`
 
-Opens the UI. 
+Opens the UI. The `info` string is passed as a `--runtime-info` flag to the UI executable. The `pear-api/state` integration library then includes this flag value as `state.runtimeInfo` which can then be used by `pear-electron`. The `info` string by convention is a JSON string, with the shape, `{ type, data }`.
 
-#### Options
-
-* `bridge` - An instance of `pear-bridge`.
+In the usage example, `bridge.info()` is passed to `runtime.start()`, `pear-electron` later uses this to determine the bridge localhost address to load with electron.
 
 ## User-Interface API
 
-Inside the pear-electron runtime desktop application, pear-electron resolves to a UI control API.
-
-**index.html**:
-```html
-<script src="./app.js" type="module">
-```
-
-**app.js**:
 ```js
-import ui from 'pear-electron'
+const ui = require('pear-electron')
 ```
-
-> NOTE: naming the import `ui` instead of `PearElectron` is intentional, for two reasons. The `pear-electron` import resolves to a runtime start library or a User Interface library depending on environment and using `Runtime` and `ui` as assigned names means switching out `pear-electron` with an equivalent alternative only involves changing the two `pear-electron` import specifiers.
-
-### `ui.app <Object>`
-
-UI Application controls
-
-### `const success = await app.focus()`
-
-Resolves to: `<Boolean>`
-
-Focus current view or window.
-
-### `const success = await app.blur()`
-
-Resolves to: `<Boolean>`
-
-Blur current view or window.
-
-### `const success = await app.show()`
-
-Resolves to: `<Boolean>`
-
-Show current view or window.
-
-### `const success = await app.hide()`
-
-Resolves to: `<Boolean>`
-
-Hide current view or window.
-
-### `const sourceId = await app.getMediaSourceId()`
-
-Get the sourceId of the current window or view.
-
-**References**
-
-* [win.getMediaSourceId()](const-sourceId--await-wingetMediaSourceId)
-
-
-### `const success = await app.minimize()`
-
-Resolves to: `<Boolean>`
-
-Minimize current window.
-
-### `const success = await app.maximize()`
-
-Resolves to: `<Boolean>`
-
-Maximize current window.
-
-### `const success = await app.restore()`
-
-Resolves to: `<Boolean>`
-
-Unmaximize/unminimize the current window if it is currently maximized/minimized.
-
-### `const success = await app.close()`
-
-Resolves to: `<Boolean>`
-
-Closes the current view or window.
-
-
-### `const isVisible = await app.isVisible()`
-
-Resolves to: `<Boolean>`
-
-Whether the current window or view is visible.
-
-### `const isMaximized = await app.isMaximized()`
-
-Resolves to: `<Boolean>`
-
-### `const isMinimized = await app.isMinimized()`
-
-Resolves to: `<Boolean>`
-
-### `const found = await app.find(options <Object>)`
-
-Resolves to: `<Found> extends <streamx.Readable>`
-
-Find and select text, emit matches as data events.
-
-**Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
-
-#### `await found.proceed()`
-
-Find & select next match, emit result as stream data.
-
-#### `await found.clear()`
-
-Stop search and clear matching text selection. Implies destroy.
-
-#### `await found.keep()`
-
-Stop search and convert matching text selection to text highlight. Implies destroy.
-
-#### `await found.activate()`
-
-Stop search and simulate a click event on the selected match. Implies destroy.
-
 
 ### `ui.media <Object>`
 
@@ -366,6 +249,11 @@ Resolves to: `<Boolean>`
 
 Unmaximize/unminimize the window if it is currently maximized/minimized.
 
+### `await win.send(...args)`
+
+Send arguments to the window. They will be serialized with `JSON.stringify`.
+
+
 ### `const sourceId = await win.getMediaSourceId()`
 
 Resolves to: `<String>`
@@ -376,38 +264,6 @@ Correlates to the `id` property of objects in the array returned from [ui.media.
 
 * [ui.media.desktopSources](#const-sources--await-appmediadesktopsourcesoptions-object)
 * https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
-
-### `await win.send(...args)`
-
-Send arguments to the window. They will be serialized with `JSON.stringify`.
-
-### `const found = await win.find(options <Object>)`
-
-Resolves to: `<Found> extends <streamx.Readable>`
-
-Find and select text, emit matches as data events.
-
-**Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
-
-#### `await found.proceed()`
-
-Find & select next match, emit result as stream data.
-
-#### `await found.clear()`
-
-Stop search and clear matching text selection. Implies destroy.
-
-#### `await found.keep()`
-
-Stop search and convert matching text selection to text highlight. Implies destroy.
-
-#### `await found.activate()`
-
-Stop search and simulate a click event on the selected match. Implies destroy.
-
 
 ### `const dimensions = await win.dimensions()`
 
@@ -560,6 +416,10 @@ Resolves to: `<Boolean>`
 
 Blur the view.
 
+### `await view.send(...args)`
+
+Send arguments to the view. They will be serialized with `JSON.stringify`.
+
 ### `const sourceId = await view.getMediaSourceId()`
 
 Resolves to: `<String>`
@@ -570,37 +430,6 @@ Supplies the `id` property of objects in the array returned from [ui.media.deskt
 
 * [ui.media.desktopSources](#const-sources---await-appmediadesktopsources-options)
 * https://www.electronjs.org/docs/latest/api/browser-window#wingetmediasourceid
-
-### `await view.send(...args)`
-
-Send arguments to the view. They will be serialized with `JSON.stringify`.
-
-### `const found = await win.find(options <Object>)`
-
-Resolves to: `<Found> extends <streamx.Readable>`
-
-Find and select text, emit matches as data events.
-
-**Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
-
-#### `await found.proceed()`
-
-Find & select next match, emit result as stream data.
-
-#### `await found.clear()`
-
-Stop search and clear matching text selection. Implies destroy.
-
-#### `await found.keep()`
-
-Stop search and convert matching text selection to text highlight. Implies destroy.
-
-#### `await found.activate()`
-
-Stop search and simulate a click event on the selected match. Implies destroy.
 
 ### `const dimensions = await view.dimensions()`
 
@@ -665,7 +494,88 @@ Whether the view is closed.
 
 ### `const { self } = ui.Window`  `const { self } = ui.View`
 
-> DEPRECATED use `ui.app`.
+### `const success = await self.focus()`
+
+Resolves to: `<Boolean>`
+
+Focus current view or window.
+
+### `const success = await self.blur()`
+
+Resolves to: `<Boolean>`
+
+Blur current view or window.
+
+### `const success = await self.show()`
+
+Resolves to: `<Boolean>`
+
+Show current view or window.
+
+### `const success = await self.hide()`
+
+Resolves to: `<Boolean>`
+
+Hide current view or window.
+
+### `const sourceId = await self.getMediaSourceId()`
+
+Get the sourceId of the current window or view.
+
+**References**
+
+* [win.getMediaSourceId()](const-sourceId--await-wingetMediaSourceId)
+
+
+### `const success = await self.minimize()`
+
+Resolves to: `<Boolean>`
+
+Minimize current window.
+
+Throws a `TypeError` if `self` is a view.
+
+### `const success = await self.maximize()`
+
+Resolves to: `<Boolean>`
+
+Maximize current window.
+
+Throws a `TypeError` if `self` is a view.
+
+### `const success = await self.restore()`
+
+Resolves to: `<Boolean>`
+
+Unmaximize/unminimize the current window if it is currently maximized/minimized.
+
+Throws a `TypeError` if `self` is a view.
+
+
+### `const success = await self.close()`
+
+Resolves to: `<Boolean>`
+
+Closes the current view or window.
+
+
+### `const isVisible = await self.isVisible()`
+
+Resolves to: `<Boolean>`
+
+Whether the current window or view is visible.
+
+### `const isMaximized = await self.isMaximized()`
+Resolves to: `<Boolean>`
+
+Whether the current window is maximized. Throws a `TypeError` if `self` is a view.
+
+
+### `const isMinimized = await self.isMinimized()`
+
+Resolves to: `<Boolean>`
+
+Whether the current window is minimized. Throws a `TypeError` if `self` is a view.
 
 ### `const { parent } = ui.Window`  `const { parent } = ui.View`
 
@@ -759,34 +669,6 @@ Whether the parent window is maximized. Throws a `TypeError` if `parent` is a vi
 Resolves to: `<Boolean>`
 
 Whether the parent window is minimized. Throws a `TypeError` if `parent` is a view.
-
-### `const found = await parent.find(options <Object>)`
-
-Resolves to: `<Found> extends <streamx.Readable>`
-
-Find and select text, emit matches as data events.
-
-**Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
-
-#### `await found.proceed()`
-
-Find & select next match, emit result as stream data.
-
-#### `await found.clear()`
-
-Stop search and clear matching text selection. Implies destroy.
-
-#### `await found.keep()`
-
-Stop search and convert matching text selection to text highlight. Implies destroy.
-
-#### `await found.activate()`
-
-Stop search and simulate a click event on the selected match. Implies destroy.
-
 
 ## Web APIs
 
@@ -917,7 +799,7 @@ The `pear-electron` library is a Pear User Interface Runtime Library, as such `p
 * When loaded into a UI,  `pear-electron` is the UI API
 * When loaded into non-UI (i.e app entrypoint js file), `pear-electron` is the runtime initializor
   * When there is no runtime binary on the system, `pear-electron` performs bootstrapping of the UI runtime executable, into `<pear-dir>/interfaces/pear-electron/<semver>`
-* The `pear-electron` repo is also self-bootstrapping and generates the runtime drive (with `by-arch`, `prebuilds` and `boot.bundle`), which can then be staged with Pear. The pear link for the staged `pear-electron` contents in `pear-electron` `package.json` `pear.gui.runtime` field is then set, with fork and length included. This locks runtime builds for a given semver to a specific runtime drive checkout.
+* The `pear-electron` repo is also self-bootstrapping and generates the runtime drive (with `by-arch`, `prebuilds` and `boot.bundle`), which can then be staged with Pear. The pear link for the staged `pear-electron` contents in `pear-electron` `package.json` `pear.ui.runtime` field is then set, with fork and length included. This locks runtime builds for a given semver to a specific runtime drive checkout.
   * This is what `pear-electron` bootstraps from during `runtime.ready()`.
 
 

@@ -3,8 +3,8 @@
 <head>
   <script>
     document.querySelector('html').classList.add(process.platform)
-    global.runtime = Pear[Pear.constructor.UI]
-    window.DECAL = runtime.constructor.DECAL
+    const runtime = Pear[Pear.constructor.UI]
+    window.DECAL = runtime[runtime.constructor.DECAL]
   </script>
   <link rel="stylesheet" href="./fonts.css">
   <style>
@@ -256,7 +256,7 @@
         this.ipc = null
 
         this.cancel.addEventListener('click', async () => {
-          await runtime.app.close()
+          await Pear.Window.self.close()
         })
       }
 
@@ -371,17 +371,17 @@
     <script type="module">
       document.querySelector('#bar').addEventListener('dblclick', async (evt) => {
         if (evt.target !== evt.currentTarget) return
-        if (await runtime.app.isMaximized()) await runtime.app.restore()
-        else await runtime.app.maximize()
+        if (await Pear.Window.self.isMaximized()) await Pear.Window.self.restore()
+        else await Pear.Window.self.maximize()
       })
       if (process.platform === 'win32') {
-        document.querySelector('#win-min').addEventListener('click', async () => { await runtime.app.minimize() })
+        document.querySelector('#win-min').addEventListener('click', async () => { await Pear.Window.self.minimize() })
         document.querySelector('#win-max').addEventListener('click', async () => {
-          await runtime.app.maximize()
+          await Pear.Window.self.maximize()
           document.querySelector('#win-ctrl').classList.add('max')
         })
         document.querySelector('#win-restore').addEventListener('click', async () => {
-          await runtime.app.restore()
+          await Pear.Window.self.restore()
           document.querySelector('#win-ctrl').classList.remove('max')
         })
       }
@@ -469,7 +469,7 @@
           this.ipc = ipc
           for await (const report of ipc.reports()) {
             this.status = report
-            this.gid = runtime.app.id
+            this.gid = Pear.Window.self.id
             loader.hide()
             const { type, headline, tagline, cta, key, encrypted } = this.status
             if (type === 'update' && this.status.version?.force) {
@@ -653,7 +653,7 @@
           this.querySelector('[slot="update-length"]').innerHTML = length
           this.shadowRoot.querySelector('#update').style.display = 'block'
           this.show()
-          await this.ipc.detachMainView({ id: runtime.app.id })
+          await this.ipc.detachMainView({ id: Pear.Window.self.id })
         }
         show () {
           this.shadowRoot.querySelector('#loader').style.display = 'block'
@@ -676,14 +676,14 @@
         async start (ipc, config) {
           this.show()
           this.ipc = ipc
-          await ipc.afterViewLoaded({ id: runtime.app.id })
+          await ipc.afterViewLoaded({ id: Pear.Window.self.id })
           if (this.#updating) return true
           this.hide()
           const ctrl = document.querySelector('#window-controls pear-ctrl')
           ctrl.remove()
           document.getElementById('window-controls').remove()
           await ctrl.closing
-          await ipc.attachMainView({ id: runtime.app.id })
+          await ipc.attachMainView({ id: Pear.Window.self.id })
         }
         constructor () {
           super()
@@ -716,7 +716,7 @@
         const close = document.querySelector('#win-close')
         close.removeEventListener('click', win32CloseListener)
         close.addEventListener('click', async () => {
-          await runtime.app.close()
+          await Pear.Window.self.close()
         })
       }
 
