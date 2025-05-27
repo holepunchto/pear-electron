@@ -3,6 +3,7 @@ const electron = require('electron')
 const { isWindows, isMac, isLinux } = require('which-runtime')
 const { command } = require('paparam')
 const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
+const API = require('pear-api')
 const crasher = require('pear-api/crasher')
 const tryboot = require('pear-api/tryboot')
 const rundef = require('pear-api/cmd/run')
@@ -20,11 +21,12 @@ run.running?.catch(console.error)
 
 async function electronMain (cmd) {
   const state = new State({
+    startId: global.Pear.constructor.RTI.startId,
+    dir: global.Pear.constructor.RTI.dir,
     link: cmd.args.link.replace('_||', '://'), // for Windows
     flags: cmd.flags,
     args: cmd.rest
   })
-  State.storage(state)
 
   if (state.error) {
     console.error(state.error)
@@ -38,11 +40,11 @@ async function electronMain (cmd) {
     tryboot,
     state
   })
-
+  global.Pear = new API(gui.ipc, state)
   await gui.ready()
-
   // note: would be unhandled rejection on failure, but should never fail:
-  if (await gui.ipc.wakeup(state.link, state.storage, state.key === null ? state.dir : null, state.link?.startsWith('pear://dev'))) {
+  const wakeup = await gui.ipc.wakeup(state.link, state.storage, state.key === null ? state.dir : null, true)
+  if (wakeup) {
     electron.app.quit(0)
     return
   }
@@ -50,6 +52,7 @@ async function electronMain (cmd) {
   electron.ipcMain.on('send-to', (e, id, channel, message) => { electron.webContents.fromId(id)?.send(channel, message) })
 
   const app = await gui.app()
+
   app.unloading().then(async () => {
     await app.close()
   }) // note: would be unhandled rejection on failure, but should never fail

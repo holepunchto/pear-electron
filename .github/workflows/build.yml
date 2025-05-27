@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        type: string
+        description: Channel to build
+        required: true
+        default: 'dev'
+  workflow_dispatch:
+    inputs:
+      channel:
+        type: choice
+        description: Select channel to build
+        required: true
+        options:
+          - dev
+          - rc
+      custom-commit:
+        type: string
+        description: Custom commit
+        required: false
+      dry-run:
+        type: choice
+        description: Dry run
+        default: true
+        options:
+          - true
+          - false
+
+run-name: Build ${{ inputs.channel }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block PR Builds
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "PRs may not trigger builds"
+            exit 1
+          fi
+
+  build:
+    needs: check
+    uses: holepunchto/actions/.github/workflows/keet-automation.yml@v1
+    secrets: inherit
+    with:
+      job: pear-electron
+      channel: ${{ inputs.channel }}
+      commit: ${{ inputs.custom-commit || github.sha }}
+      dry-run: ${{ inputs.dry-run }}

@@ -8,10 +8,13 @@ const { isMac, isLinux, isWindows } = require('which-runtime')
 const hypercoreid = require('hypercore-id-encoding')
 const IPC = require('pear-ipc')
 const ReadyResource = require('ready-resource')
-const Worker = require('pear-api/worker')
 const constants = require('pear-api/constants')
+const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
+
+const defaultTrayOs = { win32: true, linux: true, darwin: true }
+const defaultTrayIcon = require('./icons/tray')
 
 class Menu {
   static PEAR = 0
@@ -400,6 +403,7 @@ class App {
     this.gui = gui
     this.state = state
     this.ipc = ipc
+
     this.contextMenu = null
     electron.app.on('browser-window-focus', () => { this.menu.devtoolsReloaderUnlisten() })
 
@@ -420,7 +424,6 @@ class App {
       let devtoolsBlurPolling = null
       wc.on('devtools-opened', () => {
         devtoolsBlurPolling = setInterval(() => {
-          if (this.menu.globalReloaderActive === false) return
           if (wc.isDevToolsFocused() === false) this.menu.devtoolsReloaderUnlisten()
         }, 150)
       })
@@ -500,15 +503,7 @@ class App {
 
     const { state } = this
 
-    this.starting = this.ipc.start({
-      startId: state.startId,
-      args: state.args,
-      flags: state.flags,
-      env: state.env,
-      dir: state.dir,
-      link: state.link,
-      cmdArgs: process.argv.slice(1)
-    })
+    this.starting = this.ipc.identify({ startId: global.Pear.constructor.RTI.startId, startWait: true })
 
     this.starting.catch(async (err) => {
       await this.report({ err })
@@ -525,46 +520,43 @@ class App {
 
       const { dev, devtools, stage } = state
       const show = (dev || !stage)
-      const unfilteredUiOptions = state.options.ui?.options ?? {}
+      const prefiltered = state.options?.gui ?? {}
 
       const guiOptions = {
-        autoresize: unfilteredUiOptions.autoresize,
-        backgroundColor: unfilteredUiOptions.backgroundColor,
-        decal: unfilteredUiOptions.decal,
-        width: parseConfigNumber(unfilteredUiOptions.width, 'gui.width'),
-        height: parseConfigNumber(unfilteredUiOptions.height, 'gui.height'),
-        x: parseConfigNumber(unfilteredUiOptions.x, 'gui.x'),
-        y: parseConfigNumber(unfilteredUiOptions.y, 'gui.y'),
-        center: unfilteredUiOptions.center,
-        minWidth: parseConfigNumber(unfilteredUiOptions.minWidth, 'gui.minWidth'),
-        minHeight: parseConfigNumber(unfilteredUiOptions.minHeight, 'gui.minHeight'),
-        maxWidth: parseConfigNumber(unfilteredUiOptions.maxWidth, 'gui.maxWidth'),
-        maxHeight: parseConfigNumber(unfilteredUiOptions.maxHeight, 'gui.maxHeight'),
-        resizable: unfilteredUiOptions.resizable,
-        movable: unfilteredUiOptions.movable,
-        minimizable: unfilteredUiOptions.minimizable,
-        maximizable: unfilteredUiOptions.maximizable,
-        closable: unfilteredUiOptions.closable,
-        focusable: unfilteredUiOptions.focusable,
-        alwaysOnTop: unfilteredUiOptions.alwaysOnTop,
-        fullscreen: unfilteredUiOptions.fullscreen,
-        kiosk: unfilteredUiOptions.kiosk,
-        autoHideMenuBar: unfilteredUiOptions.autoHideMenuBar,
-        hasShadow: unfilteredUiOptions.hasShadow,
-        opacity: unfilteredUiOptions.opacity,
-        transparent: unfilteredUiOptions.transparent,
-        hideable: unfilteredUiOptions.hideable ?? unfilteredUiOptions[process.platform]?.hideable ?? false
+        autoresize: prefiltered.autoresize,
+        backgroundColor: prefiltered.backgroundColor,
+        decal: prefiltered.decal,
+        width: parseConfigNumber(prefiltered.width, 'gui.width'),
+        height: parseConfigNumber(prefiltered.height, 'gui.height'),
+        x: parseConfigNumber(prefiltered.x, 'gui.x'),
+        y: parseConfigNumber(prefiltered.y, 'gui.y'),
+        center: prefiltered.center,
+        minWidth: parseConfigNumber(prefiltered.minWidth, 'gui.minWidth'),
+        minHeight: parseConfigNumber(prefiltered.minHeight, 'gui.minHeight'),
+        maxWidth: parseConfigNumber(prefiltered.maxWidth, 'gui.maxWidth'),
+        maxHeight: parseConfigNumber(prefiltered.maxHeight, 'gui.maxHeight'),
+        resizable: prefiltered.resizable,
+        movable: prefiltered.movable,
+        minimizable: prefiltered.minimizable,
+        maximizable: prefiltered.maximizable,
+        closable: prefiltered.closable,
+        focusable: prefiltered.focusable,
+        alwaysOnTop: prefiltered.alwaysOnTop,
+        fullscreen: prefiltered.fullscreen,
+        kiosk: prefiltered.kiosk,
+        autoHideMenuBar: prefiltered.autoHideMenuBar,
+        hasShadow: prefiltered.hasShadow,
+        opacity: prefiltered.opacity,
+        transparent: prefiltered.transparent,
+        closeHides: prefiltered.closeHides ?? prefiltered[process.platform]?.closeHides ?? false
       }
 
       const decalSession = electron.session.fromPartition('persist:pear')
 
       decalSession.setUserAgent('Pear Platform')
-      const entry = state.entrypoint || '/' + state.main
-      const identify = await this.ipc.identify({ startId: state.startId })
-      const { id } = identify
+      const entry = state.route
 
-      state.update({ id, config: state.constructor.configFrom(state) })
-      this.ipc.id = id
+      state.update({ config: state.constructor.configFrom(state) })
 
       const ctrl = await PearGUI.ctrl('window', entry, { state }, {
         ...guiOptions,
@@ -609,11 +601,10 @@ class App {
             if (state.type === 'commonjs') {
               throw new Error('"type": "commonjs" or no "type" in application package.json. Pear Desktop Applications are native EcmaScript Module (ESM) syntax only (CJS modules can be consumed, but applications must be ESM). To opt into ESM, set the package.json "type" field to "module".')
             }
-
-            const { bail } = await this.starting
-            if (bail) return false
-            state.update({ config: await this.ipc.config() })
-            applyGuiOptions(app.win, state.config.options.ui?.options ?? {})
+            const { id } = await this.starting
+            const config = await this.ipc.config()
+            state.update({ id, config })
+            applyGuiOptions(app.win, state.config.options.gui ?? {})
             if (app.closing) return false
             return true
           } catch (err) {
@@ -660,9 +651,7 @@ class App {
         resolve(false)
       }
     })
-    const pipes = [...this.gui.pipes]
-    const closingPipes = pipes.map((pipe) => new Promise((resolve) => { pipe.once('close', resolve) }))
-    const unloaders = [...closingPipes, ...PearGUI.ctrls().map((ctrl) => {
+    const unloaders = PearGUI.ctrls().map((ctrl) => {
       const closed = () => ctrl.closed
       if (!ctrl.unload) {
         if (ctrl.unloader) return ctrl.unloader.then(closed, closed)
@@ -670,11 +659,15 @@ class App {
       }
       ctrl.unload({ type: 'close' })
       return ctrl.unloader.then(closed, closed)
-    })]
-    for (const pipe of pipes) pipe.end()
+    })
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
+    const streams = [...this.gui.streams]
+    for (const stream of streams) stream.end()
+    const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
+    await Promise.allSettled(closingStreams)
+
     this.closed = true
     return result
   }
@@ -745,7 +738,7 @@ function applyGuiOption (win, key, value) {
       win.setSize(w, h, false)
       return value ? win.setBackgroundColor('#00000000') : win.setBackgroundColor('#000')
     }
-    case 'hideable': win.hideable = value
+    case 'closeHides': win.closeHides = value
   }
 }
 
@@ -811,8 +804,9 @@ class GuiCtrl {
     this.parentId = parentId
     this.closed = true
     this.id = null
-    const info = this.state.runtimeInfo
-    this.bridge = info.type === 'bridge' ? info.data : null
+    this.rti = this.state.rti
+    this.bridge = this.rti?.bridge ?? null
+    this.bridgeURL = this.bridge ? new URL(this.bridge) : null
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
@@ -849,6 +843,25 @@ class GuiCtrl {
     this.win?.webContents.on('will-navigate', this.nav)
     this.view?.webContents.setWindowOpenHandler(handler(this.view.webContents))
     this.view?.webContents.on('will-navigate', this.nav)
+    const { webContents } = (this.view || this.win)
+    webContents.on('found-in-page', (evt, result) => {
+      electron.ipcMain.send('app/found', result)
+    })
+  }
+
+  find (options) {
+    const { webContents } = (this.view || this.win)
+    const { text, next, stop, ...opts } = options
+    if (stop) {
+      webContents.stopFindInPage(stop)
+      return 0
+    }
+    if (next) {
+      opts.findNext = true
+      webContents.findInPage('', opts)
+      return 0
+    }
+    return webContents.findInPage(text, opts)
   }
 
   async focus ({ steal = true } = {}) {
@@ -950,7 +963,7 @@ class GuiCtrl {
 
     const closeListener = (e) => {
       e.preventDefault()
-      if (this.win.hideable && this.quitting === false) return
+      if (this.win.closeHides && this.quitting === false) return
       if (this.unload) {
         this.unload({ type: 'close' })
       }
@@ -1018,15 +1031,16 @@ class Window extends GuiCtrl {
       height,
       width,
       frame: false,
-      ...(isMac && this.state.options.platform?.__legacyTitlebar ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 12, y: 16 }, titleBarOverlay: true } : (isMac ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 0, y: 0 }, titleBarOverlay: true } : {})),
+      ...(isMac && { titleBarStyle: 'hidden', trafficLightPosition: { x: 0, y: 0 }, titleBarOverlay: true }),
       ...(isMac && this.state?.alias === 'keet' && this.state?.appling?.path ? { icon: path.join(path.dirname(this.state.appling.path), 'resources', 'app', 'icon.ico') } : {}),
+      ...(isLinux && { icon: linuxIcon }),
       show,
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
         preload: require.main.filename,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, isDecal: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1046,7 +1060,7 @@ class Window extends GuiCtrl {
     })
 
     this.win.on('close', (evt) => {
-      if (this.win.hideable && this.quitting === false) {
+      if (this.win.closeHides && this.quitting === false) {
         evt.preventDefault()
         this.win.hide()
       } else {
@@ -1108,8 +1122,15 @@ class Window extends GuiCtrl {
         protocol === url.protocol && (hostname === '*' || hostname === url.hostname) && (port === '' || port === url.port))
       respond({ cancel: isAllowed === false })
     }
+
     const onBeforeSendHeaders = (details, next) => {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
+      const requestURL = new URL(details.url)
+      if (requestURL.host === this.bridgeURL.host) {
+        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+      } else if (this.state?.config?.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      }
       next({ requestHeaders: details.requestHeaders })
     }
 
@@ -1125,7 +1146,7 @@ class Window extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1140,6 +1161,7 @@ class Window extends GuiCtrl {
 
     if (options.afterNativeViewCreated) options.afterNativeViewCreated(this)
     this.view.setBounds({ x: 0, y: 0, width, height })
+
     const viewLoading = this.view.webContents.loadURL(this.entry)
     viewInitialized()
     this.view.webContents.once('did-finish-load', () => { viewLoaded() })
@@ -1284,11 +1306,17 @@ class Window extends GuiCtrl {
   }
 
   async close () {
+    if (this.win?.closeHides && this.quitting === false) return this.hide()
     this.closing = true
     electron.app.off('activate', this.#onactivate)
     const closed = await super.close()
     this.closing = false
     return closed
+  }
+
+  async quit () {
+    this.quitting = true
+    return this.close()
   }
 }
 
@@ -1322,13 +1350,18 @@ class View extends GuiCtrl {
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
     session.setUserAgent(ua)
 
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     this.view = new BrowserView({
       ...(options?.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), parentWcId: this.win.webContents.id })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1421,6 +1454,9 @@ class View extends GuiCtrl {
 class PearGUI extends ReadyResource {
   static View = View
   static Window = Window
+
+  #tray
+
   constructor ({ socketPath, connectTimeout, tryboot, state }) {
     super()
     this.state = state
@@ -1440,8 +1476,7 @@ class PearGUI extends ReadyResource {
       },
       connect: tryboot
     })
-    this.worker = new Worker()
-    this.pipes = new Freelist()
+    this.streams = new Freelist()
     this.ipc.once('close', () => this.close())
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
@@ -1455,22 +1490,36 @@ class PearGUI extends ReadyResource {
       return (event.returnValue = instance.parentId)
     })
 
-    electron.ipcMain.on('warming', (event) => {
-      const warming = this.warming()
-      warming.on('data', (data) => event.reply('warming', data))
-      warming.on('end', () => {
-        warming.end()
-        event.reply('warming', null)
-      })
+    electron.ipcMain.on('warming', (evt) => {
+      this.#stream(this.ipc.warming(), evt)
     })
 
-    electron.ipcMain.on('reports', (event) => {
-      const reports = this.reports()
-      reports.on('data', (data) => event.reply('reports', data))
-      reports.on('end', () => {
-        reports.end()
-        event.reply('reports', null)
-      })
+    electron.ipcMain.on('reports', (evt) => {
+      this.#stream(this.ipc.reports(), evt)
+    })
+
+    electron.ipcMain.on('asset', (evt, opts = {}) => {
+      this.#stream(this.ipc.asset(opts), evt)
+    })
+
+    electron.ipcMain.on('dump', (evt, opts = {}) => {
+      this.#stream(this.ipc.dump(opts), evt)
+    })
+
+    electron.ipcMain.on('stage', (evt, opts = {}) => {
+      this.#stream(this.ipc.stage(opts), evt)
+    })
+
+    electron.ipcMain.on('release', (evt, opts = {}) => {
+      this.#stream(this.ipc.release(opts), evt)
+    })
+
+    electron.ipcMain.on('info', (evt, opts = {}) => {
+      this.#stream(this.ipc.info(opts), evt)
+    })
+
+    electron.ipcMain.on('seed', (evt, opts = {}) => {
+      this.#stream(this.ipc.seed(opts), evt)
     })
 
     electron.ipcMain.on('messages', (event, pattern) => {
@@ -1490,6 +1539,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('parent', (evt, ...args) => this.parent(...args))
     electron.ipcMain.handle('open', (evt, ...args) => this.open(...args))
     electron.ipcMain.handle('close', (evt, ...args) => this.guiClose(...args))
+    electron.ipcMain.handle('quit', (evt, ...args) => this.quit(...args))
     electron.ipcMain.handle('show', (evt, ...args) => this.show(...args))
     electron.ipcMain.handle('hide', (evt, ...args) => this.hide(...args))
     electron.ipcMain.handle('minimize', (evt, ...args) => this.minimize(...args))
@@ -1498,6 +1548,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('setMaximizable', (evt, ...args) => this.setMaximizable(...args))
     electron.ipcMain.handle('fullscreen ', (evt, ...args) => this.fullscreen(...args))
     electron.ipcMain.handle('restore', (evt, ...args) => this.restore(...args))
+    electron.ipcMain.handle('find', (evt, ...args) => this.find(...args))
     electron.ipcMain.handle('focus', (evt, ...args) => this.focus(...args))
     electron.ipcMain.handle('blur', (evt, ...args) => this.blur(...args))
     electron.ipcMain.handle('dimensions', (evt, ...args) => this.dimensions(...args))
@@ -1521,45 +1572,86 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('message', (evt, ...args) => this.message(...args))
     electron.ipcMain.handle('checkpoint', (evt, ...args) => this.checkpoint(...args))
     electron.ipcMain.handle('versions', (evt, ...args) => this.versions(...args))
-    electron.ipcMain.handle('restart', (evt, ...args) => this.restart(...args))
+    electron.ipcMain.handle('updated', (evt, ...args) => this.updated(...args))
+    electron.ipcMain.handle('get', (evt, ...args) => this.get(...args))
+    electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
+    electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
+    electron.ipcMain.handle('badge', (evt, ...args) => this.badge(...args))
 
-    electron.ipcMain.on('workerRun', (evt, link, args) => {
-      const pipe = this.worker.run(link, args)
-      const id = this.pipes.alloc(pipe)
-      pipe.on('close', () => {
-        this.pipes.free(id)
-        evt.reply('workerPipeClose')
-      })
-      pipe.on('data', (data) => { evt.reply('workerPipeData', data) })
-      pipe.on('end', () => { evt.reply('workerPipeEnd') })
-      pipe.on('error', (err) => { evt.reply('workerPipeError', err.stack) })
+    electron.ipcMain.handle('restart', (evt, ...args) => {
+      const ctrl = this.getCtrl(evt.sender.id)
+      if (ctrl) ctrl.quitting = true
+      return this.restart(...args)
     })
 
-    electron.ipcMain.on('workerPipeId', (evt) => {
-      evt.returnValue = this.pipes.nextId()
+    electron.ipcMain.on('tray', (evt, opts) => {
+      const tray = new Tray({
+        opts,
+        state: this.state,
+        onMenuClick: (data) => evt.reply('tray', data)
+      })
+      this.#tray = tray
+    })
+    electron.ipcMain.handle('untray', async () => {
+      if (this.#tray) {
+        await this.#tray.close()
+        this.#tray = null
+      }
+    })
+    electron.ipcMain.on('tray/darkMode', (evt) => {
+      electron.nativeTheme.on('updated', () => {
+        evt.reply('tray/darkMode', getDarkMode())
+      })
+    })
+
+    electron.ipcMain.on('pipe', (evt) => {
+      this.#stream(global.Pear.pipe, evt)
+    })
+
+    electron.ipcMain.on('run', (evt, link, args) => {
+      this.#stream(global.Pear.run(link, args), evt)
+    })
+
+    electron.ipcMain.on('streamId', (evt) => {
+      evt.returnValue = this.streams.nextId()
       return evt.returnValue
     })
 
-    electron.ipcMain.on('workerPipeEnd', (evt, id) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) return
-      pipe.end()
+    electron.ipcMain.on('streamEnd', (evt, id, data) => {
+      const stream = this.streams.from(id)
+      if (!stream) return
+      stream.end(data)
     })
 
-    electron.ipcMain.on('workerPipeClose', (evt, id) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) return
-      pipe.destroy()
+    electron.ipcMain.on('streamClose', (evt, id) => {
+      const stream = this.streams.from(id)
+      if (!stream) return
+      stream.destroy()
     })
 
-    electron.ipcMain.on('workerPipeWrite', (evt, id, data) => {
-      const pipe = this.pipes.from(id)
-      if (!pipe) {
-        console.error('Unexpected workerPipe error (unknown id)')
+    electron.ipcMain.on('streamWrite', (evt, id, data) => {
+      const stream = this.streams.from(id)
+      if (!stream) {
+        console.error('Unexpected electron-main stream error (unknown id)')
         return
       }
-      pipe.write(data)
+      stream.write(data)
     })
+  }
+
+  #stream (stream, evt) {
+    const id = this.streams.alloc(stream)
+    stream.on('close', () => {
+      this.streams.free(id)
+      evt.reply('streamClose', id)
+    })
+    stream.on('data', (data) => { evt.reply('streamData', id, data) })
+    stream.on('end', () => {
+      evt.reply('streamData', id, null)
+      evt.reply('streamEnd', id)
+    })
+    stream.on('error', (err) => { evt.reply('streamErr', id, err.stack) })
+    return id
   }
 
   async app () {
@@ -1578,6 +1670,7 @@ class PearGUI extends ReadyResource {
   }
 
   static async ctrl (type, entry, { state, parentId = 0, ua, sessname = null, appkin }, options = {}, openOptions = {}) {
+    entry = entry || '/'
     ;[entry] = entry.split('+')
     if (entry.slice(0, 2) === './') entry = entry.slice(1)
     if (entry[0] !== '/') entry = `/~${entry}`
@@ -1616,9 +1709,9 @@ class PearGUI extends ReadyResource {
     win.loadURL('chrome://' + name)
   }
 
-  has (id) { return GuiCtrl[kMap].has(id) }
+  hasCtrl (id) { return GuiCtrl[kMap].has(id) }
 
-  get (id) {
+  getCtrl (id) {
     const instance = GuiCtrl[kMap].get(id)
     if (!instance) {
       return {
@@ -1626,6 +1719,7 @@ class PearGUI extends ReadyResource {
         guiClose () { return false },
         show () { return false },
         hide () { return false },
+        find () { return 0 },
         focus () { return false },
         blur () { return false },
         dimensions () { return null },
@@ -1635,8 +1729,8 @@ class PearGUI extends ReadyResource {
         isMaximized () { return false },
         isMinimized () { return false },
         isClosed () { return true },
-        unloading () { },
-        completeUnload () { }
+        unloading () {},
+        completeUnload () {}
       }
     }
     return instance
@@ -1672,7 +1766,7 @@ class PearGUI extends ReadyResource {
   }
 
   async parent ({ id, act, args }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) throw new Error(`Could not find parent with id "${id}" to perform action "${act}"!`)
     if (act === 'focus') return instance.focus(...args)
     if (act === 'blur') return instance.blur()
@@ -1686,69 +1780,73 @@ class PearGUI extends ReadyResource {
     if (act === 'isFullscreen') return instance.isFullscreen()
   }
 
-  open ({ id, options }) { return this.get(id).open(options) }
+  open ({ id, options }) { return this.getCtrl(id).open(options) }
 
   // guiClose because ReadyResource needs close (affects internal naming only)
-  guiClose ({ id }) { return this.get(id).close() }
+  guiClose ({ id }) { return this.getCtrl(id).close() }
 
-  show ({ id }) { return this.get(id).show() }
+  quit ({ id }) { return this.get(id).quit() }
 
-  hide ({ id }) { return this.get(id).hide() }
+  show ({ id }) { return this.getCtrl(id).show() }
 
-  minimize ({ id }) { return this.get(id).minimize() }
+  hide ({ id }) { return this.getCtrl(id).hide() }
 
-  maximize ({ id }) { return this.get(id).maximize() }
+  minimize ({ id }) { return this.getCtrl(id).minimize() }
 
-  setMinimizable ({ id, value }) { return this.get(id).setMinimizable(value) }
+  maximize ({ id }) { return this.getCtrl(id).maximize() }
 
-  setMaximizable ({ id, value }) { return this.get(id).setMaximizable(value) }
+  setMinimizable ({ id, value }) { return this.getCtrl(id).setMinimizable(value) }
 
-  fullscreen ({ id }) { return this.get(id).fullscreen() }
+  setMaximizable ({ id, value }) { return this.getCtrl(id).setMaximizable(value) }
 
-  restore ({ id }) { return this.get(id).restore() }
+  fullscreen ({ id }) { return this.getCtrl(id).fullscreen() }
 
-  focus ({ id, options }) { return this.get(id).focus(options) }
+  restore ({ id }) { return this.getCtrl(id).restore() }
 
-  blur ({ id }) { return this.get(id).blur() }
+  find ({ id, options }) { return this.getCtrl(id).find(options) }
 
-  dimensions ({ id, options }) { return this.get(id).dimensions(options) }
+  focus ({ id, options }) { return this.getCtrl(id).focus(options) }
 
-  isVisible ({ id }) { return this.get(id).isVisible() }
+  blur ({ id }) { return this.getCtrl(id).blur() }
 
-  isClosed ({ id }) { return (this.has(id)) ? this.get(id).isClosed() : true }
+  dimensions ({ id, options }) { return this.getCtrl(id).dimensions(options) }
 
-  isMinimized ({ id }) { return this.get(id).isMinimized() }
+  isVisible ({ id }) { return this.getCtrl(id).isVisible() }
 
-  isMaximized ({ id }) { return this.get(id).isMaximized() }
+  isClosed ({ id }) { return (this.hasCtrl(id)) ? this.getCtrl(id).isClosed() : true }
 
-  isFullscreen ({ id }) { return this.get(id).isFullscreen() }
+  isMinimized ({ id }) { return this.getCtrl(id).isMinimized() }
 
-  setSize ({ id, width, height }) { return this.get(id).setSize(width, height) }
+  isMaximized ({ id }) { return this.getCtrl(id).isMaximized() }
 
-  unloading ({ id }) { return this.get(id).unloading() }
+  isFullscreen ({ id }) { return this.getCtrl(id).isFullscreen() }
+
+  setSize ({ id, width, height }) { return this.getCtrl(id).setSize(width, height) }
+
+  unloading ({ id }) { return this.getCtrl(id).unloading() }
 
   async completeUnload ({ id, action }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.completeUnload(action)
   }
 
-  async attachMainView ({ id }) { this.get(id).attachMainView() }
+  async attachMainView ({ id }) { this.getCtrl(id).attachMainView() }
 
-  async detachMainView ({ id }) { this.get(id).detachMainView() }
+  async detachMainView ({ id }) { this.getCtrl(id).detachMainView() }
 
   async afterViewLoaded ({ id }) {
-    return this.get(id).afterViewLoaded()
+    return this.getCtrl(id).afterViewLoaded()
   }
 
   async setWindowButtonPosition ({ id, point }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.setWindowButtonPosition(point)
   }
 
   async setWindowButtonVisibility ({ id, visible }) {
-    const instance = this.get(id)
+    const instance = this.getCtrl(id)
     if (!instance) return
     instance.setWindowButtonVisibility(visible)
   }
@@ -1767,13 +1865,30 @@ class PearGUI extends ReadyResource {
 
   versions () { return this.ipc.versions() }
 
+  updated () { return this.ipc.updated() }
+
   restart (opts = {}) { return this.ipc.restart(opts) }
+
+  get (params) { return this.ipc.get(params) }
+
+  exists (params) { return this.ipc.exists(params) }
+
+  compare (params) { return this.ipc.compare(params) }
 
   warming () { return this.ipc.warming() }
 
   reports () { return this.ipc.reports() }
 
   permit (params) { return this.ipc.permit(params) }
+
+  badge ({ id, count }) {
+    if (!isLinux) {
+      return electron.app.setBadgeCount(count)
+    } else {
+      this.get(id).win.setIcon(linuxBadgeIcon(count))
+      return true
+    }
+  }
 }
 
 class Freelist {
@@ -1809,6 +1924,103 @@ class Freelist {
       yield item
     }
   }
+}
+
+function linuxBadgeIcon (n) {
+  if (n < 1) {
+    return require('./icons/linux')
+  } else {
+    switch (n) {
+      case 1:
+        return require('./icons/badge-1')
+      case 2:
+        return require('./icons/badge-2')
+      case 3:
+        return require('./icons/badge-3')
+      case 4:
+        return require('./icons/badge-4')
+      case 5:
+        return require('./icons/badge-5')
+      case 6:
+        return require('./icons/badge-6')
+      case 7:
+        return require('./icons/badge-7')
+      case 8:
+        return require('./icons/badge-8')
+      case 9:
+        return require('./icons/badge-9')
+      default:
+        return require('./icons/badge-more')
+    }
+  }
+}
+
+class Tray extends ReadyResource {
+  constructor ({ opts, state, onMenuClick }) {
+    super()
+    this.tray = null
+
+    this.opts = opts
+    this.state = state
+    this.onMenuClick = onMenuClick
+
+    this.ready()
+  }
+
+  _close () {
+    if (this.tray) {
+      this.tray.destroy()
+    }
+  }
+
+  async _open () {
+    const { icon, menu, os } = this.opts
+
+    const osEnabled = { ...defaultTrayOs, ...os }
+    if (!osEnabled[process.platform]) {
+      console.warn(`Tray is not enabled on platform ${process.platform}`)
+      return
+    }
+
+    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const closeHides = guiOptions.closeHides ?? guiOptions[process.platform]?.closeHides ?? false
+    if (!closeHides) {
+      console.warn('closeHides must be enabled to use tray')
+      return
+    }
+
+    const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : defaultTrayIcon
+    const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
+
+    this.tray = new electron.Tray(iconNativeImg)
+    this.tray.on('click', () => this.onMenuClick('click'))
+    const contextMenu = electron.Menu.buildFromTemplate(menuTemplate)
+    this.tray.setContextMenu(contextMenu)
+  }
+
+  async #getIconNativeImg (icon) {
+    try {
+      const iconUrl = `${this.state.rti.bridge}/${icon}`
+      const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
+      if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
+
+      const iconBuffer = Buffer.from(await res.arrayBuffer())
+      const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
+      if (iconNativeImg.isEmpty()) throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
+
+      return iconNativeImg
+    } catch (err) {
+      console.warn(err)
+      return defaultTrayIcon
+    }
+  }
+}
+
+function getDarkMode () {
+  const { shouldUseHighContrastColors, shouldUseInvertedColorScheme, shouldUseDarkColors } = electron.nativeTheme
+  if (shouldUseHighContrastColors) return true
+  else if (shouldUseInvertedColorScheme) return !shouldUseDarkColors
+  return shouldUseDarkColors
 }
 
 function parseConfigNumber (value, field) {
