@@ -1,0 +1,40 @@
+{
+  "params": [
+    {
+      "name": "name",
+      "prompt": "name"
+    },
+    {
+      "name": "height",
+      "validation": "(value) => Number.isInteger(+value)",
+      "prompt": "height",
+      "msg": "must be an integer",
+      "default": 500,
+      "override": ["pear", "gui", "height"],
+      "shave": [-1, 1]
+    },
+    {
+      "name": "width",
+      "validation": "(value) => Number.isInteger(+value)",
+      "prompt": "width",
+      "msg": "must be an integer",
+      "default": 900,
+      "override": ["pear", "gui", "width"],
+      "shave": [-1, 1]
+    },
+    {
+      "name": "minWidth",
+      "validation": "(value) => Number.isInteger(+value)",
+      "prompt": "min width",
+      "msg": "must be an integer",
+      "default": 500,
+      "override": ["pear", "gui", "minWidth"],
+      "shave": [-1, 1]
+    },
+    {
+      "name": "license",
+      "default": "Apache-2.0",
+      "prompt": "license"
+    }
+  ]
+}

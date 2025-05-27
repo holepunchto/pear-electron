@@ -2,3 +2,4 @@ node_modules
 by-arch
 prebuilds
 boot.bundle
+gui/decal.js
