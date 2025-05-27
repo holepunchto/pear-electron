@@ -9,9 +9,7 @@ const tryboot = require('pear-api/tryboot')
 const rundef = require('pear-api/cmd/run')
 const State = require('pear-api/state')
 const GUI = require('./gui')
-const argv = (process.argv.length > 1 && process.argv[1][0] === '-') ? process.argv.slice(1) : process.argv.slice(2)
-const runix = argv.indexOf('--run')
-if (runix > -1) argv.splice(runix, 1)
+const argv = process.argv.slice(2) // ['path-to-runtime', 'run' ...args]
 
 configureElectron()
 crasher('electron-main', SWAP, argv.indexOf('--log') > -1)
