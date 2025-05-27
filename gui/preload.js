@@ -388,6 +388,7 @@ class IPC {
   parent (...args) { return electron.ipcRenderer.invoke('parent', ...args) }
   open (...args) { return electron.ipcRenderer.invoke('open', ...args) }
   close (...args) { return electron.ipcRenderer.invoke('close', ...args) }
+  quit (...args) { return electron.ipcRenderer.invoke('quit', ...args) }
   show (...args) { return electron.ipcRenderer.invoke('show', ...args) }
   hide (...args) { return electron.ipcRenderer.invoke('hide', ...args) }
   minimize (...args) { return electron.ipcRenderer.invoke('minimize', ...args) }

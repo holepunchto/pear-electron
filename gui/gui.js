@@ -1578,12 +1578,13 @@ class PearGUI extends ReadyResource {
       return this.restart(...args)
     })
 
-    electron.ipcMain.on('tray', (evt, opts) => {
+    electron.ipcMain.on('tray', async (evt, opts) => {
       const tray = new Tray({
         opts,
         state: this.state,
         onMenuClick: (data) => evt.reply('tray', data)
       })
+      await tray.ready()
       this.#tray = tray
     })
     electron.ipcMain.handle('untray', async () => {
@@ -1779,7 +1780,7 @@ class PearGUI extends ReadyResource {
   // guiClose because ReadyResource needs close (affects internal naming only)
   guiClose ({ id }) { return this.getCtrl(id).close() }
 
-  quit ({ id }) { return this.get(id).quit() }
+  quit ({ id }) { return this.getCtrl(id).quit() }
 
   show ({ id }) { return this.getCtrl(id).show() }
 
@@ -1957,8 +1958,6 @@ class Tray extends ReadyResource {
     this.opts = opts
     this.state = state
     this.onMenuClick = onMenuClick
-
-    this.ready()
   }
 
   _close () {
@@ -1976,7 +1975,7 @@ class Tray extends ReadyResource {
       return
     }
 
-    const guiOptions = this.state.options.gui ?? this.state.config.options.gui ?? {}
+    const guiOptions = this.state.options?.gui ?? this.state.config.options?.gui ?? {}
     const closeHides = guiOptions.closeHides ?? guiOptions[process.platform]?.closeHides ?? false
     if (!closeHides) {
       console.warn('closeHides must be enabled to use tray')
@@ -1985,6 +1984,10 @@ class Tray extends ReadyResource {
 
     const iconNativeImg = icon ? await this.#getIconNativeImg(icon) : defaultTrayIcon
     const menuTemplate = Object.entries(menu).map(([key, label]) => ({ label, click: () => this.onMenuClick(key) }))
+
+    if (isMac) {
+      iconNativeImg.setTemplateImage(true)
+    }
 
     this.tray = new electron.Tray(iconNativeImg)
     this.tray.on('click', () => this.onMenuClick('click'))
@@ -2002,7 +2005,8 @@ class Tray extends ReadyResource {
       const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
       if (iconNativeImg.isEmpty()) throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
 
-      return iconNativeImg
+      const trayIconSize = isWindows ? { width: 16, height: 16 } : { width: 22, height: 22 }
+      return iconNativeImg.resize(trayIconSize)
     } catch (err) {
       console.warn(err)
       return defaultTrayIcon
