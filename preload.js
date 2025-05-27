@@ -2,14 +2,14 @@
 
 /* global Pear */
 /* eslint-env node, browser */
-module.exports = (state) => {
-  if (!process.isMainFrame) return
+if (process.isMainFrame) {
   const electron = require('electron')
   const timers = require('timers')
   const { isMac, isWindows, platform } = require('which-runtime')
   const API = require('pear-api')
   const GUI = require('./gui')
-  const { parentWcId, env, id, rti, tray, ...config } = state
+  const state = JSON.parse(process.argv.slice(isWindows ? -2 : -1)[0])
+  const { parentWcId, env, id, ...config } = state
   const isDecal = state.isDecal || false
   if (config.key?.type === 'Buffer') config.key = Buffer.from(config.key.data)
   const dir = config.dir
@@ -19,7 +19,6 @@ module.exports = (state) => {
 
   const gui = new GUI({ API, state })
   window.Pear = gui.api
-  const PearElectron = Pear[Pear.constructor.UI]
 
   if (isDecal === false) Object.assign(process.env, env)
 
@@ -43,76 +42,6 @@ module.exports = (state) => {
     })
   }
 
-  const { warn } = console
-  console.warn = (msg, ...args) => {
-    // if (/Insecure Content-Security-Policy/.test(msg)) return.
-    warn.call(console, msg, ...args)
-  }
-
-  if (location.hostname === 'localhost' && location.port) {
-    const gunk = require('pear-api/gunk')
-    const runtime = require('script-linker/runtime')
-
-    // platform runtime:
-    const pltsl = runtime({
-      builtins: gunk.builtins,
-      map: gunk.platform.map,
-      mapImport: gunk.platform.mapImport,
-      symbol: gunk.platform.symbol,
-      protocol: gunk.platform.protocol,
-      getSync (url) {
-        const xhr = new XMLHttpRequest()
-        xhr.open('GET', url, false)
-        xhr.send(null)
-        return xhr.responseText
-      },
-      resolveSync (req, dirname, { isImport }) {
-        const xhr = new XMLHttpRequest()
-        const type = isImport ? 'esm' : 'cjs'
-        const url = `${dirname}/~${req}+platform-resolve+${type}`
-        xhr.open('GET', url, false)
-        xhr.send(null)
-        return xhr.responseText
-      }
-    })
-
-    // app runtime:
-    const appsl = runtime({
-      builtins: gunk.builtins,
-      map: gunk.app.map,
-      mapImport: gunk.app.mapImport,
-      symbol: gunk.app.symbol,
-      protocol: gunk.app.protocol,
-      getSync (url) {
-        const xhr = new XMLHttpRequest()
-        xhr.open('GET', url, false)
-        xhr.send(null)
-        return xhr.responseText
-      },
-      resolveSync (req, dirname, { isImport }) {
-        const xhr = new XMLHttpRequest()
-        const type = isImport ? 'esm' : 'cjs'
-        const url = `${dirname}/~${req}+resolve+${type}`
-        xhr.open('GET', url, false)
-        xhr.send(null)
-        if (xhr.status !== 200) throw new Error(`${xhr.status} ${xhr.responseText}`)
-        return xhr.responseText
-      }
-    })
-
-    async function warm () {
-      for await (const { batch, protocol } of Pear[Pear.constructor.UI].warming()) {
-        let sl = null
-        if (protocol === 'pear' || protocol === 'holepunch') sl = pltsl
-        if (protocol === 'app') sl = appsl
-        if (sl === null) continue
-        for (const { filename, source } of batch) sl.sources.set(filename, source)
-      }
-    }
-
-    if (Pear.config.isDecal === false) warm().catch(console.error)
-  }
-
   function descopeGlobals () {
     delete global.require
     delete global.module
@@ -120,7 +49,19 @@ module.exports = (state) => {
     delete global.__filename
   }
 
-  descopeGlobals()
+  const { warn } = console
+  console.warn = (msg, ...args) => {
+    if (/Insecure Content-Security-Policy/.test(msg)) return
+    warn.call(console, msg, ...args)
+  }
+
+  if (Pear.config.ui.preload) {
+    gui.ipc.get(Pear.config.ui.preload).then((preload) => {
+      eval(preload) // eslint-disable-line
+    }, console.error).finally(descopeGlobals)
+  } else {
+    descopeGlobals()
+  }
 
   customElements.define('pear-ctrl', class extends HTMLElement {
     #onfocus = null
@@ -240,19 +181,19 @@ module.exports = (state) => {
       this.#demax = () => this.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #min () { await PearElectron.app.minimize() }
+    async #min () { await Pear.Window.self.minimize() }
     async #max (e) {
-      if (isMac) await PearElectron.app.fullscreen()
-      else await PearElectron.app.maximize()
+      if (isMac) await Pear.Window.self.fullscreen()
+      else await Pear.Window.self.maximize()
       e.target.root.querySelector('#ctrl').classList.add('max')
     }
 
     async #restore (e) {
-      await PearElectron.app.restore()
+      await Pear.Window.self.restore()
       e.target.root.querySelector('#ctrl').classList.remove('max')
     }
 
-    async #close () { await PearElectron.app.close() }
+    async #close () { await Pear.Window.self.close() }
     #win () {
       return `
     <style>
@@ -361,12 +302,12 @@ module.exports = (state) => {
           svg {
             width: 1em;
             height: 1em;
-          }
-          #titlebar{
-            -webkit-app-region: drag;
-            width: 100%;
-            height: 50px;
-          }
+         }
+         #titlebar{
+           -webkit-app-region: drag;
+           width: 100%;
+           height: 50px;
+         }
         </style>
         <div id="titlebar">
           <div id="ctrl">
