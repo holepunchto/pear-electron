@@ -384,8 +384,6 @@ class ContextMenu {
   }
 }
 
-electron.app.userAgentFallback = 'Pear Platform'
-
 class App {
   menu = null
   bridge = null
@@ -548,7 +546,8 @@ class App {
         hasShadow: prefiltered.hasShadow,
         opacity: prefiltered.opacity,
         transparent: prefiltered.transparent,
-        closeHides: prefiltered.closeHides ?? prefiltered[process.platform]?.closeHides ?? false
+        closeHides: prefiltered.closeHides ?? prefiltered[process.platform]?.closeHides ?? false,
+        userAgent: prefiltered.userAgent
       }
 
       const decalSession = electron.session.fromPartition('persist:pear')
@@ -1020,9 +1019,7 @@ class Window extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
@@ -1128,8 +1125,8 @@ class Window extends GuiCtrl {
       const requestURL = new URL(details.url)
       if (requestURL.host === this.bridgeURL.host) {
         details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
-      } else if (this.state?.config?.options?.userAgent) {
-        details.requestHeaders['User-Agent'] = this.state.config.options.userAgent
+      } else if (this.options?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.options.userAgent
       }
       next({ requestHeaders: details.requestHeaders })
     }
@@ -1346,9 +1343,7 @@ class View extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
