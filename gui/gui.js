@@ -1125,8 +1125,8 @@ class Window extends GuiCtrl {
       const requestURL = new URL(details.url)
       if (requestURL.host === this.bridgeURL.host) {
         details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
-      } else if (this.options?.userAgent) {
-        details.requestHeaders['User-Agent'] = this.options.userAgent
+      } else if (this.state?.config?.options?.gui?.userAgent) {
+        details.requestHeaders['User-Agent'] = this.state.config.options.gui.userAgent
       }
       next({ requestHeaders: details.requestHeaders })
     }
