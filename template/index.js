@@ -2,7 +2,7 @@
 import Runtime from 'pear-electron'
 import Bridge from 'pear-bridge'
 
-const bridge = new Bridge()
+const bridge = new Bridge({ waypoint: '/ui/index.html' })
 await bridge.ready()
 
 const runtime = new Runtime()
