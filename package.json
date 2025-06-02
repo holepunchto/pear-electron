@@ -17,7 +17,11 @@
     "pre.js"
   ],
   "pear": {
+<<<<<<< Updated upstream
     "bootstrap": "pear://0.947.9duwtf4m5khumzai7994ody8p7axhwm48sxgpoztf6pnmynikw4o",
+=======
+    "bootstrap": "pear://0.8810.pqbzjhqyonxprx8hghxexnmctw75mr91ewqw5dxe1zmntfyaddqy",
+>>>>>>> Stashed changes
     "stage": {
       "skipWarmup": "true",
       "only": [
