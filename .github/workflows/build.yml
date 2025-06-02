@@ -17,6 +17,7 @@ on:
         options:
           - dev
           - stage
+          - dbg
           - rc
       custom-commit:
         type: string
