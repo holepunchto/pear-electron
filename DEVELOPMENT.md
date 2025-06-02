@@ -15,14 +15,13 @@ Changes to files included in the **boot.bundle** require a rebuild and repackagi
 
 ### Local Development
 
-**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by pear applications. Here is a recommended flow to test your local changes in another Pear app.
+**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by pear applications. Here is a recommended flow to test your local changes in a consuming Pear app.
 
 Create a template Pear application for testing.
 
 ```bash
 pear init pear://electron/template -y
 npm install
-pear run .
 ```
 
 Switch to your local **pear-electron** directory and install dependencies.
@@ -32,7 +31,7 @@ cd path/to/local/pear-electron
 npm install
 ```
 
-Then, rebuild your bundles whenever you make changes to **pear-electron** that you want to test in a UI app.
+Then, make and save changes to **pear-electron** that you want to test in a UI app and rebuild your bundles.
 
 ```bash
 npm run prestage
@@ -40,7 +39,7 @@ npm run prestage
 
 The bootstrap link in package.json ```pear``` field is what pear bootstraps **pear-electron** from.
 
-You can now stage the **pear-electron** rebuild and replace this with your stage link, version and release with the format ```pear://release.version.link```.
+After rebuilding you can now ```stage``` the **pear-electron** rebuild and replace the bootstrap field with your stage link, version and release using the format ```pear://release.version.link```.
 
 ```bash
 pear stage channel-name
@@ -80,7 +79,7 @@ npm install path/to/local/pear-electron/pear-electron-1.4.15.tgz
 
 After that you can start your test app.
 
-If your installed **pear-electron** is now different than the previous one, you should see something like this on the first run of the app with the new pack:
+If your bootstraped **pear-electron** is now different than the previous one, you should see something like this on the first run of the app:
 
 ```bash
 pear run .
@@ -100,15 +99,17 @@ Seed the channel you staged your edited **pear-electron** on earlier.
 pear seed channel-name
 ```
 
+### Publishing
+
 Make sure your bootstrap link in the ```pear``` field of the package.json is correct.
 
-After that you can adjust your version and publish on npm.
+After that you can adjust your npm version and publish on npm.
 
 ```bash
 npm version minor
 npm publish
 ```
 
-Now anyone can install your library through npm and pear will bootstrap **pear-electron** through the provided bootstrap link.
+Now anyone can install your library through npm and pear will bootstrap **pear-electron** through the provided bootstrap link in the package.json of the library.
 
 This means that the seeder of your library needs to be online in order for other machines to bootstrap the necessary resources.
