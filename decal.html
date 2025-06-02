@@ -467,7 +467,8 @@
         hide () { this.setAttribute("show", "") }
         async subscribe (ipc, loader) {
           this.ipc = ipc
-          for await (const report of ipc.reports()) {
+          const reports = ipc.reports()
+          for await (const report of reports) {
             this.status = report
             this.gid = runtime.app.id
             loader.hide()
@@ -513,8 +514,13 @@
 
             this.querySelector('[slot="headline"]').innerHTML = headline.content
             this.querySelector('[slot="tagline"]').innerHTML = tagline.content
-            this.querySelector('[slot="cta"]').innerHTML = cta.content
-            this.setAttribute("action", cta.action)
+            if (cta) {
+              this.querySelector('[slot="cta"]').innerHTML = cta.content
+              this.setAttribute("action", cta.action)
+            } else {
+              this.querySelector('[slot="cta"]').innerHTML = ''
+            }
+
             await this.ipc.detachMainView({ id: this.gid })
             const winctrl = document.getElementById('windows-controls')
             if (!winctrl) {

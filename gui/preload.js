@@ -92,40 +92,46 @@ module.exports = class PearGUI {
         }
 
         class Parent extends EventEmitter {
-          #id
           constructor (id) {
             super()
-            this.#id = id
+            this.id = id
             electron.ipcRenderer.on('send', (e, ...args) => {
               this.emit('message', ...args)
             })
           }
 
           async find (options) {
-            const rid = await ipc.find({ id: this.#id, options })
-            return new Found(rid, this.#id)
+            const rid = await ipc.find({ id: this.id, options })
+            return new Found(rid, this.id)
           }
 
-          send (...args) { return electron.ipcRenderer.send('send-to', this.#id, ...args) }
-          focus (options = null) { return ipc.parent({ act: 'focus', id: this.#id, options }) }
-          blur () { return ipc.parent({ act: 'blur', id: this.#id }) }
-          show () { return ipc.parent({ act: 'show', id: this.#id }) }
-          hide () { return ipc.parent({ act: 'hide', id: this.#id }) }
-          minimize () { return ipc.parent({ act: 'minimize', id: this.#id }) }
-          maximize () { return ipc.parent({ act: 'maximize', id: this.#id }) }
-          fullscreen () { return ipc.parent({ act: 'fullscreen', id: this.#id }) }
-          restore () { return ipc.parent({ act: 'restore', id: this.#id }) }
-          dimensions (options = null) { return ipc.parent({ act: 'dimensions', id: this.#id, options }) }
-          isVisible () { return ipc.parent({ act: 'isVisible', id: this.#id }) }
-          isMinimized () { return ipc.parent({ act: 'isMinimized', id: this.#id }) }
-          isMaximized () { return ipc.parent({ act: 'isMaximized', id: this.#id }) }
-          isFullscreen () { return ipc.parent({ act: 'isFullscreen', id: this.#id }) }
-          isClosed () { return ipc.parent({ act: 'isClosed', id: this.#id }) }
+          send (...args) { return electron.ipcRenderer.send('send-to', this.id, ...args) }
+          focus (options = null) { return ipc.parent({ act: 'focus', id: this.id, options }) }
+          blur () { return ipc.parent({ act: 'blur', id: this.id }) }
+          show () { return ipc.parent({ act: 'show', id: this.id }) }
+          hide () { return ipc.parent({ act: 'hide', id: this.id }) }
+          minimize () { return ipc.parent({ act: 'minimize', id: this.id }) }
+          maximize () { return ipc.parent({ act: 'maximize', id: this.id }) }
+          fullscreen () { return ipc.parent({ act: 'fullscreen', id: this.id }) }
+          restore () { return ipc.parent({ act: 'restore', id: this.id }) }
+          dimensions (options = null) { return ipc.parent({ act: 'dimensions', id: this.id, options }) }
+          isVisible () { return ipc.parent({ act: 'isVisible', id: this.id }) }
+          isMinimized () { return ipc.parent({ act: 'isMinimized', id: this.id }) }
+          isMaximized () { return ipc.parent({ act: 'isMaximized', id: this.id }) }
+          isFullscreen () { return ipc.parent({ act: 'isFullscreen', id: this.id }) }
+          isClosed () { return ipc.parent({ act: 'isClosed', id: this.id }) }
         }
 
         class App {
           id = null
           #untray = null
+
+          get parent () {
+            const parentId = electron.ipcRenderer.sendSync('parentId')
+            Object.defineProperty(this, 'parent', { value: new Parent(parentId) })
+            return this.parent
+          }
+
           constructor (id) {
             this.id = id
             this.tray.scaleFactor = state.tray?.scaleFactor
@@ -192,20 +198,19 @@ module.exports = class PearGUI {
           isMinimized = () => { return ipc.isMinimized({ id: this.id }) }
           isMaximized = () => { return ipc.isMaximized({ id: this.id }) }
           isFullscreen = () => { return ipc.isFullscreen({ id: this.id }) }
+          report = (rpt) => { return ipc.report(rpt) }
         }
 
         class GuiCtrl extends EventEmitter {
           #listener = null
 
           static get parent () {
-            Object.defineProperty(this, 'parent', {
-              value: new Parent(electron.ipcRenderer.sendSync('parentId'))
-            })
-            return this.parent
+            console.warn('Pear.Window.parent & Pear.View.parent are deprecated use ui.app.parent')
+            return Pear[Pear.constructor.UI].app.parent
           }
 
           static get self () {
-            console.warn('Pear.Window.self & Pear.View.self are deprecated use require(\'pear-electron\').app')
+            console.warn('Pear.Window.self & Pear.View.self are deprecated use ui.app')
             return Pear[Pear.constructor.UI].app
           }
 
@@ -247,7 +252,7 @@ module.exports = class PearGUI {
                 type: this.constructor[kGuiCtrl],
                 entry: this.entry,
                 options: this.options,
-                state: this.state,
+                state,
                 openOptions: opts
               })
               return true
@@ -462,6 +467,8 @@ class IPC {
   info (opts = {}) { return new Stream('info', opts) }
   seed (opts = {}) { return new Stream('seed', opts) }
 
+  report (...args) { return electron.ipcRenderer.invoke('report', ...args) }
+
   ref () {}
   unref () {}
 }
@@ -488,7 +495,9 @@ class Stream extends streamx.Duplex {
     electron.ipcRenderer.on('streamEnd', this.#guard(() => this.end()))
     electron.ipcRenderer.on('streamData', this.#guard((data) => { this.push(data) }))
 
-    this.once('close', () => { electron.ipcRenderer.send('streamClose', this.#id) })
+    this.once('close', () => {
+      electron.ipcRenderer.send('streamClose', this.#id)
+    })
   }
 
   _write (data, cb) {

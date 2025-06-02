@@ -398,6 +398,7 @@ class App {
 
   constructor (gui) {
     const { state, ipc } = gui
+    gui._app = this
     this.gui = gui
     this.state = state
     this.ipc = ipc
@@ -456,7 +457,8 @@ class App {
     this.menu = new Menu(this)
   }
 
-  async report ({ err }) {
+  async report (rpt) {
+    let { err } = rpt
     err = err?.remote || err || new Error(`Unknown error: "${err}"`)
     const x = '\x1B[31m✖ \x1B[39m'
     const pregui = this.handle === null || this.open === false
@@ -470,8 +472,9 @@ class App {
       }
       process.exit(1)
     }
+    rpt.err = { message: err.message, stack: err.stack, code: err.code }
     try {
-      return await this.ipc.createReport({ message: err.message, stack: err.stack, code: err.code })
+      return await this.ipc.createReport(rpt)
     } catch (ipcErr) {
       const timedout = ipcErr.name === 'TimeoutError' && ipcErr.code === ipcErr.TIMEOUT_ERR
       if (err?.code === 'ERR_FAILED') {
@@ -1201,8 +1204,8 @@ class Window extends GuiCtrl {
   }
 
   async detachMainView () {
-    if (!this.win) return
-    this.win.setBrowserView(null)
+    if (!this.win || !this.view) return
+    this.win.removeBrowserView(this.view)
   }
 
   async afterViewLoaded () {
@@ -1333,7 +1336,7 @@ class View extends GuiCtrl {
     this.lastOpenOptions = opts
     const options = { ...this.options, ...this.lastOpenOptions }
 
-    const wc = webContents.fromId(this.parentId)
+    const wc = webContents.fromId(this.state.parentWcId)
     this.win = BrowserWindow.fromWebContents(wc)
     if (!this.win) {
       await new Promise(setImmediate)
@@ -1449,7 +1452,7 @@ class View extends GuiCtrl {
 class PearGUI extends ReadyResource {
   static View = View
   static Window = Window
-
+  _app = null
   #tray
 
   constructor ({ socketPath, connectTimeout, tryboot, state }) {
@@ -1461,7 +1464,7 @@ class PearGUI extends ReadyResource {
       connectTimeout,
       api: {
         reports (method) {
-          return (params) => {
+          return (params = {}) => {
             const stream = method.createRequestStream()
             stream.once('data', () => { PearGUI.reportMode(state) })
             stream.write(params)
@@ -1481,7 +1484,7 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('parentId', (event) => {
-      const instance = this.get(event.sender.id)
+      const instance = this.getCtrl(event.sender.id)
       return (event.returnValue = instance.parentId)
     })
 
@@ -1600,6 +1603,8 @@ class PearGUI extends ReadyResource {
       })
     })
 
+    electron.ipcMain.handle('report', (evt, ...args) => this.report(...args))
+
     electron.ipcMain.on('pipe', (evt) => {
       this.#stream(global.Pear.pipe, evt)
     })
@@ -1641,12 +1646,16 @@ class PearGUI extends ReadyResource {
       this.streams.free(id)
       evt.reply('streamClose', id)
     })
-    stream.on('data', (data) => { evt.reply('streamData', id, data) })
+    stream.on('data', (data) => {
+      evt.reply('streamData', id, data)
+    })
     stream.on('end', () => {
       evt.reply('streamData', id, null)
       evt.reply('streamEnd', id)
     })
-    stream.on('error', (err) => { evt.reply('streamErr', id, err.stack) })
+    stream.on('error', (err) => {
+      evt.reply('streamErr', id, err.stack)
+    })
     return id
   }
 
@@ -1826,6 +1835,8 @@ class PearGUI extends ReadyResource {
     if (!instance) return
     instance.completeUnload(action)
   }
+
+  async report (rpt) { return this._app ? this._app.report(rpt) : this.ipc.createReport(rpt) }
 
   async attachMainView ({ id }) { this.getCtrl(id).attachMainView() }
 
