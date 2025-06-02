@@ -15,31 +15,31 @@ Changes to files included in the **boot.bundle** require a rebuild and repackagi
 
 ### Local Development
 
-**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by pear applications. Here is a recommended flow to test your local changes in a consuming Pear app.
+**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by Pear applications. Here is a recommended flow to test your local changes in a consuming Pear app.
 
-Create a template Pear application for testing.
+A template Pear application for testing can be created:
 
 ```bash
 pear init pear://electron/template -y
 npm install
 ```
 
-Switch to your local **pear-electron** directory and install dependencies.
+With **pear-electron** as the current working directory, dependencies can be installed.
 
 ```bash
 cd path/to/local/pear-electron
 npm install
 ```
 
-Then, make and save changes to **pear-electron** that you want to test in a UI app and rebuild your bundles.
+After making and saving changes to the UI Library, the library's bundles need to be rebuilt, as they are the assets transferred when bootstrapping to a given version.
 
 ```bash
 npm run prestage
 ```
 
-The bootstrap link in package.json ```pear``` field is what pear bootstraps **pear-electron** from.
+The bootstrap link in the package.json ```pear``` field is the source from which Pear bootstraps the UI Library.
 
-After rebuilding you can now ```stage``` the **pear-electron** rebuild and replace the bootstrap field with your stage link, version and release using the format ```pear://release.version.link```.
+After rebuilding, the UI Library can be staged and the bootstrap field replaced with the stage link, version, and release using the format ```pear://release.version.link```.
 
 ```bash
 pear stage channel-name
@@ -53,7 +53,7 @@ pear stage channel-name
 # [ pear://dqgs5prptqozgwzanes31atf1imzbf5dfg4tgpgkp5mke83oziyy ]
 ```
 
-Given the output your bootstrap link in package.json should look like:
+Based on the output, the bootstrap link in package.json should be updated as follows:
 
 ```js
 "pear": {
@@ -62,7 +62,7 @@ Given the output your bootstrap link in package.json should look like:
   },
 ```
 
-Now you can pack your edited **pear-electron** library.
+The updated UI Library can now be packed into a distributable archive, which includes the new bootstrap link in its package.json.
 
 ```bash #
 npm pack
@@ -70,16 +70,16 @@ npm pack
 # pear-electron-1.4.15.tgz
 ```
 
-And then switch to the dir of your test app you set up earlier and install the pack.
+With the test app directory as the working location, the packed library can now be installed.
 
 ```bash #
 cd path/to/electron-template
 npm install path/to/local/pear-electron/pear-electron-1.4.15.tgz
 ```
 
-After that you can start your test app.
+Once installed, the test app can be started.
 
-If your bootstraped **pear-electron** is now different than the previous one, you should see something like this on the first run of the app:
+If the bootstrapped UI Library differs from the previously installed version, a sync message should appear on the first run of the app.
 
 ```bash
 pear run .
@@ -89,11 +89,11 @@ pear run .
 
 ## Releasing
 
-To release your edited **pear-electron** library, you can do so by seeding the channel you staged it on and releasing the library on npm.
+To release the UI Library, the staged channel must be seeded and the library published to npm.
 
 ### Seeding
 
-Seed the channel you staged your edited **pear-electron** on earlier.
+The previously staged channel should be seeded:
 
 ```bash
 pear seed channel-name
@@ -101,15 +101,15 @@ pear seed channel-name
 
 ### Publishing
 
-Make sure your bootstrap link in the ```pear``` field of the package.json is correct.
+The bootstrap link in the ```pear``` field of the package.json must be verified for correctness.
 
-After that you can adjust your npm version and publish on npm.
+After that, the version can be incremented and the library published to npm:
 
 ```bash
 npm version minor
 npm publish
 ```
 
-Now anyone can install your library through npm and pear will bootstrap **pear-electron** through the provided bootstrap link in the package.json of the library.
+Once published, the library can be installed via npm and Pear will bootstrap the UI Library using the provided bootstrap link in the package.json of the library.
 
-This means that the seeder of your library needs to be online in order for other machines to bootstrap the necessary resources.
+This requires that the machine used to seed the library remains online in order for other machines to bootstrap the necessary resources.
