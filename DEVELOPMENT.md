@@ -1,6 +1,6 @@
 # Developing Pear UI Integration Libraries
 
-This guide covers the development and testing workflow for Pear UI Integration Libraries like **pear-electron**. It is written generically so you can adapt it to new Pear UI integration libraries you create.
+This guide covers the development, testing and releasing workflow for Pear UI Integration Libraries like **pear-electron**. It is written generically so it can be adapted to new Pear UI integration libraries as they are created.
 
 ---
 
@@ -15,7 +15,7 @@ Changes to files included in the **boot.bundle** require a rebuild and repackagi
 
 ### Local Development
 
-**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by Pear applications. Here is a recommended flow to test your local changes in a consuming Pear app.
+**pear-electron** is a Pear UI Integration Library, and as such is consumed as a dependency by Pear applications. The following flow is recommended to test local changes in a consuming Pear app.
 
 A template Pear application for testing can be created:
 
@@ -24,7 +24,7 @@ pear init pear://electron/template -y
 npm install
 ```
 
-With **pear-electron** as the current working directory, dependencies can be installed.
+With the UI Library as the current working directory, dependencies can be installed.
 
 ```bash
 cd path/to/local/pear-electron
@@ -89,7 +89,7 @@ pear run .
 
 ## Releasing
 
-To release the UI Library, the staged channel must be seeded and the library published to npm.
+To release the UI Library, the staged channel must be seeded and the packed library published to npm.
 
 ### Seeding
 
@@ -101,7 +101,7 @@ pear seed channel-name
 
 ### Publishing
 
-The bootstrap link in the ```pear``` field of the package.json must be verified for correctness.
+The bootstrap link in the ```pear``` field of the package.json should always be verified for correctness before publishing.
 
 After that, the version can be incremented and the library published to npm:
 
