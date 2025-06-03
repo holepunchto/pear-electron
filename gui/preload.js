@@ -46,7 +46,13 @@ module.exports = class PearGUI {
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
 
-        ipc.found((result) => { this.message({ type: 'pear-electron/app/found', rid: result.requestId, result }) })
+        ipc.found().on('data', (result) => {
+          this.message({
+            type: 'pear-electron/app/found',
+            rid: result.requestId,
+            result
+          })
+        })
 
         class Found extends streamx.Readable {
           #id = null
@@ -446,8 +452,6 @@ class IPC {
     return stream
   }
 
-  found (fn) { electron.ipcRenderer.on('found', (e, result) => fn(result)) }
-
   sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
   receiveFrom (fn) {
     electron.ipcRenderer.on('send', fn)
@@ -458,6 +462,7 @@ class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
 
+  found () { return new Stream('found') }  
   systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }

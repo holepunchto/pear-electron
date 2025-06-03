@@ -844,9 +844,22 @@ class GuiCtrl {
     this.win?.webContents.on('will-navigate', this.nav)
     this.view?.webContents.setWindowOpenHandler(handler(this.view.webContents))
     this.view?.webContents.on('will-navigate', this.nav)
-    const { webContents } = (this.view || this.win)
-    webContents.on('found-in-page', (evt, result) => {
-      electron.ipcMain.send('found', result)
+    electron.ipcMain.on('found', (evt) => {
+      const stream = new streamx.Readable({ read () {} })
+  
+      const { webContents } = (this.view || this.win)
+  
+      const onFoundInPage = (event, result) => {
+        stream.push(result)
+      }
+  
+      webContents.on('found-in-page', onFoundInPage)
+  
+      stream.on('destroy', () => {
+        webContents.removeListener('found-in-page', onFoundInPage)
+      })
+  
+      this.#stream(stream, evt)
     })
   }
 
@@ -1621,7 +1634,6 @@ class PearGUI extends ReadyResource {
     
       const onUpdated = () => {
         const mode = getDarkMode() ? 'dark' : 'light'
-        console.log(`updated to ${mode} mode`)
         stream.push({ mode })
       }
       
