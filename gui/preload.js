@@ -46,9 +46,7 @@ module.exports = class PearGUI {
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
 
-        electron.ipcRenderer.on('app/found', (e, result) => {
-          this.message({ type: 'pear-electron/app/found', rid: result.requestId, result })
-        })
+        ipc.found((result) => { this.message({ type: 'pear-electron/app/found', rid: result.requestId, result }) })
 
         class Found extends streamx.Readable {
           #id = null
@@ -96,7 +94,7 @@ module.exports = class PearGUI {
           constructor (id) {
             super()
             this.#id = id
-            electron.ipcRenderer.on('send', (e, ...args) => {
+            ipc.receiveFrom(id, (...args) => {
               this.emit('message', ...args)
             })
           }
@@ -106,7 +104,7 @@ module.exports = class PearGUI {
             return new Found(rid, this.#id)
           }
 
-          send (...args) { return electron.ipcRenderer.send('send-to', this.#id, ...args) }
+          send (...args) { return ipc.sendTo(this.#id, ...args) }
           focus (options = null) { return ipc.parent({ act: 'focus', id: this.#id, options }) }
           blur () { return ipc.parent({ act: 'blur', id: this.#id }) }
           show () { return ipc.parent({ act: 'show', id: this.#id }) }
@@ -130,10 +128,10 @@ module.exports = class PearGUI {
             this.id = id
             this.tray.scaleFactor = state.tray?.scaleFactor
             this.tray.darkMode = state.tray?.darkMode
-            electron.ipcRenderer.on('tray/darkMode', (e, data) => {
-              this.tray.darkMode = data
+
+            ipc.systemTheme().on('data', ({mode}) => {
+              this.tray.darkMode = mode === 'dark'
             })
-            electron.ipcRenderer.send('tray/darkMode')
           }
 
           find = async (options) => {
@@ -196,10 +194,11 @@ module.exports = class PearGUI {
 
         class GuiCtrl extends EventEmitter {
           #listener = null
+          #unlisten = null
 
           static get parent () {
             Object.defineProperty(this, 'parent', {
-              value: new Parent(electron.ipcRenderer.sendSync('parentId'))
+              value: new Parent(ipc.getParentId())
             })
             return this.parent
           }
@@ -222,12 +221,13 @@ module.exports = class PearGUI {
 
           #rxtx () {
             this.#listener = (e, ...args) => this.emit('message', ...args)
-            electron.ipcRenderer.on('send', this.#listener)
+            this.#unlisten = ipc.receiveFrom(this.#listener)
           }
 
           #unrxtx () {
-            if (this.#listener === null) return
-            electron.ipcRenderer.removeListener('send', this.#listener)
+            if (this.#unlisten === null) return
+            this.#unlisten()
+            this.#unlisten = null
             this.#listener = null
           }
 
@@ -236,7 +236,7 @@ module.exports = class PearGUI {
             return new Found(rid, this.id)
           }
 
-          send (...args) { return electron.ipcRenderer.send('send-to', this.id, ...args) }
+          send (...args) { return ipc.sendTo(this.id, ...args) }
 
           async open (opts) {
             if (this.id === null) {
@@ -318,16 +318,11 @@ module.exports = class PearGUI {
           #app = null
           get app () {
             if (this.#app) return this.#app
-            this.#app = new App(electron.ipcRenderer.sendSync('id'))
+            this.#app = new App(ipc.getId())
             return this.#app
           }
 
-          warming () {
-            electron.ipcRenderer.send('warming')
-            const stream = new streamx.Readable()
-            electron.ipcRenderer.on('warming', (e, data) => { stream.push(data) })
-            return stream
-          }
+          warming () { return ipc.warming() }
 
           async get (key) {
             return Buffer.from(await ipc.get(key)).toString('utf-8')
@@ -372,7 +367,7 @@ module.exports = class PearGUI {
 
       exit = (code) => {
         process.exitCode = code
-        electron.ipcRenderer.sendSync('exit', code)
+        this.ipc.processExit(code)
       }
     }
     this.api = new API(this.ipc, state, teardown)
@@ -451,6 +446,19 @@ class IPC {
     return stream
   }
 
+  found (fn) { electron.ipcRenderer.on('found', (e, result) => fn(result)) }
+
+  sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
+  receiveFrom (fn) {
+    electron.ipcRenderer.on('send', fn)
+    return () => electron.ipcRenderer.removeListener('send', fn)
+  }
+
+  getId () { return electron.ipcRenderer.sendSync('id') }
+  getParentId () { return electron.ipcRenderer.sendSync('parentId') }
+  processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
+
+  systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
   run (link, args) { return new Stream('run', link, args) }
