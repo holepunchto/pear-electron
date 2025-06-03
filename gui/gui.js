@@ -12,6 +12,7 @@ const constants = require('pear-api/constants')
 const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
+const streamx = require('streamx')
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
@@ -809,6 +810,7 @@ class GuiCtrl {
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
+    this.streams = new Freelist()
   }
 
   get session () {
@@ -844,7 +846,7 @@ class GuiCtrl {
     this.view?.webContents.on('will-navigate', this.nav)
     const { webContents } = (this.view || this.win)
     webContents.on('found-in-page', (evt, result) => {
-      electron.ipcMain.send('app/found', result)
+      electron.ipcMain.send('found', result)
     })
   }
 
@@ -973,6 +975,21 @@ class GuiCtrl {
     if (this.win) this.win.removeListener('close', closeListener)
     this.unload = null
     return action
+  }
+
+  #stream (stream, evt) {
+    const id = this.streams.alloc(stream)
+    stream.on('close', () => {
+      this.streams.free(id)
+      evt.reply('streamClose', id)
+    })
+    stream.on('data', (data) => { evt.reply('streamData', id, data) })
+    stream.on('end', () => {
+      evt.reply('streamData', id, null)
+      evt.reply('streamEnd', id)
+    })
+    stream.on('error', (err) => { evt.reply('streamErr', id, err.stack) })
+    return id
   }
 
   completeUnload (action) {
@@ -1588,16 +1605,33 @@ class PearGUI extends ReadyResource {
       await tray.ready()
       this.#tray = tray
     })
+    
     electron.ipcMain.handle('untray', async () => {
       if (this.#tray) {
         await this.#tray.close()
         this.#tray = null
       }
     })
-    electron.ipcMain.on('tray/darkMode', (evt) => {
-      electron.nativeTheme.on('updated', () => {
-        evt.reply('tray/darkMode', getDarkMode())
+
+    electron.ipcMain.on('system-theme', (evt) => {
+      const stream = new streamx.Readable({
+        read () {}
       })
+      stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
+    
+      const onUpdated = () => {
+        const mode = getDarkMode() ? 'dark' : 'light'
+        console.log(`updated to ${mode} mode`)
+        stream.push({ mode })
+      }
+      
+      electron.nativeTheme.on('updated', onUpdated)
+
+      stream.on('destroy', () => {
+        electron.nativeTheme.removeListener('updated', onUpdated)
+      })
+
+      this.#stream(stream, evt)
     })
 
     electron.ipcMain.on('pipe', (evt) => {
