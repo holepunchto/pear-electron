@@ -17,7 +17,7 @@
     "pre.js"
   ],
   "pear": {
-    "bootstrap": "pear://0.5440.7h4xe9zgfz4jysxawdtwzyiyfsh84g4iij6gr8mff8yfiudjijso",
+    "bootstrap": "pear://0.2648.yceb7sjhgfzsnza7oc38hy3oxu9dhnywi3mzxdm9ubc48kjnxqgo",
     "stage": {
       "skipWarmup": "true",
       "only": [
