@@ -1511,7 +1511,7 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('parentId', (event) => {
-      const instance = this.get(event.sender.id)
+      const instance = this.getCtrl(event.sender.id)
       return (event.returnValue = instance.parentId)
     })
 
@@ -1927,7 +1927,7 @@ class PearGUI extends ReadyResource {
     if (!isLinux) {
       return electron.app.setBadgeCount(count)
     } else {
-      this.get(id).win.setIcon(linuxBadgeIcon(count))
+      this.getCtrl(id).win.setIcon(linuxBadgeIcon(count))
       return true
     }
   }
