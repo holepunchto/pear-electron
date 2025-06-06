@@ -1892,7 +1892,7 @@ class PearGUI extends ReadyResource {
     if (!isLinux) {
       return electron.app.setBadgeCount(count)
     } else {
-      this.get(id).win.setIcon(linuxBadgeIcon(count))
+      this.getCtrl(id).win.setIcon(linuxBadgeIcon(count))
       return true
     }
   }
