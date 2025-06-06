@@ -1134,6 +1134,8 @@ class Window extends GuiCtrl {
         details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
       } else if (this.state?.config?.options?.gui?.userAgent) {
         details.requestHeaders['User-Agent'] = this.state.config.options.gui.userAgent
+      } else if (requestURL.startsWith('devtools://')) {
+        requestHeaders['User-Agent'] = 'Pear Devtools'
       }
       next({ requestHeaders: details.requestHeaders })
     }
