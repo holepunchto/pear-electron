@@ -384,6 +384,8 @@ class ContextMenu {
   }
 }
 
+electron.app.userAgentFallback = 'Pear Platform'
+
 class App {
   menu = null
   bridge = null
