@@ -1134,7 +1134,7 @@ class Window extends GuiCtrl {
         details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
       } else if (this.state?.config?.options?.gui?.userAgent) {
         details.requestHeaders['User-Agent'] = this.state.config.options.gui.userAgent
-      } else if (requestURL.startsWith('devtools://')) {
+      } else if (details.url.startsWith('devtools://')) {
         details.requestHeaders['User-Agent'] = 'Pear Devtools'
       }
       next({ requestHeaders: details.requestHeaders })
@@ -1355,6 +1355,13 @@ class View extends GuiCtrl {
     const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
     session.setUserAgent(ua)
+    const onBeforeSendHeaders = (details, next) => {
+      if (details.url.startsWith('devtools://')) {
+        details.requestHeaders['User-Agent'] = 'Pear Devtools'
+      }
+      next({ requestHeaders: details.requestHeaders })
+    }
+    session.webRequest.onBeforeSendHeaders(onBeforeSendHeaders)
 
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
