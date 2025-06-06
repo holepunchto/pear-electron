@@ -1351,7 +1351,7 @@ class View extends GuiCtrl {
     const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
     session.setUserAgent(ua)
-    
+
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
       darkMode: getDarkMode()
