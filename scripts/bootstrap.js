@@ -40,6 +40,7 @@ async function bootstrap (opts, outs = transforms) {
     connect: tryboot
   })
   const { json = false, log, ...options } = opts
+  console.log('🚀 ~ bootstrap ~ json:', json)
   await ipc.ready()
   await output({ json, log }, ipc.dump(options))
   await ipc.close()
