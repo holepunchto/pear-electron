@@ -1022,7 +1022,9 @@ class Window extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
+    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
+    session.setUserAgent(ua)
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
@@ -1346,8 +1348,10 @@ class View extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
+    const ua = `Pear ${this.state.id}`
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-
+    session.setUserAgent(ua)
+    
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
       darkMode: getDarkMode()
