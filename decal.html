@@ -606,7 +606,8 @@
     const ipc = DECAL.ipc
     const loader = document.querySelector('decal-loader')
     const report = document.querySelector('decal-report')
-    report.subscribe(ipc, loader)
+    Promise.all([customElements.whenDefined('decal-report'), customElements.whenDefined('decal-loader')])
+      .then(() => { report.subscribe(ipc, loader) })
 
     process.on('exit', (code) => {
       const actuallyARefresh = code === undefined
