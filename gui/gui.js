@@ -384,8 +384,6 @@ class ContextMenu {
   }
 }
 
-electron.app.userAgentFallback = 'Pear Platform'
-
 class App {
   menu = null
   bridge = null
@@ -1024,9 +1022,8 @@ class Window extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
+
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
@@ -1131,7 +1128,7 @@ class Window extends GuiCtrl {
       details.requestHeaders.Pragma = details.requestHeaders['Cache-Control'] = 'no-cache'
       const requestURL = new URL(details.url)
       if (requestURL.host === this.bridgeURL.host) {
-        details.requestHeaders['User-Agent'] = `Pear ${this.state.id}`
+        details.requestHeaders['X-Pear'] = `Pear ${this.state.id}`
       } else if (this.state?.config?.options?.gui?.userAgent) {
         details.requestHeaders['User-Agent'] = this.state.config.options.gui.userAgent
       }
@@ -1350,9 +1347,8 @@ class View extends GuiCtrl {
       this.state = await this.appkin
       this.appkin = null
     }
-    const ua = `Pear ${this.state.id}`
+
     const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
-    session.setUserAgent(ua)
 
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
@@ -2016,7 +2012,7 @@ class Tray extends ReadyResource {
   async #getIconNativeImg (icon) {
     try {
       const iconUrl = `${this.state.rti.bridge}/${icon}`
-      const res = await fetch(iconUrl, { headers: { 'User-Agent': `Pear ${this.state.id}` } })
+      const res = await fetch(iconUrl, { headers: { 'X-Pear': `Pear ${this.state.id}` } })
       if (!res.ok) throw new Error(`Failed to fetch tray icon: ${await res.text()}`)
 
       const iconBuffer = Buffer.from(await res.arrayBuffer())
