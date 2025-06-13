@@ -15,16 +15,7 @@ module.exports = class PearGUI {
     })
 
     const overwriteLocalStorage = async () => {
-      const requestAppStorage = () =>
-        new Promise((resolve) => {
-          electron.ipcRenderer.once('app-storage-response', (event, data) => {
-            console.log('received data')
-            resolve(data);
-          });
-          electron.ipcRenderer.send('request-app-storage');
-        });
-      
-      const storageArray = await requestAppStorage();
+      const storageArray = await electron.ipcRenderer.invoke('get-app-storage');
       const appStorage = new AppStorage(this.ipc, id, storageArray)
       Object.defineProperty(window, 'localStorage', {
         value: appStorage.storage,

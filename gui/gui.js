@@ -523,9 +523,7 @@ class App {
         await electron.app.whenReady()
         const config = await this.ipc.config()
         const { localdb, appStorageData } = await loadAppStorageData(config.storage);
-        electron.ipcMain.once('request-app-storage', (event) => {
-          event.sender.send('app-storage-response', appStorageData);
-        });
+        electron.ipcMain.handle('get-app-storage', () => appStorageData);
         this.localdb = localdb
         this.gui.setLocalDb(this.localdb)
         const name = state?.name || 'pear'
