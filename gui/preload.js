@@ -15,14 +15,14 @@ module.exports = class PearGUI {
     })
 
     const overwriteLocalStorage = async () => {
-      const storageArray = await electron.ipcRenderer.invoke('get-app-storage');
+      const storageArray = await electron.ipcRenderer.invoke('get-app-storage')
       const appStorage = new AppStorage(this.ipc, id, storageArray)
       Object.defineProperty(window, 'localStorage', {
         value: appStorage.storage,
         configurable: true,
         enumerable: true,
-        writable: false,
-      });
+        writable: false
+      })
     }
     overwriteLocalStorage()
 
@@ -525,64 +525,64 @@ class Stream extends streamx.Duplex {
 }
 
 class AppStorage {
-  constructor(ipc, id, array) {
+  constructor (ipc, id, array) {
     const map = new Map(
       Array.isArray(array)
         ? array.map(({ key, value }) => [key, value])
         : []
-    );
+    )
 
-    this.ipc = ipc;
-    this.id = id;
+    this.ipc = ipc
+    this.id = id
 
     const storage = {
       getItem: (key) => map.has(key) ? map.get(key) : null,
       setItem: (key, value) => {
-        ipc.appStorageUpdate?.({ type: 'set', key, value });
-        return map.set(String(key), String(value));
+        ipc.appStorageUpdate?.({ type: 'set', key, value })
+        return map.set(String(key), String(value))
       },
       removeItem: (key) => {
-        ipc.appStorageUpdate?.({ type: 'remove', key });
-        return map.delete(key);
+        ipc.appStorageUpdate?.({ type: 'remove', key })
+        return map.delete(key)
       },
       clear: () => {
-        ipc.appStorageUpdate?.({ type: 'clear' });
-        return map.clear();
+        ipc.appStorageUpdate?.({ type: 'clear' })
+        return map.clear()
       },
       key: (i) => Array.from(map.keys())[i] ?? null,
-      get length() {
-        return map.size;
+      get length () {
+        return map.size
       }
-    };
+    }
 
     this.storage = new Proxy(storage, {
-      get(target, prop) {
-        return prop in target ? target[prop] : target.getItem(prop);
+      get (target, prop) {
+        return prop in target ? target[prop] : target.getItem(prop)
       },
-      set(target, prop, value) {
-        target.setItem(prop, value);
-        return true;
+      set (target, prop, value) {
+        target.setItem(prop, value)
+        return true
       },
-      deleteProperty(target, prop) {
-        target.removeItem(prop);
-        return true;
+      deleteProperty (target, prop) {
+        target.removeItem(prop)
+        return true
       },
-      has(target, prop) {
-        return map.has(prop) || prop in target;
+      has (target, prop) {
+        return map.has(prop) || prop in target
       },
-      ownKeys(target) {
-        return [...map.keys()];
+      ownKeys (target) {
+        return [...map.keys()]
       },
-      getOwnPropertyDescriptor(target, prop) {
+      getOwnPropertyDescriptor (target, prop) {
         if (map.has(prop) || prop in target) {
           return {
             configurable: true,
             enumerable: true,
             value: target[prop] ?? map.get(prop),
-            writable: true,
-          };
+            writable: true
+          }
         }
-      },
-    });
+      }
+    })
   }
 }

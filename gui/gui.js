@@ -17,7 +17,6 @@ const dbSpec = require('../spec/db/index')
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
-const { match } = require('assert')
 
 class Menu {
   static PEAR = 0
@@ -400,7 +399,6 @@ class App {
   closed = false
   appReady = false
   localdb = null
-  appStorageData = null
   static root = unixPathResolve(resolve(__dirname, '..'))
 
   constructor (gui) {
@@ -522,8 +520,8 @@ class App {
       if (this.appReady === false) {
         await electron.app.whenReady()
         const config = await this.ipc.config()
-        const { localdb, appStorageData } = await loadAppStorageData(config.storage);
-        electron.ipcMain.handle('get-app-storage', () => appStorageData);
+        const { localdb, appStorageData } = await loadAppStorageData(config.storage)
+        electron.ipcMain.handle('get-app-storage', () => appStorageData)
         this.localdb = localdb
         this.gui.setLocalDb(this.localdb)
         const name = state?.name || 'pear'
@@ -658,6 +656,8 @@ class App {
 
   async #close (maxWait) {
     let clear = null
+    await this.localdb.flush()
+    await this.localdb.close()
     const timeout = new Promise((resolve) => {
       const tid = setTimeout(() => resolve(true), maxWait)
       clear = () => {
@@ -681,7 +681,6 @@ class App {
     for (const stream of streams) stream.end()
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
-    await this.localdb.close()
 
     this.closed = true
     return result
@@ -1880,9 +1879,9 @@ class PearGUI extends ReadyResource {
     if (!instance) return
     instance.setWindowButtonVisibility(visible)
   }
-  
+
   requestIdentity (params) { return this.ipc.requestIdentity(params) }
-  
+
   shareIdentity (identity) { return this.ipc.shareIdentity(identity) }
 
   clearIdentity () { return this.ipc.clearIdentity() }
@@ -2062,27 +2061,26 @@ function parseConfigNumber (value, field) {
   throw new Error(`The value of ${field} configuration field must be a number or numeric string, got: ${value}`)
 }
 
-async function loadAppStorageData(storagePath) {
+async function loadAppStorageData (storagePath) {
   const localdb = HyperDB.rocks(path.join(storagePath, 'localStorage'), dbSpec)
   const appStorageData = await localdb.find('@electron/appStorage').toArray()
   return { localdb, appStorageData }
 }
 
-async function updateAppStorageData(opts = {}, db) {
+async function updateAppStorageData (opts = {}, db) {
   const localdb = db
-  try{
+  try {
     switch (opts.type) {
       case 'set':
         await localdb.insert('@electron/appStorage', { key: opts.key, value: opts.value })
-        break;
+        break
       case 'remove':
         await localdb.delete('@electron/appStorage', opts.key)
-        break;
+        break
       case 'clear':
         console.log('soon...')
-        break;
+        break
     }
-    await localdb.flush()
   } catch (err) {
     throw new Error(`Error in persisting updated localStorage/appStorage: ${err}`)
   }
