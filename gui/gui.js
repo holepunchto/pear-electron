@@ -12,9 +12,12 @@ const constants = require('pear-api/constants')
 const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
+const HyperDB = require('hyperdb')
+const dbSpec = require('../spec/db/index')
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
+const { match } = require('assert')
 
 class Menu {
   static PEAR = 0
@@ -396,6 +399,8 @@ class App {
   closing = null
   closed = false
   appReady = false
+  localdb = null
+  appStorageData = null
   static root = unixPathResolve(resolve(__dirname, '..'))
 
   constructor (gui) {
@@ -516,6 +521,13 @@ class App {
     try {
       if (this.appReady === false) {
         await electron.app.whenReady()
+        const config = await this.ipc.config()
+        const { localdb, appStorageData } = await loadAppStorageData(config.storage);
+        electron.ipcMain.once('request-app-storage', (event) => {
+          event.sender.send('app-storage-response', appStorageData);
+        });
+        this.localdb = localdb
+        this.gui.setLocalDb(this.localdb)
         const name = state?.name || 'pear'
         this.name = name[0].toUpperCase() + name.slice(1)
         this.appReady = true
@@ -671,6 +683,7 @@ class App {
     for (const stream of streams) stream.end()
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
+    await this.localdb.close()
 
     this.closed = true
     return result
@@ -1458,6 +1471,7 @@ class View extends GuiCtrl {
 class PearGUI extends ReadyResource {
   static View = View
   static Window = Window
+  localdb = null
   _app = null
   #tray
 
@@ -1535,6 +1549,7 @@ class PearGUI extends ReadyResource {
       })
     })
 
+    electron.ipcMain.handle('app-storage-update', (evt, opts) => updateAppStorageData(opts, this.localdb))
     electron.ipcMain.handle('getMediaAccessStatus', (evt, ...args) => this.getMediaAccessStatus(...args))
     electron.ipcMain.handle('askForMediaAccess', (evt, ...args) => this.askForMediaAccess(...args))
     electron.ipcMain.handle('desktopSources', (evt, ...args) => this.desktopSources(...args))
@@ -1670,6 +1685,10 @@ class PearGUI extends ReadyResource {
     this.once('close', async () => { app.quit() })
     await app.start()
     return app
+  }
+
+  setLocalDb (db) {
+    this.localdb = db
   }
 
   async _open () {
@@ -1863,9 +1882,9 @@ class PearGUI extends ReadyResource {
     if (!instance) return
     instance.setWindowButtonVisibility(visible)
   }
-
+  
   requestIdentity (params) { return this.ipc.requestIdentity(params) }
-
+  
   shareIdentity (identity) { return this.ipc.shareIdentity(identity) }
 
   clearIdentity () { return this.ipc.clearIdentity() }
@@ -2043,6 +2062,32 @@ function parseConfigNumber (value, field) {
   if (value === undefined || typeof value === 'number') return value
   if (typeof value === 'string' && Number.isFinite(+value)) return +value
   throw new Error(`The value of ${field} configuration field must be a number or numeric string, got: ${value}`)
+}
+
+async function loadAppStorageData(storagePath) {
+  const localdb = HyperDB.rocks(path.join(storagePath, 'localStorage'), dbSpec)
+  const appStorageData = await localdb.find('@electron/appStorage').toArray()
+  return { localdb, appStorageData }
+}
+
+async function updateAppStorageData(opts = {}, db) {
+  const localdb = db
+  try{
+    switch (opts.type) {
+      case 'set':
+        await localdb.insert('@electron/appStorage', { key: opts.key, value: opts.value })
+        break;
+      case 'remove':
+        await localdb.delete('@electron/appStorage', opts.key)
+        break;
+      case 'clear':
+        console.log('soon...')
+        break;
+    }
+    await localdb.flush()
+  } catch (err) {
+    throw new Error(`Error in persisting updated localStorage/appStorage: ${err}`)
+  }
 }
 
 module.exports = PearGUI
