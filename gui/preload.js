@@ -14,6 +14,18 @@ module.exports = class PearGUI {
       this.ipc.stream.push(Buffer.from(data))
     })
 
+    const overwriteLocalStorage = async () => {
+      const storageArray = await electron.ipcRenderer.invoke('get-app-storage')
+      const appStorage = new AppStorage(this.ipc, id, storageArray || [])
+      Object.defineProperty(window, 'localStorage', {
+        value: appStorage.storage,
+        configurable: true,
+        enumerable: true,
+        writable: false
+      })
+    }
+    overwriteLocalStorage()
+
     const teardown = async (fn) => {
       if (state.isDecal) return
       const action = await this.ipc.unloading({ id }) // only resolves when unloading occurs
@@ -435,6 +447,7 @@ class IPC {
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
+  appStorageUpdate (opts) { return electron.ipcRenderer.invoke('app-storage-update', opts) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
@@ -508,5 +521,85 @@ class Stream extends streamx.Duplex {
   _final (cb) {
     electron.ipcRenderer.send('streamEnd', this.#id)
     cb()
+  }
+}
+
+class AppStorage {
+  constructor (ipc, id, array) {
+    const map = new Map(
+      Array.isArray(array)
+        ? array.map(({ key, value }) => [String(key), String(value)])
+        : []
+    )
+
+    this.ipc = ipc
+    this.id = id
+
+    const storage = {
+      getAll: () => map,
+      getItem: (key) => {
+        key = String(key)
+        return map.has(key) ? map.get(key) : null
+      },
+      setItem: (key, value) => {
+        key = String(key)
+        value = String(value)
+        ipc.appStorageUpdate?.({ type: 'set', key, value })
+        return map.set(key, value)
+      },
+      removeItem: (key) => {
+        key = String(key)
+        ipc.appStorageUpdate?.({ type: 'remove', key })
+        return map.delete(key)
+      },
+      clear: () => {
+        ipc.appStorageUpdate?.({ type: 'clear' })
+        return map.clear()
+      },
+      key: (i) => Array.from(map.keys())[i] ?? null,
+      get length () {
+        return map.size
+      }
+    }
+
+    this.storage = new Proxy(storage, {
+      get (target, prop) {
+        if (prop in target) return target[prop]
+        return target.getItem(prop)
+      },
+      set (target, prop, value) {
+        target.setItem(prop, value)
+        return true
+      },
+      deleteProperty (target, prop) {
+        target.removeItem(prop)
+        return true
+      },
+      has (target, prop) {
+        return map.has(String(prop)) || prop in target
+      },
+      ownKeys (target) {
+        return [...map.keys()]
+      },
+      getOwnPropertyDescriptor (target, prop) {
+        const key = String(prop)
+        if (map.has(key)) {
+          return {
+            configurable: true,
+            enumerable: true,
+            value: map.get(key),
+            writable: true
+          }
+        }
+        if (prop in target) {
+          return {
+            configurable: true,
+            enumerable: true,
+            value: target[prop],
+            writable: true
+          }
+        }
+      }
+    })
   }
 }
