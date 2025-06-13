@@ -2080,14 +2080,13 @@ async function updateAppStorageData (opts = {}, db) {
       case 'remove':
         await localdb.delete('@electron/appStorage', { key: opts.key })
         break
-      case 'clear':
+      case 'clear': {
         const all = await localdb.find('@electron/appStorage').toArray()
-        console.log(all)
         all.forEach(async (entry) => {
-          console.log(entry.key)
           await localdb.delete('@electron/appStorage', { key: entry.key })
         })
         break
+      }
     }
   } catch (err) {
     throw new Error(`Error in persisting updated localStorage/appStorage: ${err}`)
