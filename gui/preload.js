@@ -528,7 +528,7 @@ class AppStorage {
   constructor(ipc, id, array) {
     const map = new Map(
       Array.isArray(array)
-        ? array.map(({ key, value }) => [key, value])
+        ? array.map(({ key, value }) => [String(key), String(value)])
         : []
     );
 
@@ -536,17 +536,24 @@ class AppStorage {
     this.id = id;
 
     const storage = {
-      getItem: (key) => map.has(key) ? map.get(key) : null,
+      getAll: () => map,
+      getItem: (key) => {
+        key = String(key);
+        return map.has(key) ? map.get(key) : null;
+      },
       setItem: (key, value) => {
-        ipc.appStorageUpdate({ type: 'set', key, value });
-        return map.set(String(key), String(value));
+        key = String(key);
+        value = String(value);
+        ipc.appStorageUpdate?.({ type: 'set', key, value });
+        return map.set(key, value);
       },
       removeItem: (key) => {
-        ipc.appStorageUpdate({ type: 'remove', key });
+        key = String(key);
+        ipc.appStorageUpdate?.({ type: 'remove', key });
         return map.delete(key);
       },
       clear: () => {
-        ipc.appStorageUpdate({ type: 'clear' });
+        ipc.appStorageUpdate?.({ type: 'clear' });
         return map.clear();
       },
       key: (i) => Array.from(map.keys())[i] ?? null,
@@ -557,7 +564,8 @@ class AppStorage {
 
     this.storage = new Proxy(storage, {
       get(target, prop) {
-        return prop in target ? target[prop] : target.getItem(prop);
+        if (prop in target) return target[prop];
+        return target.getItem(prop);
       },
       set(target, prop, value) {
         target.setItem(prop, value);
@@ -568,21 +576,31 @@ class AppStorage {
         return true;
       },
       has(target, prop) {
-        return map.has(prop) || prop in target;
+        return map.has(String(prop)) || prop in target;
       },
       ownKeys(target) {
         return [...map.keys()];
       },
       getOwnPropertyDescriptor(target, prop) {
-        if (map.has(prop) || prop in target) {
+        const key = String(prop);
+        if (map.has(key)) {
           return {
             configurable: true,
             enumerable: true,
-            value: target[prop] ?? map.get(prop),
-            writable: true,
+            value: map.get(key),
+            writable: true
+          };
+        }
+        if (prop in target) {
+          return {
+            configurable: true,
+            enumerable: true,
+            value: target[prop],
+            writable: true
           };
         }
       },
     });
   }
 }
+
