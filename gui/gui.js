@@ -409,6 +409,15 @@ class App {
     this.ipc = ipc
 
     this.contextMenu = null
+
+    electron.ipcMain.handle('get-app-storage', async () => {
+      const config = await this.ipc.config()
+      const localdb = this.gui.localdb ?? await loadAppStorageData(config.storage)
+      if (!this.gui.localdb) this.gui.setLocalDb(localdb)
+      const appStorageData = await localdb.find('@electron/appStorage').toArray()
+      return appStorageData
+    })
+
     electron.app.on('browser-window-focus', () => { this.menu.devtoolsReloaderUnlisten() })
 
     electron.app.on('child-process-gone', (e, details) => {
@@ -519,11 +528,6 @@ class App {
     try {
       if (this.appReady === false) {
         await electron.app.whenReady()
-        const config = await this.ipc.config()
-        const { localdb, appStorageData } = await loadAppStorageData(config.storage)
-        electron.ipcMain.handle('get-app-storage', () => appStorageData)
-        this.localdb = localdb
-        this.gui.setLocalDb(this.localdb)
         const name = state?.name || 'pear'
         this.name = name[0].toUpperCase() + name.slice(1)
         this.appReady = true
@@ -656,8 +660,8 @@ class App {
 
   async #close (maxWait) {
     let clear = null
-    await this.localdb.flush()
-    await this.localdb.close()
+    await this.gui.localdb.flush()
+    await this.gui.localdb.close()
     const timeout = new Promise((resolve) => {
       const tid = setTimeout(() => resolve(true), maxWait)
       clear = () => {
@@ -2063,8 +2067,7 @@ function parseConfigNumber (value, field) {
 
 async function loadAppStorageData (storagePath) {
   const localdb = HyperDB.rocks(path.join(storagePath, 'localStorage'), dbSpec)
-  const appStorageData = await localdb.find('@electron/appStorage').toArray()
-  return { localdb, appStorageData }
+  return localdb
 }
 
 async function updateAppStorageData (opts = {}, db) {
@@ -2075,10 +2078,15 @@ async function updateAppStorageData (opts = {}, db) {
         await localdb.insert('@electron/appStorage', { key: opts.key, value: opts.value })
         break
       case 'remove':
-        await localdb.delete('@electron/appStorage', opts.key)
+        await localdb.delete('@electron/appStorage', { key: opts.key })
         break
       case 'clear':
-        console.log('soon...')
+        const all = await localdb.find('@electron/appStorage').toArray()
+        console.log(all)
+        all.forEach(async (entry) => {
+          console.log(entry.key)
+          await localdb.delete('@electron/appStorage', { key: entry.key })
+        })
         break
     }
   } catch (err) {
