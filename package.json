@@ -1,6 +1,6 @@
 {
   "name": "pear-electron",
-  "version": "1.4.17",
+  "version": "1.5.2",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "pre.js"
   ],
   "pear": {
-    "bootstrap": "pear://0.24845.dqgs5prptqozgwzanes31atj1imzbf5dfg4tgpgkp5mke83oziyy",
+    "bootstrap": "pear://0.2725.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
     "stage": {
       "skipWarmup": "true",
       "only": [
@@ -62,7 +62,7 @@
     "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
-    "pear-api": "^1.16.0",
+    "pear-api": "^1.17.7",
     "pear-ipc": "^6.3.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
