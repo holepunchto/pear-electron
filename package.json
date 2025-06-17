@@ -14,7 +14,9 @@
     "bootstrap.js",
     "index.js",
     "runtime.js",
-    "pre.js"
+    "pre.js",
+    "api.js",
+    "gui/ipc.js"
   ],
   "pear": {
     "bootstrap": "pear://0.2725.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
