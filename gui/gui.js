@@ -669,7 +669,7 @@ class App {
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
     const streams = [...this.gui.streams]
-    for (const stream of streams) stream.end()
+    for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
 
