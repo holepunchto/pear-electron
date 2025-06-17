@@ -95,9 +95,9 @@ module.exports = class PearGUI {
           }
 
           async find (options) {
-            const stream = new Found(this.id)
+            const found = new Found(this.id)
             await ipc.find({ id: this.id, options })
-            return stream
+            return found
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
@@ -138,9 +138,9 @@ module.exports = class PearGUI {
           }
 
           find = async (options) => {
-            const stream = new Found(this.id)
+            const found = new Found(this.id)
             await ipc.find({ id: this.id, options })
-            return stream
+            return found
           }
 
           badge = (count) => {
@@ -235,9 +235,9 @@ module.exports = class PearGUI {
           }
 
           find = async (options) => {
-            const stream = new Found(this.id)
+            const found = new Found(this.id)
             await ipc.find({ id: this.id, options })
-            return stream
+            return found
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
