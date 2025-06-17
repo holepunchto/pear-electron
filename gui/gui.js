@@ -851,19 +851,19 @@ class GuiCtrl {
     this.view?.webContents.on('will-navigate', this.nav)
     electron.ipcMain.on('found', (evt) => {
       const stream = new streamx.Readable({ read () {} })
-  
+
       const { webContents } = (this.view || this.win)
-  
+
       const onFoundInPage = (event, result) => {
         stream.push(result)
       }
-  
+
       webContents.on('found-in-page', onFoundInPage)
-  
+
       stream.on('destroy', () => {
         webContents.removeListener('found-in-page', onFoundInPage)
       })
-  
+
       this.#stream(stream, evt)
     })
   }
@@ -1627,7 +1627,7 @@ class PearGUI extends ReadyResource {
       await tray.ready()
       this.#tray = tray
     })
-    
+
     electron.ipcMain.handle('untray', async () => {
       if (this.#tray) {
         await this.#tray.close()
@@ -1640,12 +1640,12 @@ class PearGUI extends ReadyResource {
         read () {}
       })
       stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
-    
+
       const onUpdated = () => {
         const mode = getDarkMode() ? 'dark' : 'light'
         stream.push({ mode })
       }
-      
+
       electron.nativeTheme.on('updated', onUpdated)
 
       stream.on('destroy', () => {

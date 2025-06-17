@@ -132,7 +132,7 @@ module.exports = class PearGUI {
             this.tray.scaleFactor = state.tray?.scaleFactor
             this.tray.darkMode = state.tray?.darkMode
 
-            ipc.systemTheme().on('data', ({mode}) => {
+            ipc.systemTheme().on('data', ({ mode }) => {
               this.tray.darkMode = mode === 'dark'
             })
           }
@@ -429,7 +429,7 @@ class IPC {
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
-  find (...args) {return electron.ipcRenderer.invoke('find', ...args)}
+  find (...args) { return electron.ipcRenderer.invoke('find', ...args) }
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
