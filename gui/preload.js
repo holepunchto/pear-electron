@@ -46,25 +46,15 @@ module.exports = class PearGUI {
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
 
-        ipc.found().on('data', (result) => {
-          this.message({
-            type: 'pear-electron/app/found',
-            rid: result.requestId,
-            result
-          })
-        })
-
         class Found extends streamx.Readable {
           #id = null
-          #rid = null
           #stream = null
           #listener = (data) => {
             this.push(data.result)
           }
 
-          constructor (rid, id) {
+          constructor (id) {
             super()
-            this.#rid = rid
             this.#id = id
             this.#stream = ipc.found()
             this.#stream.on('data', this.#listener)
@@ -104,9 +94,9 @@ module.exports = class PearGUI {
             })
           }
 
-          async find (options={}) {
-            const rid = await ipc.find({ id: this.id, options })
-            return new Found(rid, this.id)
+          async find (options) {
+            await ipc.find({ id: this.id, options })
+            return new Found(this.id)
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
@@ -146,9 +136,9 @@ module.exports = class PearGUI {
             })
           }
 
-          find = async (options={}) => {
-            const rid = await ipc.find({ id: this.id, options })
-            return new Found(rid, this.id)
+          find = async (options) => {
+            await ipc.find({ id: this.id, options })
+            return new Found(this.id)
           }
 
           badge = (count) => {
@@ -242,9 +232,9 @@ module.exports = class PearGUI {
             this.#listener = null
           }
 
-          find = async (options={}) => {
-            const rid = await ipc.find({ id: this.id, options })
-            return new Found(rid, this.id)
+          find = async (options) => {
+            await ipc.find({ id: this.id, options })
+            return new Found(this.id)
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
@@ -433,7 +423,6 @@ class IPC {
   updated (...args) { return electron.ipcRenderer.invoke('updated', ...args) }
   restart (...args) { return electron.ipcRenderer.invoke('restart', ...args) }
   get (...args) { return electron.ipcRenderer.invoke('get', ...args) }
-  find (...args) { return electron.ipcRenderer.invoke('find', ...args) }
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
@@ -469,7 +458,7 @@ class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
 
-  found () { return new Stream('found') }  
+  found () { return new Stream('found') }
   systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }

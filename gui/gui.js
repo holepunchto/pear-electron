@@ -1006,7 +1006,7 @@ class GuiCtrl {
       evt.reply('streamData', id, null)
       evt.reply('streamEnd', id)
     })
-    stream.on('error', (err) => { evt.reply('streamErr', id, err.stack) })
+    stream.on('error', (err) => { evt.reply('streamError', id, err.stack) })
     return id
   }
 
