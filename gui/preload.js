@@ -56,7 +56,7 @@ module.exports = class PearGUI {
           constructor (id) {
             super()
             this.#id = id
-            this.#stream = ipc.found()
+            this.#stream = ipc.found(this.#id)
             this.#stream.on('data', this.#listener)
           }
 
@@ -133,13 +133,14 @@ module.exports = class PearGUI {
             this.tray.darkMode = state.tray?.darkMode
 
             ipc.systemTheme().on('data', ({ mode }) => {
+              console.log('system theme is', mode)
               this.tray.darkMode = mode === 'dark'
             })
           }
 
-          find = async (options) => {
+          find = (options) => {
             const found = new Found(this.id)
-            await ipc.find({ id: this.id, options })
+            ipc.find({ id: this.id, options })
             return found
           }
 
@@ -461,7 +462,7 @@ class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
 
-  found () { return new Stream('found') }
+  found (opts = {}) { return new Stream('found', opts) }
   systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }

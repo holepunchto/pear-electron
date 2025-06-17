@@ -815,7 +815,6 @@ class GuiCtrl {
     this.entry = this.bridge === null ? entry : `${this.bridge}${entry}`
     this.sessname = sessname
     this.appkin = appkin
-    this.streams = new Freelist()
   }
 
   get session () {
@@ -849,23 +848,6 @@ class GuiCtrl {
     this.win?.webContents.on('will-navigate', this.nav)
     this.view?.webContents.setWindowOpenHandler(handler(this.view.webContents))
     this.view?.webContents.on('will-navigate', this.nav)
-    electron.ipcMain.on('found', (evt) => {
-      const stream = new streamx.Readable({ read () {} })
-
-      const { webContents } = (this.view || this.win)
-
-      const onFoundInPage = (event, result) => {
-        stream.push(result)
-      }
-
-      webContents.on('found-in-page', onFoundInPage)
-
-      stream.on('destroy', () => {
-        webContents.removeListener('found-in-page', onFoundInPage)
-      })
-
-      this.#stream(stream, evt)
-    })
   }
 
   find (options) {
@@ -993,21 +975,6 @@ class GuiCtrl {
     if (this.win) this.win.removeListener('close', closeListener)
     this.unload = null
     return action
-  }
-
-  #stream (stream, evt) {
-    const id = this.streams.alloc(stream)
-    stream.on('close', () => {
-      this.streams.free(id)
-      evt.reply('streamClose', id)
-    })
-    stream.on('data', (data) => { evt.reply('streamData', id, data) })
-    stream.on('end', () => {
-      evt.reply('streamData', id, null)
-      evt.reply('streamEnd', id)
-    })
-    stream.on('error', (err) => { evt.reply('streamError', id, err.stack) })
-    return id
   }
 
   completeUnload (action) {
@@ -1636,9 +1603,8 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('system-theme', (evt) => {
-      const stream = new streamx.Readable({
-        read () {}
-      })
+      const stream = new streamx.Readable({ read () {} })
+      
       stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
 
       const onUpdated = () => {
@@ -1689,6 +1655,25 @@ class PearGUI extends ReadyResource {
         return
       }
       stream.write(data)
+    })
+
+    electron.ipcMain.on('found', async (evt, id) => {
+      const stream = new streamx.Readable({ read () {} })
+      
+      const ctrl = this.getCtrl(id)
+      const webContents = ctrl.win?.webContents || ctrl.view?.webContents
+
+      const onFoundInPage = (event, result) => {
+        stream.push(result)
+      }
+
+      webContents.on('found-in-page', onFoundInPage)
+
+      stream.on('destroy', () => {
+        webContents.removeListener('found-in-page', onFoundInPage)
+      })
+
+      this.#stream(stream, evt)
     })
   }
 
