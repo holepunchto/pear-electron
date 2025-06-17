@@ -46,6 +46,55 @@ module.exports = class PearGUI {
           desktopSources: (options = {}) => ipc.desktopSources(options)
         }
 
+        ipc.found().on('data', (result) => {
+          this.message({
+            type: 'pear-electron/app/found',
+            rid: result.requestId,
+            result
+          })
+        })
+
+        class Found extends streamx.Readable {
+          #id = null
+          #rid = null
+          #stream = null
+          #listener = (data) => {
+            this.push(data.result)
+          }
+
+          constructor (rid, id) {
+            super()
+            this.#rid = rid
+            this.#id = id
+            this.#stream = ipc.found()
+            this.#stream.on('data', this.#listener)
+          }
+
+          proceed () {
+            return ipc.find({ id: this.#id, next: true })
+          }
+
+          clear () {
+            if (this.destroyed) throw Error('Nothing to clear, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'clear' }).finally(() => this.destroy())
+          }
+
+          keep () {
+            if (this.destroyed) throw Error('Nothing to keep, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'keep' }).finally(() => this.destroy())
+          }
+
+          activate () {
+            if (this.destroyed) throw Error('Nothing to activate, already destroyed')
+            return ipc.find({ id: this.#id, stop: 'activate' }).finally(() => this.destroy())
+          }
+
+          _destroy () {
+            this.#stream.destroy()
+            return this.clear()
+          }
+        }
+
         class Parent extends EventEmitter {
           constructor (id) {
             super()
@@ -55,9 +104,9 @@ module.exports = class PearGUI {
             })
           }
 
-          async find (options) {
+          async find (options={}) {
             const rid = await ipc.find({ id: this.id, options })
-            return ipc.found(rid)
+            return new Found(rid, this.id)
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
@@ -82,7 +131,7 @@ module.exports = class PearGUI {
           #untray = null
 
           get parent () {
-            const parentId = electron.ipcRenderer.sendSync('parentId')
+            const parentId = ipc.getParentId()
             Object.defineProperty(this, 'parent', { value: new Parent(parentId) })
             return this.parent
           }
@@ -97,9 +146,9 @@ module.exports = class PearGUI {
             })
           }
 
-          find = async (options) => {
+          find = async (options={}) => {
             const rid = await ipc.find({ id: this.id, options })
-            return ipc.found(rid)
+            return new Found(rid, this.id)
           }
 
           badge = (count) => {
@@ -193,9 +242,9 @@ module.exports = class PearGUI {
             this.#listener = null
           }
 
-          find = async (options) => {
+          find = async (options={}) => {
             const rid = await ipc.find({ id: this.id, options })
-            return ipc.found(rid)
+            return new Found(rid, this.id)
           }
 
           send (...args) { return ipc.sendTo(this.id, ...args) }
@@ -388,6 +437,7 @@ class IPC {
   exists (...args) { return electron.ipcRenderer.invoke('exists', ...args) }
   compare (...args) { return electron.ipcRenderer.invoke('compare', ...args) }
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
+  find (...args) {return electron.ipcRenderer.invoke('find', ...args)}
 
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
@@ -419,7 +469,7 @@ class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
 
-  found (args) { return new Stream('found', args) }  
+  found () { return new Stream('found') }  
   systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
