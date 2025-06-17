@@ -1706,7 +1706,7 @@ class PearGUI extends ReadyResource {
       evt.reply('streamEnd', id)
     })
     stream.on('error', (err) => {
-      evt.reply('streamErr', id, err.stack)
+      evt.reply('streamError', id, err.stack)
     })
     return id
   }
