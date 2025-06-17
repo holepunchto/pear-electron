@@ -1604,7 +1604,7 @@ class PearGUI extends ReadyResource {
 
     electron.ipcMain.on('system-theme', (evt) => {
       const stream = new streamx.Readable({ read () {} })
-      
+
       stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
 
       const onUpdated = () => {
@@ -1659,7 +1659,7 @@ class PearGUI extends ReadyResource {
 
     electron.ipcMain.on('found', async (evt, id) => {
       const stream = new streamx.Readable({ read () {} })
-      
+
       const ctrl = this.getCtrl(id)
       const webContents = ctrl.win?.webContents || ctrl.view?.webContents
 
