@@ -788,6 +788,19 @@ Stop search and convert matching text selection to text highlight. Implies destr
 Stop search and simulate a click event on the selected match. Implies destroy.
 
 
+## Integration Libraries
+
+The `pear-electron` module also exposes rederer libraries.
+
+### `pear-electron/api`
+
+Function that takes an api like pear-api as argument and returns an extended API class.
+
+### `pear-electron/ipc`
+
+IPC class that communicates with the main process through `electron.ipcRenderer`.
+
+
 ## Web APIs
 
 Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
