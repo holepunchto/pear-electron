@@ -114,7 +114,6 @@ module.exports = (api) => {
           this.tray.darkMode = state.tray?.darkMode
 
           ipc.systemTheme().on('data', ({ mode }) => {
-            console.log('system theme is', mode)
             this.tray.darkMode = mode === 'dark'
           })
         }
