@@ -815,17 +815,15 @@ Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Modul
 Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
 
 
-## Integration Libraries
-
-The `pear-electron` module also exposes libraries used in electron preloads.
+## API Extension
 
 ### `pear-electron/api`
 
 #### `api`
-Function that takes an api like pear-api as argument and returns an extended API class.
+Function that takes an API class and extends it with pear-electron APIs
 
-#### `{ IPC }`
-A class used to communicate with electron main through ipcRenderer.
+#### `api.IPC`
+IPC class used to communicate with electron main through ipcRenderer.
 
 ## Graphical User Interface Options
 
