@@ -12,6 +12,7 @@ const constants = require('pear-api/constants')
 const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
+const streamx = require('streamx')
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
@@ -666,7 +667,7 @@ class App {
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
     const streams = [...this.gui.streams]
-    for (const stream of streams) stream.end()
+    for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
 
@@ -845,10 +846,6 @@ class GuiCtrl {
     this.win?.webContents.on('will-navigate', this.nav)
     this.view?.webContents.setWindowOpenHandler(handler(this.view.webContents))
     this.view?.webContents.on('will-navigate', this.nav)
-    const { webContents } = (this.view || this.win)
-    webContents.on('found-in-page', (evt, result) => {
-      electron.ipcMain.send('app/found', result)
-    })
   }
 
   find (options) {
@@ -1593,16 +1590,31 @@ class PearGUI extends ReadyResource {
       await tray.ready()
       this.#tray = tray
     })
+
     electron.ipcMain.handle('untray', async () => {
       if (this.#tray) {
         await this.#tray.close()
         this.#tray = null
       }
     })
-    electron.ipcMain.on('tray/darkMode', (evt) => {
-      electron.nativeTheme.on('updated', () => {
-        evt.reply('tray/darkMode', getDarkMode())
+
+    electron.ipcMain.on('system-theme', (evt) => {
+      const stream = new streamx.Readable({ read () {} })
+
+      stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
+
+      const onUpdated = () => {
+        const mode = getDarkMode() ? 'dark' : 'light'
+        stream.push({ mode })
+      }
+
+      electron.nativeTheme.on('updated', onUpdated)
+
+      stream.on('destroy', () => {
+        electron.nativeTheme.removeListener('updated', onUpdated)
       })
+
+      this.#stream(stream, evt)
     })
 
     electron.ipcMain.handle('report', (evt, ...args) => this.report(...args))
@@ -1640,6 +1652,25 @@ class PearGUI extends ReadyResource {
       }
       stream.write(data)
     })
+
+    electron.ipcMain.on('found', async (evt, id) => {
+      const stream = new streamx.Readable({ read () {} })
+
+      const ctrl = this.getCtrl(id)
+      const webContents = ctrl.win?.webContents || ctrl.view?.webContents
+
+      const onFoundInPage = (event, result) => {
+        stream.push(result)
+      }
+
+      webContents.on('found-in-page', onFoundInPage)
+
+      stream.on('destroy', () => {
+        webContents.removeListener('found-in-page', onFoundInPage)
+      })
+
+      this.#stream(stream, evt)
+    })
   }
 
   #stream (stream, evt) {
@@ -1656,7 +1687,7 @@ class PearGUI extends ReadyResource {
       evt.reply('streamEnd', id)
     })
     stream.on('error', (err) => {
-      evt.reply('streamErr', id, err.stack)
+      evt.reply('streamError', id, err.stack)
     })
     return id
   }

@@ -814,6 +814,13 @@ Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Modul
 
 Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
 
+
+## API Extension
+
+### `pear-electron/api`
+
+Function that takes an API class and extends it with pear-electron APIs
+
 ## Graphical User Interface Options
 
 GUI options for an application are set in the application `package.json` `pear.gui` field.
