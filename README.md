@@ -819,11 +819,7 @@ Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
 
 ### `pear-electron/api`
 
-#### `api`
 Function that takes an API class and extends it with pear-electron APIs
-
-#### `api.IPC`
-IPC class used to communicate with electron main through ipcRenderer.
 
 ## Graphical User Interface Options
 

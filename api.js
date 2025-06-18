@@ -2,7 +2,6 @@
 'use strict'
 const streamx = require('streamx')
 const { EventEmitter } = require('events')
-const IPC = require('./gui/ipc')
 
 module.exports = (api) => {
   class API extends api {
@@ -359,5 +358,3 @@ module.exports = (api) => {
   }
   return API
 }
-
-module.exports.IPC = IPC
