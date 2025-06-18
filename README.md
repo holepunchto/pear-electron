@@ -821,12 +821,11 @@ The `pear-electron` module also exposes libraries used in electron preloads.
 
 ### `pear-electron/api`
 
+#### `api`
 Function that takes an api like pear-api as argument and returns an extended API class.
 
-### `pear-electron/ipc`
-
-IPC class that communicates with the main process through `electron.ipcRenderer`.
-
+#### `{ IPC }`
+A class used to communicate with electron main through ipcRenderer.
 
 ## Graphical User Interface Options
 
