@@ -12,23 +12,18 @@ const constants = require('pear-api/constants')
 const plink = require('pear-api/link')
 const Logger = require('pear-api/logger')
 const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR } = require('pear-api/errors')
-const { ansi, byteSize, indicator, outputter } = require('pear-api/terminal')
+
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const pkg = require('./package.json')
 
-const bin = (name = Pear.config.name) => {
-  const formatedName = name[0].toUpperCase() + name.slice(1)
-  const app = isMac ? formatedName + ' Runtime.app' : name + '-runtime-app'
-  const exe = isWindows ? formatedName + ' Runtime.exe' : (isMac ? 'Contents/MacOS/' + formatedName + ' Runtime' : name + '-runtime')
+const bin = (name) => {
+  const kebab = name.toLowerCase().split(' ').join('-')
+  const cased = kebab.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
+  const app = isMac ? cased + '.app' : kebab + '-app'
+  const exe = isWindows ? cased + '.exe' : (isMac ? 'Contents/MacOS/' + cased : kebab)
   return isWindows ? 'bin\\' + app + '\\' + exe : (isMac ? 'bin/' + app + '/' + exe : 'bin/' + app + '/' + exe)
 }
-
-const BIN = isWindows
-  ? 'bin\\pear-runtime-app\\Pear Runtime.exe'
-  : isMac
-    ? 'bin/Pear Runtime.app/Contents/MacOS/Pear Runtime'
-    : 'bin/pear-runtime-app/pear-runtime'
 
 class PearElectron {
   constructor () {
@@ -38,54 +33,9 @@ class PearElectron {
     Pear.teardown(() => this.ipc.close())
   }
 
-  #outs () {
-    if (this.LOG.INF === false) {
-      return {
-        stats ({ upload, download, peers }) {
-          const dl = download.total + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.total)} - ${byteSize(download.speed)}/s ] `
-          const ul = upload.total + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
-          return {
-            output: 'status',
-            message: `Syncing Runtime [ Peers: ${peers} ] ${dl}${ul}`
-          }
-        },
-        final (asset) {
-          if (asset.forced === false && asset.inserted === false) return {}
-          return 'Synced\x1b[K'
-        }
-      }
-    }
-    return {
-      dumping: ({ link, dir }) => this.LOG.format('INF', 'Syncing runtime from peers\nfrom: ' + link + '\ninto: ' + dir + '\n'),
-      byteDiff: ({ type, sizes, message }) => {
-        sizes = sizes.map((size) => (size > 0 ? '+' : '') + byteSize(size)).join(', ')
-        return this.LOG.format('INF', indicator(type, 'diff') + ' ' + message + ' (' + sizes + ')')
-      },
-      file: ({ key }) => this.LOG.format('INF', key),
-      complete: () => this.LOG.format('INF', 'Asset fetch complete'),
-      error: (err) => this.LOG.format('INF', `Asset fetch Failure (code: ${err.code || 'none'}) ${err.stack}`)
-    }
-  }
-
-  async #asset (opts, force = false) {
-    const output = outputter('asset', this.#outs())
-    const json = false
-    const bootstrap = opts.bootstrap?.link ?? opts.bootstrap ?? pkg.pear.bootstrap
-    const executable = opts.bootstrap ? bin(opts.bootstrap.name) : BIN
-    const stream = Pear.asset(bootstrap, {
-      only: ['/boot.bundle', '/by-arch/' + require.addon.host, '/prebuilds/' + require.addon.host],
-      force
-    })
-    const asset = await output(json, stream)
-    if (asset === null || !asset?.path) throw new Error('Failed to determine runtime asset from sidecar')
-    return path.join(asset.path, 'by-arch', require.addon.host, executable)
-  }
-
   async start (opts = {}) {
     this.LOG.info('Fetching asset & determining bin path')
-    this.bin = await this.#asset(opts)
-    // if disk tampered then resync:
-    if (fs.existsSync(this.bin) === false) this.bin = await this.#asset(opts, true)
+    this.bin = path.join(Pear.config.assets.ui.path, 'by-arch', require.addon.host, bin(Pear.config.assets.ui.name))
     const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)
     let argv = parsed.rest

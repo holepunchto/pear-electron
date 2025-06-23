@@ -16,6 +16,9 @@ async function configure (options) {
   const entrypoints = srcs(html)
   stage.entrypoints = Array.isArray(stage.entrypoints) ? [...stage.entrypoints, ...entrypoints] : entrypoints
   options.stage = stage
+  const pkg = (options.assets?.ui && !options.assets.ui.only) ? null : JSON.parse(await drive.get('node_modules/pear-electron/package.json'))
+  options.assets = options.assets ?? pkg?.pear?.assets
+  options.assets.ui.only = options.assets?.ui?.only ?? pkg?.pear?.assets?.ui?.only
   return options
 }
 
