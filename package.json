@@ -1,6 +1,6 @@
 {
   "name": "pear-electron",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Pear User-Interface Library for Electron",
   "main": "index.js",
   "scripts": {
@@ -18,12 +18,16 @@
     "api.js"
   ],
   "pear": {
-    "assets": { 
+    "assets": {
       "ui": {
         "link": "pear://0.2731.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
         "name": "Pear Runtime",
-        "only":  ["/boot.bundle", "/by-arch/%%HOST%%", "/prebuilds/%%HOST%%"]
-       }
+        "only": [
+          "/boot.bundle",
+          "/by-arch/%%HOST%%",
+          "/prebuilds/%%HOST%%"
+        ]
+      }
     },
     "stage": {
       "skipWarmup": "true",
