@@ -20,7 +20,7 @@
   "pear": {
     "assets": { 
       "ui": {
-        "link": "pear://0.921.gsetd5xzx1yyf5mhmb6tgpyuj4firj9hjsq9hetyx3otfb4bw64y",
+        "link": "pear://0.2729.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
         "name": "Pear Runtime",
         "only":  ["/boot.bundle", "/by-arch/%%HOST%%", "/prebuilds/%%HOST%%"]
        }
