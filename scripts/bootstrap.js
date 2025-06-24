@@ -10,7 +10,7 @@ const { pathname } = new URL(Pear.config.applink)
 const opts = {
   id: Pear.pid,
   dir: pathname,
-  link: pear.bootstrap,
+  link: pear.assets.ui.link,
   only: ['/by-arch', '/prebuilds'],
   force: true,
   json: !isTTY
