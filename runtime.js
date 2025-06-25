@@ -11,7 +11,7 @@ const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-api/constants')
 const plink = require('pear-api/link')
 const Logger = require('pear-api/logger')
-const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR } = require('pear-api/errors')
+const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR, ERR_INVALID_CONFIG } = require('pear-api/errors')
 
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
@@ -27,6 +27,16 @@ const bin = (name) => {
 
 class PearElectron {
   constructor () {
+    if (!Pear.config.assets.ui?.path) {
+      const info =
+        Pear.config.options.pre
+          ? { assets: Pear.config.assets }
+          : { assets: Pear.config.assets, hint: 'set pre: pear-electron/pre to autoset assets.ui' }
+      throw new ERR_INVALID_CONFIG('pear.assets.ui must be defined for project', info)
+    }
+    if (!Pear.config.assets.ui?.name) {
+      throw new ERR_INVALID_CONFIG('pear.assets.ui.name must be defined for project', { assets: Pear.config.assets })
+    }
     this.ipc = Pear[Pear.constructor.IPC]
     this.applink = new URL(Pear.config.applink)
     this.LOG = new Logger({ labels: [pkg.name] })
