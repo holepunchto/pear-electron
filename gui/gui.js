@@ -1046,7 +1046,6 @@ class Window extends GuiCtrl {
         nodeIntegrationInSubFrames: false,
         enableRemoteModule: false,
         contextIsolation: false,
-        webSecurity: false,
         nativeWindowOpen: true
       }
     })
