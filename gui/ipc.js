@@ -84,7 +84,7 @@ module.exports = class IPC {
 
   getId () { return electron.ipcRenderer.sendSync('id') }
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
-  processExit (code) { return electron.ipcRenderer.sendSync('process-exit', code) }
+  exit (code) { return electron.ipcRenderer.sendSync('exit', code) }
 
   found (opts = {}) { return new Stream('found', opts) }
   systemTheme () { return new Stream('system-theme') }
