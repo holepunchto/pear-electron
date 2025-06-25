@@ -12,7 +12,7 @@ async function configure (options) {
   const { stage = {} } = options
   const { pathname } = new URL(global.Pear.config.applink + '/')
   const drive = new Localdrive(pathname)
-  const html = (await drive.get(options.gui.main)).toString()
+  const html = (await drive.get(options.gui?.main ?? 'index.html')).toString()
   const entrypoints = srcs(html)
   stage.entrypoints = Array.isArray(stage.entrypoints) ? [...stage.entrypoints, ...entrypoints] : entrypoints
   options.stage = stage
