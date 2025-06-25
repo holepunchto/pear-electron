@@ -1476,7 +1476,7 @@ class PearGUI extends ReadyResource {
     this.streams = new Freelist()
     this.ipc.once('close', () => this.close())
 
-    electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
+    electron.ipcMain.on('application-exit', (e, code) => { process.exit(code) })
 
     electron.ipcMain.on('id', async (event) => {
       return (event.returnValue = event.sender.id)

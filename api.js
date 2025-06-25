@@ -352,7 +352,7 @@ module.exports = (api) => {
 
     exit = (code) => {
       process.exitCode = code
-      this.ipc.processExit(code)
+      this.#ipc.applicationExit(code)
     }
   }
   return API
