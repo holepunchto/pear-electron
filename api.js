@@ -183,13 +183,13 @@ module.exports = (api) => {
         #unlisten = null
 
         static get parent () {
-          console.warn('Pear.Window.parent & Pear.View.parent are deprecated use ui.app.parent')
-          return Pear[Pear.constructor.UI].app.parent
+          if (!api.COMPAT) console.warn('Pear.Window.parent & Pear.View.parent are deprecated use ui.app.parent')
+          return Pear[api.UI].app.parent
         }
 
         static get self () {
-          console.warn('Pear.Window.self & Pear.View.self are deprecated use ui.app')
-          return Pear[Pear.constructor.UI].app
+          if (!api.COMPAT) console.warn('Pear.Window.self & Pear.View.self are deprecated use ui.app')
+          return Pear[api.UI].app
         }
 
         constructor (entry, at, options = at) {
@@ -228,7 +228,7 @@ module.exports = (api) => {
             await new Promise(setImmediate) // needed for windows/views opening on app load
             this.#rxtx()
             this.id = await ipc.ctrl({
-              parentId: Pear[Pear.constructor.UI].app.id,
+              parentId: Pear[api.UI].app.id,
               type: this.constructor[kGuiCtrl],
               entry: this.entry,
               options: this.options,
@@ -328,17 +328,17 @@ module.exports = (api) => {
     }
 
     get media () {
-      console.warn('Pear.media is deprecated use require(\'pear-electron\').media')
+      if (!this.constructor.COMPAT) console.warn('Pear.media is deprecated use require(\'pear-electron\').media')
       return this[this.constructor.UI].media
     }
 
     get Window () {
-      console.warn('Pear.Window is deprecated use require(\'pear-electron\').Window')
+      if (!this.constructor.COMPAT) console.warn('Pear.Window is deprecated use require(\'pear-electron\').Window')
       return this[this.constructor.UI].Window
     }
 
     get View () {
-      console.warn('Pear.View is deprecated use require(\'pear-electron\').View')
+      if (!this.constructor.COMPAT) console.warn('Pear.View is deprecated use require(\'pear-electron\').View')
       return this[this.constructor.UI].View
     }
 

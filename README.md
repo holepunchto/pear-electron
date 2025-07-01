@@ -787,40 +787,6 @@ Stop search and convert matching text selection to text highlight. Implies destr
 
 Stop search and simulate a click event on the selected match. Implies destroy.
 
-
-## Web APIs
-
-Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
-
-This section details deviations in behavior from and notable aspects of Web APIs as they relate to `pear-electron`.
-
-### `window.open`
-
-The [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) Web API function will ignore all arguments except for the URL parameter.
-
-In browsers, `window.open` opens a new browser window. The opened window belongs to the same browser from which `window.open` is called.
-
-With `pear-electron` UI Library, `window.open` loads the URL in the **default system browser**. It does *not* create a new application window (use `Pear.Window` to create application windows).
-
-Therefore Pear's `window.open` only supports a single URL argument. The `target` and `windowFeatures` parameters that browsers support are discarded.
-
-### Scripts and Modules
-
-Like browsers, there is no support for CommonJS (e.g. the `require` function as used by Node.js is not supported in Pear Applications).
-
-Like browsers, there is support for native EcmaScript Modules (ESM). A JavaScript Script has no module capabilities. A JavaScript Module has ESM capabilities.
-
-Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Module.
-
-Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
-
-
-## API Extension
-
-### `pear-electron/api`
-
-Function that takes an API class and extends it with pear-electron APIs
-
 ## Graphical User Interface Options
 
 GUI options for an application are set in the application `package.json` `pear.gui` field.
@@ -916,6 +882,70 @@ Enable transparency. Must be set for opacity to work.
 ### `backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
 
 Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
+
+## Web APIs
+
+Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
+
+This section details deviations in behavior from and notable aspects of Web APIs as they relate to `pear-electron`.
+
+### `window.open`
+
+The [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) Web API function will ignore all arguments except for the URL parameter.
+
+In browsers, `window.open` opens a new browser window. The opened window belongs to the same browser from which `window.open` is called.
+
+With `pear-electron` UI Library, `window.open` loads the URL in the **default system browser**. It does *not* create a new application window (use `Pear.Window` to create application windows).
+
+Therefore Pear's `window.open` only supports a single URL argument. The `target` and `windowFeatures` parameters that browsers support are discarded.
+
+### Scripts and Modules
+
+Like browsers, there is no support for CommonJS (e.g. the `require` function as used by Node.js is not supported in Pear Applications).
+
+Like browsers, there is support for native EcmaScript Modules (ESM). A JavaScript Script has no module capabilities. A JavaScript Module has ESM capabilities.
+
+Use `<script type="module" src="path/to/my-file.js">` to load a JavaScript Module.
+
+Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
+
+## Libraries
+
+### `pear-electron/premigrate`
+
+Pear Electron must synchronize runtime assets before they can be run. For applications currently running in production on Pear v1, use `pear-electron/premigrate` to synchronize assets before they're needed. This will ensure users don't have to wait for asset synchronize on first run after platform update to v2.
+
+Install `pear-electron` into Pear v1 applications, and insert the following at the top of `index.html`:
+
+```html
+<script type="module">import 'pear-electron/premigrate'<script>
+```
+
+#### Pear v1 to Pear v2 Pre-transitional Migration Strategy
+
+To prepare a Pear Desktop Application written for Pear v1 to seamlessly migrate to v2 use the following strategy:
+
+1. Ensure the project `package.json` `main` field is **unset** and ensure that the html entry file is named `index.html`.
+2. Install dependencies: `npm install pear-electron pear-bridge`
+3. Set `package.json` `pear.pre` field to `pear-electron/pre`
+4. Add an `index.js` file per `pear-electron` https://github.com/holepunchto/pear-electron/blob/main/template/index.js
+  * alter `waypoint` to `/index.html`: `const bridge = new Bridge({ waypoint: '/index.html' })`
+5. Load `pear-electron/premigrate` from `index.html` before any other JS code runs: `<script type="module">import 'pear-electron/premigrate'<script>`
+
+##### Explanation
+
+List numbers correspond as explanations for items in Pear v1 to Pear v2 Pre-transitional Migration Strategy.
+
+1. v1 supports `.html` `main` fields, v2 only supports `.js` fields. This approach relies on `index.html` (v1) and `index.js` (v2) `main` field defaults so that when the update occurs from v1 to v2 there's no validation issue on the `main` field and the entrypoint exists whichever version of Pear the app is running on.
+2. `pear-electron` is the UI library for v2, `pear-bridge` provides http-p2p functionality for electron, installing them into a v1 application makes it v2 ready pror to v2 release.
+3. `pear.pre` is a v2 feature that runs pre-run (from disk) and pre stage. pear-electron/pre is a script that autosets `pear.assets.ui` (which must be manually set prior to transition) and `pear.stage.entrypoints` (for html script tag entrypoint warmups)
+4. v2 applications only run `.js` files. The `pear-electron` `index.js` template starts desktop application code in electron UI. `pear-bridge` `waypoint` option is a catch-all HTML file for unmatched pathnames - this allows for in-app UI routing instead of opening specified routes as files in the UI.
+5. It must go before any other code because it overrides the `Pear` API global with the v1 Pear API, and this must happen before any legacy code runs with it.
+
+### `pear-electron/api`
+
+Function that takes a base Pear API class and extends it with pear-electron APIs. Only really useful when working with spoofed/mock Pear global in ui tests.
+
 
 ## Development
 
