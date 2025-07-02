@@ -107,6 +107,7 @@ class PearElectron {
     sp.on('exit', (code) => {
       this.LOG.info('UI exited with code', code)
       Pear.exitCode = code
+      if (!pipe.destroyed) pipe.destroy()
     })
 
     const pipe = sp.stdio[3]
