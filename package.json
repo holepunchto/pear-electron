@@ -15,8 +15,7 @@
     "index.js",
     "runtime.js",
     "pre.js",
-    "api.js",
-    "premigrate.js"
+    "api.js"
   ],
   "pear": {
     "assets": {
