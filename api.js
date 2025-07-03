@@ -329,12 +329,12 @@ module.exports = (api) => {
 
     get tray () {
       if (!this.constructor.COMPAT) console.warn('Pear.tray is deprecated use require(\'pear-electron\').app.tray')
-        return this[this.constructor.UI].app.tray
+      return this[this.constructor.UI].app.tray
     }
 
     get badge () {
       if (!this.constructor.COMPAT) console.warn('Pear.badge is deprecated use require(\'pear-electron\').app.badge')
-        return this[this.constructor.UI].app.badge
+      return this[this.constructor.UI].app.badge
     }
 
     get media () {
