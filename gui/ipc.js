@@ -1,6 +1,5 @@
 /* eslint-env browser */
 const streamx = require('streamx')
-const Iambus = require('iambus')
 const electron = require('electron')
 
 module.exports = class IPC {
@@ -65,17 +64,6 @@ module.exports = class IPC {
     }
   }
 
-  messages (pattern) {
-    electron.ipcRenderer.send('messages', pattern)
-    const bus = new Iambus()
-    electron.ipcRenderer.on('messages', (e, msg) => {
-      if (msg === null) bus.end()
-      else bus.pub(msg)
-    })
-    const stream = bus.sub(pattern)
-    return stream
-  }
-
   sendTo (id, ...args) { return electron.ipcRenderer.send('send-to', id, ...args) }
   receiveFrom (fn) {
     electron.ipcRenderer.on('send', fn)
@@ -86,13 +74,13 @@ module.exports = class IPC {
   getParentId () { return electron.ipcRenderer.sendSync('parentId') }
   exit (code) { return electron.ipcRenderer.sendSync('exit', code) }
 
+  messages (pattern) { return new Stream('messages', pattern) }
   found (opts = {}) { return new Stream('found', opts) }
   systemTheme () { return new Stream('system-theme') }
   warming () { return new Stream('warming') }
   reports () { return new Stream('reports') }
   run (link, args) { return new Stream('run', link, args) }
   pipe () { return new Stream('pipe') }
-  asset (opts = {}) { return new Stream('asset', opts) }
   dump (opts = {}) { return new Stream('dump', opts) }
   stage (opts = {}) { return new Stream('stage', opts) }
   release (opts = {}) { return new Stream('release', opts) }

@@ -1518,13 +1518,8 @@ class PearGUI extends ReadyResource {
       this.#stream(this.ipc.seed(opts), evt)
     })
 
-    electron.ipcMain.on('messages', (event, pattern) => {
-      const messages = this.messages(pattern)
-      messages.on('data', (data) => event.reply('messages', data))
-      messages.on('end', () => {
-        messages.end()
-        event.reply('messages', null)
-      })
+    electron.ipcMain.on('messages', (evt, pattern) => {
+      this.#stream(this.messages(pattern), evt)
     })
 
     electron.ipcMain.handle('getMediaAccessStatus', (evt, ...args) => this.getMediaAccessStatus(...args))
@@ -1598,7 +1593,7 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('system-theme', (evt) => {
-      const stream = new streamx.Readable({ read () {} })
+      const stream = new streamx.Readable()
 
       stream.push({ mode: getDarkMode() ? 'dark' : 'light' })
 
