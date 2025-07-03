@@ -327,6 +327,16 @@ module.exports = (api) => {
       this[this.constructor.UI] = new PearElectron()
     }
 
+    get tray () {
+      if (!this.constructor.COMPAT) console.warn('Pear.tray is deprecated use require(\'pear-electron\').app.tray')
+      return this[this.constructor.UI].app.tray
+    }
+
+    get badge () {
+      if (!this.constructor.COMPAT) console.warn('Pear.badge is deprecated use require(\'pear-electron\').app.badge')
+      return this[this.constructor.UI].app.badge
+    }
+
     get media () {
       if (!this.constructor.COMPAT) console.warn('Pear.media is deprecated use require(\'pear-electron\').media')
       return this[this.constructor.UI].media
