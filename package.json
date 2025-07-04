@@ -74,7 +74,7 @@
     "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
-    "pear-api": "^1.22.0",
+    "pear-api": "^1.22.2",
     "pear-ipc": "^6.3.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
