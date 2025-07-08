@@ -75,7 +75,7 @@
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
     "pear-api": "^1.23.0",
-    "pear-ipc": "^6.3.0",
+    "pear-ipc": "^6.4.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
     "url-file-url": "^1.0.4",
