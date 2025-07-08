@@ -13,6 +13,10 @@ const plink = require('pear-api/link')
 const Logger = require('pear-api/logger')
 const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR, ERR_INVALID_CONFIG } = require('pear-api/errors')
 
+// cutover stops replaying & relaying subscriber streams between clients
+// set to false to stop run flow from auto cutover, so we can cutover at end of ui init
+Pear.constructor.CUTOVER = false
+
 const run = require('pear-api/cmd/run')
 const pear = require('pear-api/cmd')
 const pkg = require('./package.json')

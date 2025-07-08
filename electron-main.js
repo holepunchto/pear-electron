@@ -54,6 +54,8 @@ async function electronMain (cmd) {
   app.unloading().then(async () => {
     await app.close()
   }) // note: would be unhandled rejection on failure, but should never fail
+
+  await app.cutover()
 }
 
 function configureElectron () {

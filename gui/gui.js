@@ -637,6 +637,8 @@ class App {
     return { fork, length, key: key ? key.toString('hex') : null }
   }
 
+  cutover () { return this.ipc.cutover() }
+
   unloading () { return this.ipc.unloading() }
 
   close (maxWait = 5500) {
