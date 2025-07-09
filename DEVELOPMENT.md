@@ -57,9 +57,13 @@ Based on the output, the bootstrap link in package.json should be updated as fol
 
 ```js
 "pear": {
-    "bootstrap": "pear://0.24779.dqgs5prptqozgwzanes31atf1imzbf5dfg4tgpgkp5mke83oziyy",
-    ...
-  },
+  "assets": {
+    "ui": {
+      "link": "pear://0.24779.dqgs5prptqozgwzanes31atf1imzbf5dfg4tgpgkp5mke83oziyy",
+      ...
+    }
+  }
+}
 ```
 
 The updated UI Library can now be packed into a distributable archive, which includes the new bootstrap link in its package.json.
@@ -78,14 +82,6 @@ npm install path/to/local/pear-electron/pear-electron-1.4.15.tgz
 ```
 
 Once installed, the test app can be started.
-
-If the bootstrapped UI Library differs from the previously installed version, a sync message should appear on the first run of the app.
-
-```bash
-pear run .
-# ✔ Synced 
-# ...
-```
 
 ## Releasing
 
