@@ -184,12 +184,12 @@ module.exports = (api) => {
 
         static get parent () {
           if (!api.COMPAT) console.warn('Pear.Window.parent & Pear.View.parent are deprecated use ui.app.parent')
-          return Pear[api.UI].app.parent
+          return Pear[API.UI].app.parent
         }
 
         static get self () {
           if (!api.COMPAT) console.warn('Pear.Window.self & Pear.View.self are deprecated use ui.app')
-          return Pear[api.UI].app
+          return Pear[API.UI].app
         }
 
         constructor (entry, at, options = at) {
@@ -228,7 +228,7 @@ module.exports = (api) => {
             await new Promise(setImmediate) // needed for windows/views opening on app load
             this.#rxtx()
             this.id = await ipc.ctrl({
-              parentId: Pear[api.UI].app.id,
+              parentId: Pear[API.UI].app.id,
               type: this.constructor[kGuiCtrl],
               entry: this.entry,
               options: this.options,
