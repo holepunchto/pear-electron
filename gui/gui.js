@@ -668,11 +668,12 @@ class App {
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
-    const streams = [...this.gui.streams.get(this.id)]
+    const streamsGroup = this.gui.streamsGroups.get(this.id)
+    const streams = [...this.gui.streams.iterFromIds(streamsGroup)]
     for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
-    this.gui.streams.clear(this.id)
+    this.gui.streamsGroups.delete(this.id)
 
     this.closed = true
     return result
@@ -1475,7 +1476,8 @@ class PearGUI extends ReadyResource {
       },
       connect: tryboot
     })
-    this.streams = new FreelistMap()
+    this.streams = new Freelist()
+    this.streamsGroups = new Map()
     this.ipc.once('close', () => this.close())
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
@@ -1625,24 +1627,24 @@ class PearGUI extends ReadyResource {
     })
 
     electron.ipcMain.on('streamId', (evt) => {
-      evt.returnValue = this.streams.nextId(evt.sender.id)
+      evt.returnValue = this.streams.nextId()
       return evt.returnValue
     })
 
-    electron.ipcMain.on('streamEnd', (evt, index, data) => {
-      const stream = this.streams.from(evt.sender.id, index)
+    electron.ipcMain.on('streamEnd', (evt, id, data) => {
+      const stream = this.streams.from(id)
       if (!stream) return
       stream.end(data)
     })
 
-    electron.ipcMain.on('streamClose', (evt, index) => {
-      const stream = this.streams.from(evt.sender.id, index)
+    electron.ipcMain.on('streamClose', (evt, id) => {
+      const stream = this.streams.from(id)
       if (!stream) return
       stream.destroy()
     })
 
-    electron.ipcMain.on('streamWrite', (evt, index, data) => {
-      const stream = this.streams.from(evt.sender.id, index)
+    electron.ipcMain.on('streamWrite', (evt, id, data) => {
+      const stream = this.streams.from(id)
       if (!stream) {
         console.error('Unexpected electron-main stream error (unknown id)')
         return
@@ -1671,22 +1673,28 @@ class PearGUI extends ReadyResource {
   }
 
   #stream (stream, evt) {
-    const index = this.streams.alloc(evt.sender.id, stream)
+    const id = this.streams.alloc(stream)
+    const wcId = evt.sender.id
+
+    const streamsGroup = this.streamsGroups.get(wcId)
+    if (streamsGroup) streamsGroup.push(id)
+    else this.streamsGroups.set(wcId, [id])
+
     stream.on('close', () => {
-      this.streams.free(evt.sender.id, index)
-      evt.reply('streamClose', index)
+      this.streams.free(id)
+      evt.reply('streamClose', id)
     })
     stream.on('data', (data) => {
-      evt.reply('streamData', index, data)
+      evt.reply('streamData', id, data)
     })
     stream.on('end', () => {
-      evt.reply('streamData', index, null)
-      evt.reply('streamEnd', index)
+      evt.reply('streamData', id, null)
+      evt.reply('streamEnd', id)
     })
     stream.on('error', (err) => {
-      evt.reply('streamError', index, err.stack)
+      evt.reply('streamError', id, err.stack)
     })
-    return index
+    return id
   }
 
   async app () {
@@ -1928,87 +1936,45 @@ class PearGUI extends ReadyResource {
   }
 }
 
-class FreelistMap {
-  #groups = new Map()
+class Freelist {
+  alloced = []
+  freed = []
 
-  #getGroup (id) {
-    if (!this.#groups.has(id)) {
-      this.#groups.set(id, {
-        alloced: [],
-        freed: []
-      })
-    }
-    return this.#groups.get(id)
+  nextId () {
+    return this.freed.length === 0 ? this.alloced.length : this.freed[this.freed.length - 1]
   }
 
-  nextId (id) {
-    const group = this.#getGroup(id)
-    return group.freed.length === 0 ? group.alloced.length : group.freed[group.freed.length - 1]
+  alloc (item) {
+    const id = this.freed.length === 0 ? this.alloced.push(null) - 1 : this.freed.pop()
+    this.alloced[id] = item
+    return id
   }
 
-  alloc (id, item) {
-    const group = this.#getGroup(id)
-    const index = group.freed.length === 0
-      ? group.alloced.push(null) - 1
-      : group.freed.pop()
-    group.alloced[index] = item
-    return index
+  free (id) {
+    this.freed.push(id)
+    this.alloced[id] = null
   }
 
-  free (id, index) {
-    const group = this.#getGroup(id)
-    group.freed.push(index)
-    group.alloced[index] = null
+  from (id) {
+    return id < this.alloced.length ? this.alloced[id] : null
   }
 
-  from (id, index) {
-    const group = this.#getGroup(id)
-    return index < group.alloced.length ? group.alloced[index] : null
-  }
-
-  emptied (id) {
-    const group = this.#getGroup(id)
-    return group.freed.length === group.alloced.length
+  emptied () {
+    return this.freed.length === this.alloced.length
   }
 
   * [Symbol.iterator] () {
-    for (const group of this.#groups.values()) {
-      for (const item of group.alloced) {
-        if (item === null) continue
-        yield item
-      }
+    for (const item of this.alloced) {
+      if (item === null) continue
+      yield item
     }
   }
 
-  clear (id) {
-    this.#groups.delete(id)
-  }
-
-  has (id) {
-    return this.#groups.has(id)
-  }
-
-  get (id) {
-    const group = this.#getGroup(id)
-
-    return {
-      * [Symbol.iterator] () {
-        for (const item of group.alloced) {
-          if (item === null) continue
-          yield item
-        }
-      },
-      all () {
-        return group.alloced.filter(x => x !== null)
-      },
-      get (index) {
-        return group.alloced[index] ?? null
-      },
-      has (index) {
-        return index >= 0 && index < group.alloced.length && group.alloced[index] !== null
-      },
-      entries () {
-        return [...group.alloced.entries()].filter(([_, item]) => item !== null)
+  *iterFromIds(ids) {
+    for (const id of ids) {
+      const item = this.alloced[id]
+      if (item !== null && item !== undefined) {
+        yield item
       }
     }
   }
