@@ -672,6 +672,7 @@ class App {
     for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
+    this.gui.streams.clear(this.id)
 
     this.closed = true
     return result
