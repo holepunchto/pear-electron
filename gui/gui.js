@@ -1970,7 +1970,7 @@ class Freelist {
     }
   }
 
-  *iterFromIds(ids) {
+  * iterFromIds (ids) {
     for (const id of ids) {
       const item = this.alloced[id]
       if (item !== null && item !== undefined) {
