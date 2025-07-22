@@ -1474,7 +1474,7 @@ class PearGUI extends ReadyResource {
       },
       connect: tryboot
     })
-    this.streams = new Freelist()
+    this.streams = new FreelistMap()
     this.ipc.once('close', () => this.close())
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
@@ -1927,7 +1927,7 @@ class PearGUI extends ReadyResource {
   }
 }
 
-class Freelist {
+class FreelistMap {
   #groups = new Map()
 
   #getGroup(id) {
