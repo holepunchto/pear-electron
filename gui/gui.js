@@ -1931,7 +1931,7 @@ class PearGUI extends ReadyResource {
 class FreelistMap {
   #groups = new Map()
 
-  #getGroup(id) {
+  #getGroup (id) {
     if (!this.#groups.has(id)) {
       this.#groups.set(id, {
         alloced: [],
@@ -1941,12 +1941,12 @@ class FreelistMap {
     return this.#groups.get(id)
   }
 
-  nextId(id) {
+  nextId (id) {
     const group = this.#getGroup(id)
     return group.freed.length === 0 ? group.alloced.length : group.freed[group.freed.length - 1]
   }
 
-  alloc(id, item) {
+  alloc (id, item) {
     const group = this.#getGroup(id)
     const index = group.freed.length === 0
       ? group.alloced.push(null) - 1
@@ -1955,23 +1955,23 @@ class FreelistMap {
     return index
   }
 
-  free(id, index) {
+  free (id, index) {
     const group = this.#getGroup(id)
     group.freed.push(index)
     group.alloced[index] = null
   }
 
-  from(id, index) {
+  from (id, index) {
     const group = this.#getGroup(id)
     return index < group.alloced.length ? group.alloced[index] : null
   }
 
-  emptied(id) {
+  emptied (id) {
     const group = this.#getGroup(id)
     return group.freed.length === group.alloced.length
   }
 
-  *[Symbol.iterator]() {
+  * [Symbol.iterator] () {
     for (const group of this.#groups.values()) {
       for (const item of group.alloced) {
         if (item === null) continue
@@ -1980,40 +1980,39 @@ class FreelistMap {
     }
   }
 
-  clear(id) {
+  clear (id) {
     this.#groups.delete(id)
   }
 
-  has(id) {
+  has (id) {
     return this.#groups.has(id)
   }
 
-  get(id) {
+  get (id) {
     const group = this.#getGroup(id)
 
     return {
-      *[Symbol.iterator]() {
+      * [Symbol.iterator] () {
         for (const item of group.alloced) {
           if (item === null) continue
           yield item
         }
       },
-      all() {
+      all () {
         return group.alloced.filter(x => x !== null)
       },
-      get(index) {
+      get (index) {
         return group.alloced[index] ?? null
       },
-      has(index) {
+      has (index) {
         return index >= 0 && index < group.alloced.length && group.alloced[index] !== null
       },
-      entries() {
+      entries () {
         return [...group.alloced.entries()].filter(([_, item]) => item !== null)
       }
     }
   }
 }
-
 
 function linuxBadgeIcon (n) {
   if (n < 1) {
