@@ -1577,13 +1577,14 @@ class PearGUI extends ReadyResource {
       return this.restart(...args)
     })
 
-    electron.ipcMain.on('tray', (evt, opts) => {
+    electron.ipcMain.on('tray', async (evt, opts) => {
       const tray = new Tray({
         opts,
         state: this.state,
         onMenuClick: (data) => evt.reply('tray', data)
       })
       this.#tray = tray
+      await tray.ready()
     })
 
     electron.ipcMain.handle('untray', async () => {
@@ -1998,8 +1999,6 @@ class Tray extends ReadyResource {
     this.opts = opts
     this.state = state
     this.onMenuClick = onMenuClick
-
-    this.ready()
   }
 
   _close () {
