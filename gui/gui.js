@@ -1479,7 +1479,7 @@ class PearGUI extends ReadyResource {
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
 
-    electron.ipcMain.on('id', async (event) => {
+    electron.ipcMain.on('id', (event) => {
       return (event.returnValue = event.sender.id)
     })
 
@@ -1577,14 +1577,14 @@ class PearGUI extends ReadyResource {
       return this.restart(...args)
     })
 
-    electron.ipcMain.on('tray', async (evt, opts) => {
+    electron.ipcMain.on('tray', (evt, opts) => {
       const tray = new Tray({
         opts,
         state: this.state,
         onMenuClick: (data) => evt.reply('tray', data)
       })
-      await tray.ready()
       this.#tray = tray
+      tray.ready()
     })
 
     electron.ipcMain.handle('untray', async () => {
@@ -1649,7 +1649,7 @@ class PearGUI extends ReadyResource {
       stream.write(data)
     })
 
-    electron.ipcMain.on('found', async (evt, id) => {
+    electron.ipcMain.on('found', (evt, id) => {
       const stream = new streamx.Readable({ read () {} })
 
       const ctrl = this.getCtrl(id)
