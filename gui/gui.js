@@ -668,12 +668,13 @@ class App {
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
-    const streamsGroup = this.gui.streamsGroups.get(this.id)
-    const streams = [...this.gui.streams.iterFromIds(streamsGroup)]
+    const streamsGroup = this.gui.streamsMap.get(this.id)
+    const streams = streamsGroup.flatMap((id) => this.gui.streams.alloced[id] ? [this.gui.streams.alloced[id]] : [])
+
     for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
     await Promise.allSettled(closingStreams)
-    this.gui.streamsGroups.delete(this.id)
+    this.gui.streamsMap.delete(this.id)
 
     this.closed = true
     return result
@@ -1477,7 +1478,7 @@ class PearGUI extends ReadyResource {
       connect: tryboot
     })
     this.streams = new Freelist()
-    this.streamsGroups = new Map()
+    this.streamsMap = new Map()
     this.ipc.once('close', () => this.close())
 
     electron.ipcMain.on('exit', (e, code) => { process.exit(code) })
@@ -1676,9 +1677,9 @@ class PearGUI extends ReadyResource {
     const id = this.streams.alloc(stream)
     const wcId = evt.sender.id
 
-    const streamsGroup = this.streamsGroups.get(wcId)
+    const streamsGroup = this.streamsMap.get(wcId)
     if (streamsGroup) streamsGroup.push(id)
-    else this.streamsGroups.set(wcId, [id])
+    else this.streamsMap.set(wcId, [id])
 
     stream.on('close', () => {
       this.streams.free(id)
@@ -1967,15 +1968,6 @@ class Freelist {
     for (const item of this.alloced) {
       if (item === null) continue
       yield item
-    }
-  }
-
-  * iterFromIds (ids) {
-    for (const id of ids) {
-      const item = this.alloced[id]
-      if (item !== null && item !== undefined) {
-        yield item
-      }
     }
   }
 }
