@@ -20,7 +20,7 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "pear://0.2754.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
+        "link": "pear://0.2756.goowesg5dga9j1ryx47rsk9o4zms4541me4zerxsnbu8u99duh4o",
         "name": "Pear Runtime",
         "only": [
           "/boot.bundle",
