@@ -668,8 +668,8 @@ class App {
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
-    
-    const streamsIds = [...this.gui.streamsMap].filter(([, value]) => value === this.id).map(([key]) => key);
+
+    const streamsIds = [...this.gui.streamsMap].filter(([, value]) => value === this.id).map(([key]) => key)
     const streams = streamsIds.map((id) => this.gui.streams.alloced[id])
     for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
     const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
