@@ -668,7 +668,7 @@ class App {
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
-    
+
     const streams = []
     for (let id = 0; id < this.gui.streams.alloced.length; id++) {
       if (this.gui.streamsMap.get(id) === this.id) streams.push(this.gui.streams.alloced[id])
@@ -1675,13 +1675,10 @@ class PearGUI extends ReadyResource {
   #stream (stream, evt) {
     const id = this.streams.alloc(stream)
     const wcId = evt.sender.id
-    console.log('logging on stream creation')
-    console.log(id, wcId)
     this.streamsMap.set(id, wcId)
 
     stream.on('close', () => {
       this.streamsMap.delete(id)
-      console.log('closed:', id)
       this.streams.free(id)
       evt.reply('streamClose', id)
     })
