@@ -48,7 +48,6 @@ class PearElectron {
   }
 
   async start (opts = {}) {
-    this.LOG.info('Fetching asset & determining bin path')
     this.bin = path.join(Pear.config.assets.ui.path, 'by-arch', require.addon.host, bin(Pear.config.assets.ui.name))
     const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)

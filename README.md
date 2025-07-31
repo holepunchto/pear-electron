@@ -55,7 +55,7 @@ Inside the pear-electron runtime desktop application, pear-electron resolves to 
 
 **index.html**:
 ```html
-<script src="./app.js" type="module">
+<script src="./app.js" type="module"></script>
 ```
 
 **app.js**:
