@@ -3,7 +3,7 @@
   "main": "index.js",
   "type": "module",
   "pear": {
-    "pre": "./pre.js",
+    "pre": "pear-electron/pre",
     "name": "__name__",
     "gui": {
       "main": "ui/index.html",
@@ -22,7 +22,7 @@
     "pear-interface": "^1.0.0"
   },
   "dependencies": {
-    "pear-bridge": "^1.1.0",
-    "pear-electron": "^1.3.13"
+    "pear-bridge": "^1.2.0",
+    "pear-electron": "^1.7.10"
   }
 }
