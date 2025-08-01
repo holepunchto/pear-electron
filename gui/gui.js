@@ -668,16 +668,14 @@ class App {
     const unloading = Promise.allSettled(unloaders)
     unloading.then(clear, clear)
     const result = await Promise.race([timeout, unloading])
-    const streamsGroup = this.gui.streamsMap.get(this.id)
 
-    if (streamsGroup) {
-      const streams = streamsGroup.filter((id) => this.gui.streams.alloced[id]).map((id) => this.gui.streams.alloced[id])
-      for (const stream of streams) typeof stream.end === 'function' ? stream.end() : stream.push(null)
-      const closingStreams = streams.map((stream) => new Promise((resolve) => { stream.once('close', resolve) }))
-      await Promise.allSettled(closingStreams)
+    for (let id = 0; id < this.gui.streams.alloced.length; id++) {
+      if (this.gui.streamsMap.get(id) === this.id) {
+        const stream = this.gui.streams.alloced[id]
+        if (typeof stream.end === 'function') stream.end()
+        else stream.push(null)
+      }
     }
-
-    this.gui.streamsMap.delete(this.id)
 
     this.closed = true
     return result
@@ -1679,12 +1677,10 @@ class PearGUI extends ReadyResource {
   #stream (stream, evt) {
     const id = this.streams.alloc(stream)
     const wcId = evt.sender.id
-
-    const streamsGroup = this.streamsMap.get(wcId)
-    if (streamsGroup) streamsGroup.push(id)
-    else this.streamsMap.set(wcId, [id])
+    this.streamsMap.set(id, wcId)
 
     stream.on('close', () => {
+      this.streamsMap.delete(id)
       this.streams.free(id)
       evt.reply('streamClose', id)
     })
