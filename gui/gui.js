@@ -670,7 +670,7 @@ class App {
     const result = await Promise.race([timeout, unloading])
 
     for (let id = 0; id < this.gui.streams.alloced.length; id++) {
-      if (this.gui.streamsMap.get(id) === this.id){
+      if (this.gui.streamsMap.get(id) === this.id) {
         const stream = this.gui.streams.alloced[id]
         if (typeof stream.end === 'function') stream.end()
         else stream.push(null)
