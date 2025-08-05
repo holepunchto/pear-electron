@@ -24,7 +24,8 @@ module.exports = (api) => {
           camera: () => ipc.askForMediaAccess({ id, media: 'camera' }),
           screen: () => ipc.askForMediaAccess({ id, media: 'screen' })
         },
-        desktopSources: (options = {}) => ipc.desktopSources(options)
+        desktopSources: (options = {}) => ipc.desktopSources(options),
+        getPathForFile: (file) => ipc.getPathForFile(file)
       }
 
       class Found extends streamx.Readable {

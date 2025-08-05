@@ -55,6 +55,8 @@ module.exports = class IPC {
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
   find (...args) { return electron.ipcRenderer.invoke('find', ...args) }
 
+  getPathForFile (file) { return electron.webUtils.getPathForFile(file) }
+
   tray (opts, listener) {
     electron.ipcRenderer.on('tray', (e, data) => { listener(data, opts, listener) })
     electron.ipcRenderer.send('tray', opts)
