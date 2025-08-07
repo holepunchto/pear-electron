@@ -367,20 +367,22 @@ module.exports = (api) => {
     }
 
     get worker () {
+      if (!this.constructor.COMPAT) console.warn('[ DEPRECATED ] Pear.worker is deprecated and will be removed (use pear-run & pear-pipe)')
       const ipc = this.#ipc
-      let pipe = this.#pipe
-
-      return {
+      return new class DeprecatedWorker {
+        #pipe = null
         run (link, args = []) {
+          if (!this.constructor.COMPAT) console.error('[ DEPRECATED ] Pear.worker.run() is now pear-run')
           return ipc.run(link, args)
-        },
-
-        get pipe () {
-          if (pipe !== null) return pipe
-          pipe = ipc.pipe()
-          return pipe
         }
-      }
+
+        pipe () {
+          if (!this.constructor.COMPAT) console.error('[ DEPRECATED ] Pear.worker.pipe() is now pear-pipe')
+          if (this.#pipe !== null) return this.#pipe
+          this.#pipe = ipc.pipe()
+          return this.#pipe
+        }
+      }()
     }
 
     exit = (code) => {
