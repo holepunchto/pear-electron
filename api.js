@@ -365,16 +365,16 @@ module.exports = (api) => {
       return this[this.constructor.UI].View
     }
 
-    get worker() {
+    get worker () {
       const ipc = this.#ipc
       let pipe = null
 
       return {
-        run(link, args = []) {
+        run (link, args = []) {
           return ipc.run(link, args)
         },
-      
-        get pipe() {
+
+        get pipe () {
           if (pipe !== null) return pipe
           pipe = ipc.pipe()
           return pipe
