@@ -11,6 +11,8 @@ module.exports = (api) => {
 
     // These are v2 methods that we set to undefined so they cant be used
     // This is to prevent issues when we move the methods to modules later on
+    run = undefined
+    get pipe() {return undefined}
     get = undefined
     exists = undefined
     compare = undefined
