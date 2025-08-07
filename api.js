@@ -372,12 +372,12 @@ module.exports = (api) => {
       return new class DeprecatedWorker {
         #pipe = null
         run (link, args = []) {
-          if (!this.constructor.COMPAT) console.error('[ DEPRECATED ] Pear.worker.run() is now pear-run')
+          if (!this.constructor.COMPAT) console.warn('[ DEPRECATED ] Pear.worker.run() is now pear-run')
           return ipc.run(link, args)
         }
 
         pipe () {
-          if (!this.constructor.COMPAT) console.error('[ DEPRECATED ] Pear.worker.pipe() is now pear-pipe')
+          if (!this.constructor.COMPAT) console.warn('[ DEPRECATED ] Pear.worker.pipe() is now pear-pipe')
           if (this.#pipe !== null) return this.#pipe
           this.#pipe = ipc.pipe()
           return this.#pipe
