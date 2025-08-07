@@ -353,13 +353,18 @@ module.exports = (api) => {
       return this[this.constructor.UI].View
     }
 
-    run (link, args = []) { return this.#ipc.run(link, args) }
-
-    get pipe () {
-      if (this.#pipe !== null) return this.#pipe
-      this.#pipe = this.#ipc.pipe()
-      return this.#pipe
-    }
+    // these are new v2 methods/props that we set to undefined so they cant be used
+    // This is to prevent issues when we move the methods to modules later on
+    run (link, args = []) { return undefined }
+    get pipe () { return undefined }
+    get (key, opts) { return undefined }
+    exists (key) { return undefined }
+    compare (keyA, keyB) { return undefined }
+    dump (link, opts) { return undefined }
+    stage (link, opts) { return undefined }
+    release (link, opts) { return undefined }
+    info (link, opts) { return undefined }
+    seed (link, opts) { return undefined }
 
     exit = (code) => {
       process.exitCode = code
