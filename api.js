@@ -365,6 +365,23 @@ module.exports = (api) => {
       return this[this.constructor.UI].View
     }
 
+    get worker() {
+      const ipc = this.#ipc
+      let pipe = null
+
+      return {
+        run(link, args = []) {
+          return ipc.run(link, args)
+        },
+      
+        get pipe() {
+          if (pipe !== null) return pipe
+          pipe = ipc.pipe()
+          return pipe
+        }
+      }
+    }
+
     exit = (code) => {
       process.exitCode = code
       this.#ipc.exit(code)
