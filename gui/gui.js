@@ -1910,7 +1910,10 @@ class PearGUI extends ReadyResource {
 
   versions () { return this.ipc.versions() }
 
-  updated () { return this.ipc.updated() }
+  updated () { 
+    if (typeof this.ipc.updated === 'function') return this.ipc.updated() 
+    return Promise.resolve()
+  }
 
   restart (opts = {}) { return this.ipc.restart(opts) }
 
