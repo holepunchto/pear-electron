@@ -7,7 +7,19 @@ module.exports = (api) => {
   class API extends api {
     static UI = Symbol('ui')
     #ipc = null
-    #pipe = null
+
+    // These are v2 methods that we set to undefined so they cant be used
+    // This is to prevent issues when we move the methods to modules later on
+    run = undefined
+    get pipe () { return undefined }
+    get = undefined
+    exists = undefined
+    compare = undefined
+    dump = undefined
+    stage = undefined
+    release = undefined
+    info = undefined
+    seed = undefined
 
     constructor (ipc, state, teardown, id) {
       super(ipc, state, { teardown })
@@ -351,14 +363,6 @@ module.exports = (api) => {
     get View () {
       if (!this.constructor.COMPAT) console.warn('Pear.View is deprecated use require(\'pear-electron\').View')
       return this[this.constructor.UI].View
-    }
-
-    run (link, args = []) { return this.#ipc.run(link, args) }
-
-    get pipe () {
-      if (this.#pipe !== null) return this.#pipe
-      this.#pipe = this.#ipc.pipe()
-      return this.#pipe
     }
 
     exit = (code) => {
