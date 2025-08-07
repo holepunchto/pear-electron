@@ -7,7 +7,6 @@ module.exports = (api) => {
   class API extends api {
     static UI = Symbol('ui')
     #ipc = null
-    #pipe = null
 
     // These are v2 methods that we set to undefined so they cant be used
     // This is to prevent issues when we move the methods to modules later on
