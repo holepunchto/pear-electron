@@ -2,6 +2,7 @@
 /* global Pear */
 const Localdrive = require('localdrive')
 const cenc = require('compact-encoding')
+const pipe = require('pear-pipe')()
 function srcs (html) {
   return [
     ...(html.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<script\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gis))
@@ -22,14 +23,14 @@ async function configure (options) {
   return options
 }
 
-Pear.pipe.on('end', () => { Pear.pipe.end() })
+pipe.on('end', () => { Pear.pipe.end() })
 
-Pear.pipe.once('data', (data) => {
+pipe.once('data', (data) => {
   const options = cenc.decode(cenc.any, data)
   configure(options).then((config) => {
     const buffer = cenc.encode(cenc.any, { tag: 'configure', data: config })
-    Pear.pipe.end(buffer)
+    pipe.end(buffer)
   }, (err) => {
-    Pear.pipe.destroy(err)
+    pipe.destroy(err)
   })
 })
