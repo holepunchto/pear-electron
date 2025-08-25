@@ -2,8 +2,6 @@
 
 > Pear User-Interface Library for Electron
 
-**Status: WIP**
-
 ## Installation
 
 ```sh
@@ -55,7 +53,7 @@ Inside the pear-electron runtime desktop application, pear-electron resolves to 
 
 **index.html**:
 ```html
-<script src="./app.js" type="module"></script>
+<script src="./app.js" type="module">
 ```
 
 **app.js**:
