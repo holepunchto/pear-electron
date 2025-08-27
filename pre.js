@@ -2,6 +2,7 @@
 /* global Pear */
 const Localdrive = require('localdrive')
 const cenc = require('compact-encoding')
+const path = require('bare-path')
 const pipe = require('pear-pipe')()
 function srcs (html) {
   return [
@@ -11,7 +12,8 @@ function srcs (html) {
 
 async function configure (options) {
   const { stage = {} } = options
-  const { pathname } = new URL(global.Pear.config.applink + '/')
+  const url = new URL(global.Pear.config.applink + '/');
+  const pathname = normalize(url.pathname);
   const drive = new Localdrive(pathname)
   const html = (await drive.get(options.gui?.main ?? 'index.html')).toString()
   const entrypoints = srcs(html)
@@ -34,3 +36,8 @@ pipe.once('data', (data) => {
     pipe.destroy(err)
   })
 })
+
+function normalize (pathname) {
+  if (pathname[0] === '/' && pathname[2] === ':') return path.normalize(pathname.slice(1))
+  return path.normalize(pathname)
+}
