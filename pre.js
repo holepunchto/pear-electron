@@ -12,8 +12,8 @@ function srcs (html) {
 
 async function configure (options) {
   const { stage = {} } = options
-  const url = new URL(global.Pear.config.applink + '/');
-  const pathname = normalize(url.pathname);
+  const url = new URL(global.Pear.config.applink + '/')
+  const pathname = normalize(url.pathname)
   const drive = new Localdrive(pathname)
   const html = (await drive.get(options.gui?.main ?? 'index.html')).toString()
   const entrypoints = srcs(html)
