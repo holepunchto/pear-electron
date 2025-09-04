@@ -93,9 +93,36 @@ Hide current view or window.
 
 #### `const success = await app.badge(count <Integer|null>)` 
 
+Resolves to: `<Boolean>`
+
 Set the badge number for the application on desktop for Linux & MacOS. Setting the `count` to `0` will hide the badge while `null` will display a plain dot on MacOS only.
 
 Returns a `Boolean` promise for whether the call succeeded.
+
+#### `const untray = await app.tray(options <Object>[, listener <Function>])` 
+
+Resolves to: `<Function>`
+
+Configure a tray icon for the application. 
+
+This method will return a promise which resolves to an `untray()` function for removing the tray.
+
+The `listener` function is triggered whenever a menu item or the tray icon is clicked. It receives a single argument `key` that represents the menu item `key` that was clicked or the special value of `'click'` for when the menu icon itself was clicked. If no `listener` function is provided, a default listener will show the application window when triggered with `'click'` or `'show'` and quits with `'quit'`.
+
+A Pear application should set `pear.gui.closeHide` option to `true` in `package.json` `pear` options object when using `ui.app.tray`.
+
+WARNING: Linux tray support varies which can cause scenarios where the application's tray doesn't work and closing the app will be hidden and inaccessible. Using a tray and `closeHide` on Linux is not recommended. Set `pear.gui.linux.closeHide` option to `false` in `package.json` `pear` options object.
+
+**Options**
+
+* `icon <String>` Default: The Pear icon - The path for icon for the tray
+  relative to the project root. Supported formats: PNG & JPEG
+* `menu <Object>` Default: ``{ show: `Show ${Pear.app.name}`, quit: 'Quit' }`` - The
+  tray menu items. Each property of the object is the `key` passed to the
+  `listener` and whose value is the text displayed in the menu.
+* `os <Object>` Default: `{ win32: true, linux: true, darwin: true  }` - which
+  platforms support using the tray menu. The platform is checked via the
+  `process.platform` value.
 
 ### `const sourceId = await app.getMediaSourceId()`
 
