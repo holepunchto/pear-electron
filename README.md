@@ -91,6 +91,12 @@ Resolves to: `<Boolean>`
 
 Hide current view or window.
 
+#### `const success = await app.badge(count <Integer|null>)` 
+
+Set the badge number for the application on desktop for Linux & MacOS. Setting the `count` to `0` will hide the badge while `null` will display a plain dot on MacOS only.
+
+Returns a `Boolean` promise for whether the call succeeded.
+
 ### `const sourceId = await app.getMediaSourceId()`
 
 Get the sourceId of the current window or view.
