@@ -13,6 +13,7 @@ const linuxIcon = require('./icons/linux')
 const kMap = Symbol('pear.gui.map')
 const kCtrl = Symbol('pear.gui.ctrl')
 const streamx = require('streamx')
+const pipe = require('pear-pipe')()
 
 const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
@@ -1621,7 +1622,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('report', (evt, ...args) => this.report(...args))
 
     electron.ipcMain.on('pipe', (evt) => {
-      this.#stream(global.Pear.pipe, evt)
+      this.#stream(pipe, evt)
     })
 
     electron.ipcMain.on('run', (evt, link, args) => {
