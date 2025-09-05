@@ -822,95 +822,115 @@ Stop search and simulate a click event on the selected match. Implies destroy.
 
 GUI options for an application are set in the application `package.json` `pear.gui` field.
 
-### `width <Number>`
+Example `package.json`:
+
+```json
+{
+  "name": "my-app",
+  "pear": {
+    "gui": {
+      "width": 800,
+      "height": 600
+    }
+  }
+}
+```
+
+### `pear.gui.width <Number>`
 
 Window width (pixels).
 
-### `height <Number>`
+### `pear.gui.height <Number>`
 
 Window height (pixels).
 
-### `x <Number>`
+### `pear.gui.x <Number>`
 
 Horizontal window position (pixels).
 
-### `y <Number>`
+### `pear.gui.y <Number>`
 
 Vertical window position (pixels).
 
-### `minWidth <Number>`
+### `pear.gui.minWidth <Number>`
 
 Window minimum width (pixels).
 
-### `minHeight <Number>`
+### `pear.gui.minHeight <Number>`
 
 Window minimum height (pixels).
 
-### `maxWidth <Number>`
+### `pear.gui.maxWidth <Number>`
 
 Window maximum width (pixels).
 
-### `maxHeight <Number>`
+### `pear.gui.maxHeight <Number>`
 
 Window maximum height (pixels).
 
-### `center <Boolean>` (default: `false`)
+### `pear.gui.center <Boolean>` (default: `false`)
 
 Center window.
 
-### `resizable <Boolean>` (default: `true`)
+### `pear.gui.resizable <Boolean>` (default: `true`)
 
 Window resizability.
 
-### `movable <Boolean>` (default: `true`)
+### `pear.gui.movable <Boolean>` (default: `true`)
 
 Window movability.
 
-### `minimizable <Boolean>` (default: `true`)
+### `pear.gui.minimizable <Boolean>` (default: `true`)
 
 Window minimizability.
 
-### `maximizable <Boolean>` (default: `true`)
+### `pear.gui.maximizable <Boolean>` (default: `true`)
 
 Window maximizability.
 
-### `closable <Boolean>` (default: `true`)
+### `pear.gui.closable <Boolean>` (default: `true`)
 
 Window closability.
 
-### `focusable <Boolean>` (default: `true`)
+### `pear.gui.focusable <Boolean>` (default: `true`)
 
 Window focusability.
 
-### `alwaysOnTop <Boolean>` (default: `false`)
+#### `pear.gui.pear.gui.closeHides <Boolean>` (default: `false`)
+
+Keep app running when all windows are closed.
+
+WARNING: Linux tray support varies which can cause scenarios where the application's tray doesn't work and closing the app will be hidden and inaccessible. Using a tray and `closeHides` on Linux is not recommended.
+
+### `pear.gui.alwaysOnTop <Boolean>` (default: `false`)
 
 Set window to always be on top.
 
-### `fullscreen <Boolean>` (default: `false`)
+### `pear.gui.fullscreen <Boolean>` (default: `false`)
 
 Set window to fullscreen on start.
 
-### `kiosk <Boolean>` (default: `false`)
+### `pear.gui.kiosk <Boolean>` (default: `false`)
 
 Set window to enter kiosk mode on start.
 
-### `autoHideMenuBar <Boolean>` (default: `false`)
+### `pear.gui.autoHideMenuBar <Boolean>` (default: `false`)
 
 Hide menu bar unless Alt key is pressed (Linux, Windows).
 
-### `hasShadow <Boolean>` (default: `true`)
+### `pear.gui.hasShadow <Boolean>` (default: `true`)
 
 Window shadow.
 
-### `opacity <Number>` (default: `1`)
+### `pear.gui.opacity <Number>` (default: `1`)
 
 Set window opacity (0.0 - 1.0) (Windows, macOS).
 
-### `transparent <Boolean>` (default: `false`)
+### `pear.gui.transparent <Boolean>` (default: `false`)
 
 Enable transparency. Must be set for opacity to work.
 
-### `backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
+### `pear.gui.backgroundColor <String>` (default: "#000" non-transparent, "#00000000" transparent)
 
 Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
 
