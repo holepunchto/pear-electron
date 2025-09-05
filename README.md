@@ -934,6 +934,29 @@ Enable transparency. Must be set for opacity to work.
 
 Background color (Hex, RGB, RGBA, HSL, HSLA, CSS color).
 
+#### `pear.gui[platform] <Object>`
+
+Platform specific options can be set by nesting options under the platform name. For example the following sets the macOS version to not be resizable:
+
+```json
+{
+  "pear": {
+    "gui": {
+      "darwin": {
+        "resizable": false
+      }
+    }
+  }
+}
+```
+
+The following `platform`s are supported:
+
+- `darwin`
+- `linux`
+- `win32`
+
+
 ## Web APIs
 
 Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
