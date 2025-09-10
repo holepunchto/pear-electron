@@ -331,7 +331,7 @@ module.exports = (api) => {
             this.constructor.DECAL = {
               ipc,
               'hypercore-id-encoding': require('hypercore-id-encoding'),
-              'pear-api/constants': require('pear-api/constants')
+              'pear-constants': require('pear-constants')
             }
           }
         }

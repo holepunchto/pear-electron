@@ -9,7 +9,7 @@ const state = RTI ? null : JSON.parse(process.argv.slice(isWindows ? -2 : -1)[0]
 
 class API {
   static RTI = RTI ? JSON.parse(RTI) : state.rti
-  static get CONSTANTS () { return require('pear-api/constants') }
+  static get CONSTANTS () { return require('pear-constants') }
   config = {}
 }
 global.Pear = new API()

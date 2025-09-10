@@ -2,12 +2,12 @@
 const electron = require('electron')
 const { isWindows, isMac, isLinux } = require('which-runtime')
 const { command } = require('paparam')
-const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
+const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-constants')
 const API = require('pear-api')
-const crasher = require('pear-api/crasher')
-const tryboot = require('pear-api/tryboot')
-const rundef = require('pear-api/cmd/run')
-const State = require('pear-api/state')
+const crasher = require('pear-crasher')
+const tryboot = require('pear-tryboot')
+const rundef = require('pear-cmd/run')
+const State = require('pear-state')
 const GUI = require('./gui')
 const argv = process.argv.slice(2) // ['path-to-runtime', 'run' ...args]
 

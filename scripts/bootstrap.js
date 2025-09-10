@@ -1,9 +1,9 @@
 'use strict'
 /* global Pear */
 const IPC = require('pear-ipc')
-const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-api/constants')
-const tryboot = require('pear-api/tryboot')
-const { outputter, ansi, byteSize, isTTY } = require('pear-api/terminal')
+const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-constants')
+const tryboot = require('pear-tryboot')
+const { outputter, ansi, byteSize, isTTY } = require('pear-terminal')
 const { pear } = require('../package.json')
 const { pathname } = new URL(Pear.config.applink)
 

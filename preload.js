@@ -50,7 +50,7 @@ module.exports = (state) => {
   }
 
   if (location.hostname === 'localhost' && location.port) {
-    const gunk = require('pear-api/gunk')
+    const gunk = require('pear-gunk')
     const runtime = require('script-linker/runtime')
 
     // platform runtime:

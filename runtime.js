@@ -8,17 +8,17 @@ const env = require('bare-env')
 const { command } = require('paparam')
 const { isLinux, isWindows, isMac } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
-const constants = require('pear-api/constants')
-const plink = require('pear-api/link')
-const Logger = require('pear-api/logger')
-const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR, ERR_INVALID_CONFIG } = require('pear-api/errors')
+const constants = require('pear-constants')
+const plink = require('pear-link')
+const Logger = require('pear-logger')
+const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR, ERR_INVALID_CONFIG } = require('pear-errors')
 
 // cutover stops replaying & relaying subscriber streams between clients
 // set to false to stop run flow from auto cutover, so we can cutover at end of ui init
 Pear.constructor.CUTOVER = false
 
-const run = require('pear-api/cmd/run')
-const pear = require('pear-api/cmd')
+const pear = require('pear-cmd')
+const run = require('pear-cmd/run')
 const pkg = require('./package.json')
 
 const bin = (name) => {

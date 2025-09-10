@@ -17,6 +17,14 @@
     "pre.js",
     "api.js"
   ],
+  "imports": {
+    "fs": {
+      "bare": "bare-fs"
+    },
+    "path": {
+      "bare": "bare-path"
+    }
+  },
   "pear": {
     "assets": {
       "ui": {
@@ -69,15 +77,22 @@
     "bare-path": "^3.0.0",
     "bare-subprocess": "^5.0.2",
     "compact-encoding": "^2.16.1",
-    "hypercore-crypto": "^3.6.1",
-    "hypercore-id-encoding": "^1.3.0",
-    "iambus": "^1.0.3",
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
-    "pear-api": "^1.28.6",
+    "pear-api": "^1.29.1",
+    "pear-cmd": "^1.0.0",
+    "pear-constants": "^1.0.0",
+    "pear-crasher": "^1.0.1",
+    "pear-errors": "^1.0.0",
+    "pear-gunk": "^1.0.0",
     "pear-ipc": "^6.4.0",
+    "pear-link": "^4.1.0",
+    "pear-logger": "^1.0.0",
     "pear-pipe": "^1.0.2",
     "pear-run": "^1.0.0",
+    "pear-state": "^1.0.2",
+    "pear-terminal": "^1.0.0",
+    "pear-tryboot": "^1.0.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
     "url-file-url": "^1.0.4",
