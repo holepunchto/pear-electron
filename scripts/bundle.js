@@ -10,6 +10,18 @@ async function bundle () {
     'electron', 'net', 'assert', 'console', 'events', 'fs', 'fs/promises', 'http', 'https', 'os',
     'path', 'child_process', 'repl', 'url', 'tty', 'module', 'process', 'timers', 'inspector'
   ]
+  
+  const pearPipePath = '/node_modules/pear-pipe/index.js'
+  const pearPipeDefaultPath = '/node_modules/pear-pipe/index.default.js'
+  
+  try {
+    const defaultContent = await drive.get(pearPipeDefaultPath)
+    await drive.put(pearPipePath, defaultContent)
+    console.log('Replaced pear-pipe bare version with default version')
+  } catch (err) {
+    console.warn('Could not replace pear-pipe version:', err.message)
+  }
+  
   const { bundle, prebuilds } = await pack(drive, { target, builtins })
   for (const [prebuild, addon] of prebuilds) await drive.put(prebuild, addon)
   await drive.put('/boot.bundle', bundle)
