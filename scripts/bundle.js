@@ -10,7 +10,9 @@ async function bundle () {
     'electron', 'net', 'assert', 'console', 'events', 'fs', 'fs/promises', 'http', 'https', 'os',
     'path', 'child_process', 'repl', 'url', 'tty', 'module', 'process', 'timers', 'inspector'
   ]
-  const { bundle, prebuilds } = await pack(drive, { target, builtins })
+  const prepack = await pack(drive, { entry: '/boot.js', target, builtins })
+  for (const [prebuild, addon] of prepack.prebuilds) await drive.put(prebuild, addon)
+  const { bundle, prebuilds } = await pack(drive, { target, builtins, linked: false, prebuildPrefix: '/..' })
   for (const [prebuild, addon] of prebuilds) await drive.put(prebuild, addon)
   await drive.put('/boot.bundle', bundle)
   console.log('boot.bundle & prebuilds generated')
