@@ -11,15 +11,22 @@
     "lint": "standard"
   },
   "files": [
+    "api.js",
+    "boot.js",
     "bootstrap.js",
+    "electron-main.js",
+    "gui/",
     "index.js",
-    "runtime.js",
     "pre.js",
-    "api.js"
+    "preload.js",
+    "runtime.js"
   ],
   "imports": {
     "fs": {
       "bare": "bare-fs"
+    },
+    "module": {
+      "bare": "bare-module"
     },
     "path": {
       "bare": "bare-path"
@@ -73,13 +80,15 @@
   "dependencies": {
     "bare-env": "^3.0.0",
     "bare-fs": "^4.0.1",
+    "bare-module": "^5.0.3",
     "bare-os": "^3.4.0",
     "bare-path": "^3.0.0",
     "bare-subprocess": "^5.0.2",
     "compact-encoding": "^2.16.1",
     "localdrive": "^1.12.1",
     "paparam": "^1.6.1",
-    "pear-api": "^1.29.1",
+    "pear-api": "^1.29.2",
+    "pear-appdrive": "^1.1.1",
     "pear-cmd": "^1.0.0",
     "pear-constants": "^1.0.0",
     "pear-crasher": "^1.0.1",
@@ -91,7 +100,6 @@
     "pear-pipe": "^1.0.2",
     "pear-run": "^1.0.0",
     "pear-state": "^1.0.2",
-    "pear-terminal": "^1.0.0",
     "pear-tryboot": "^1.0.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
@@ -104,7 +112,8 @@
     "crc-universal": "^1.0.4",
     "fs-native-extensions": "^1.4.2",
     "pear-interface": "^1.0.3",
-    "pear-pack": "^1.0.1",
+    "pear-pack": "^1.0.2",
+    "pear-terminal": "^1.0.0",
     "quickbit-universal": "^2.2.0",
     "redhat-overpass-font": "^1.0.0",
     "rocksdb-native": "^3.5.5",
