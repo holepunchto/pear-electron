@@ -86,6 +86,7 @@
     "bare-subprocess": "^5.0.2",
     "compact-encoding": "^2.16.1",
     "localdrive": "^1.12.1",
+    "node-bare-bundle": "^1.4.2",
     "paparam": "^1.6.1",
     "pear-api": "^1.29.2",
     "pear-appdrive": "^1.1.1",
