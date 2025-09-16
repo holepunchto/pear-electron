@@ -2,13 +2,13 @@
 
 /* global Pear */
 /* eslint-env node, browser */
-module.exports = (state) => {
-  if (!process.isMainFrame) return
+if (process.isMainFrame) {
   const electron = require('electron')
   const timers = require('timers')
   const { isMac, isWindows, platform } = require('which-runtime')
   const API = require('pear-api')
   const GUI = require('./gui')
+  const state = global.Pear.constructor._STATE
   const { parentWcId, env, id, rti, tray, ...config } = state
   const isDecal = state.isDecal || false
   if (config.key?.type === 'Buffer') config.key = Buffer.from(config.key.data)
@@ -18,7 +18,7 @@ module.exports = (state) => {
   if (config.fragment) history.replaceState(null, null, '#' + config.fragment)
 
   const gui = new GUI({ API, state })
-  window.Pear = gui.api
+  global.Pear = gui.api
   const PearElectron = Pear[Pear.constructor.UI]
 
   if (isDecal === false) Object.assign(process.env, env)
@@ -402,6 +402,6 @@ module.exports = (state) => {
       `
     }
   })
-}
 
-function strToBool (str) { return str === 'true' }
+  function strToBool (str) { return str === 'true' }
+}
