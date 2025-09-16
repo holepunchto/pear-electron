@@ -81,7 +81,7 @@ class PearElectron {
       mount: constants.MOUNT,
       bridge: opts.bridge?.addr ?? undefined,
       startId: Pear.config.startId,
-      assets: Pear.config.assets.ui.path,
+      ui: Pear.config.assets.ui.path,
       dir
     })
 
