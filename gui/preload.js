@@ -5,8 +5,8 @@ const api = require('../api')
 const electron = require('electron')
 
 module.exports = class PearGUI {
-  constructor ({ API, state }) {
-    const id = this.id = electron.ipcRenderer.sendSync('id')
+  constructor({ API, state }) {
+    const id = (this.id = electron.ipcRenderer.sendSync('id'))
 
     this.ipc = new IPC()
     electron.ipcRenderer.on('ipc', (e, data) => {
