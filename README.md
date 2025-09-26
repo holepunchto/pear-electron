@@ -9,6 +9,7 @@ npm install pear-electron
 ```
 
 ## Usage
+
 Ensure the `package.json` `pear` configuration object contains a `pre` field pointing to `pear-electron/pre`.
 
 ```js
@@ -42,14 +43,11 @@ Given an `index.html` containing `<script src="./app.js"></script>` in `app.js` 
 
 ```js
 import ui from 'pear-electron'
-
-
 ```
 
 ## Application Configuration <a name="application-configuration"></a>
 
 Set the [`pear.pre`](https://docs.pears.com/configuration#pear-pre) to `pear-electron/pre` (or ensure that it's imported at the top of any alternative pre script).
-
 
 ```json
 {
@@ -57,7 +55,6 @@ Set the [`pear.pre`](https://docs.pears.com/configuration#pear-pre) to `pear-ele
     "pre": "pear-electron/pre"
   }
 }
-
 ```
 
 Prior to run from disk and prior to run from key, the `pear-electron/pre` script automatically adjusts application configuration to include runtime binary [`pear.assets`](https://docs.pears.com/configuration#pear-assets) as well as adding statically analyzed script tags as [`pear.stage.entrypoints`](https://docs.pears.com/configuration#pear-stage-entrypoints) from the [`pear.gui.main`](#pear-gui-main) HTML entrypoint.
@@ -76,26 +73,30 @@ Prepare the runtime, runtime binaries for the runtime version may be bootstrappe
 
 ### `runtime.start(opts)` <a name="runtime-start"></a>
 
-Opens the UI. 
+Opens the UI.
 
 #### Options
 
-* `bridge` - An instance of [`pear-bridge`](https://github.com/holepunchto/pear-bridge).
+- `bridge` - An instance of [`pear-bridge`](https://github.com/holepunchto/pear-bridge).
 
 ## User-Interface API <a name="user-interface-api"></a>
 
 Inside the `pear-electron` runtime desktop application, pear-electron resolves to a UI control API.
 
 **index.html**:
+
 ```html
 <script src="./app.js" type="module"><script>
 ```
 
 **app.js**:
+
 ```js
 import ui from 'pear-electron'
 // do something with ui:
-setTimeout(async () => { await ui.app.focus({ steal: true }) })
+setTimeout(async () => {
+  await ui.app.focus({ steal: true })
+})
 ```
 
 > NOTE: naming the import `ui` instead of `PearElectron` is intentional, for two reasons. The `pear-electron` import resolves to a runtime start library or a User Interface library depending on environment and using `Runtime` and `ui` as assigned names means switching out `pear-electron` with an equivalent alternative only involves changing the two `pear-electron` import specifiers.
@@ -112,7 +113,7 @@ Foreground current view or window.
 
 **Options**
 
-* `steal` Default: `false` -  focus input as well as foregrounding 
+- `steal` Default: `false` - focus input as well as foregrounding
 
 ### `const success = await ui.app.blur()` <a name="ui-app-blur"></a>
 
@@ -144,7 +145,7 @@ Returns a `Boolean` promise for whether the call succeeded.
 
 Resolves to: `<Function>`
 
-Configure a tray icon for the application. 
+Configure a tray icon for the application.
 
 This method will return a promise which resolves to an `untray()` function for removing the tray.
 
@@ -156,12 +157,12 @@ WARNING: Linux tray support varies which can cause scenarios where the applicati
 
 **Options**
 
-* `icon <String>` Default: The Pear icon - The path for icon for the tray
+- `icon <String>` Default: The Pear icon - The path for icon for the tray
   relative to the project root. Supported formats: PNG & JPEG
-* `menu <Object>` Default: ``{ show: `Show ${Pear.app.name}`, quit: 'Quit' }`` - The
+- `menu <Object>` Default: ``{ show: `Show ${Pear.app.name}`, quit: 'Quit' }`` - The
   tray menu items. Each property of the object is the `key` passed to the
   `listener` and whose value is the text displayed in the menu.
-* `os <Object>` Default: `{ win32: true, linux: true, darwin: true  }` - which
+- `os <Object>` Default: `{ win32: true, linux: true, darwin: true  }` - which
   platforms support using the tray menu. The platform is checked via the
   `process.platform` value.
 
@@ -193,7 +194,6 @@ Resolves to: `<Boolean>`
 
 Closes the current view or window.
 
-
 ### `const isVisible = await ui.app.isVisible()` <a name="ui-app-isvisible"></a>
 
 Resolves to: `<Boolean>`
@@ -215,9 +215,10 @@ Resolves to: `<Found> extends <streamx.Readable>`
 Find and select text, emit matches as data events.
 
 **Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+- text `<String>` - search term
+- forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+- matchCase `<Boolean>` - case-sensitivity. Default `false`.
 
 #### `await found.proceed()` <a name="found-proceed"></a>
 
@@ -287,19 +288,19 @@ Captures available desktop sources. Resolves to an array of objects with shape `
 
 **Options**
 
-* `types <Array<String>>` - Default: `['screen', 'window']`. Filter by types. Types are `'screen'` and `'window'`.
-* `thumbnailSize <Object>` - Default: `{width: 150, height: 150}`. Set thumbnail scaling (pixels)
-* `fetchWindowIcons <Boolean>` - Default: `false`. Populate `appIcon` with Window icons, or else `null`.
+- `types <Array<String>>` - Default: `['screen', 'window']`. Filter by types. Types are `'screen'` and `'window'`.
+- `thumbnailSize <Object>` - Default: `{width: 150, height: 150}`. Set thumbnail scaling (pixels)
+- `fetchWindowIcons <Boolean>` - Default: `false`. Populate `appIcon` with Window icons, or else `null`.
 
 **See Also**
 
-* [app.getMediaSourceId()](#app-getmediasourceid)
-* [view.getMediaSourceId()](#view-getmediasourceid)
-* [win.getMediaSourceId()](#win-getmediasourceid)
-* [parent.getMediaSourceId()](#parent-getmediasourceid)
-* https://www.electronjs.org/docs/latest/api/desktop-capturer#desktopcapturergetsourcesoptions
-* https://www.electronjs.org/docs/latest/api/structures/desktop-capturer-source
-* [`<NativeImage>`](https://www.electronjs.org/docs/latest/api/native-image)
+- [app.getMediaSourceId()](#app-getmediasourceid)
+- [view.getMediaSourceId()](#view-getmediasourceid)
+- [win.getMediaSourceId()](#win-getmediasourceid)
+- [parent.getMediaSourceId()](#parent-getmediasourceid)
+- https://www.electronjs.org/docs/latest/api/desktop-capturer#desktopcapturergetsourcesoptions
+- https://www.electronjs.org/docs/latest/api/structures/desktop-capturer-source
+- [`<NativeImage>`](https://www.electronjs.org/docs/latest/api/native-image)
 
 Exits the process with the provided exit code.
 
@@ -311,33 +312,34 @@ Create a new `Window` instance.
 
 **Options**
 
-* `show <Boolean>` Default: `true` - show the window as soon as it has been opened
-* `x <Integer>` - the horizontal position of left side of the window (pixels)
-* `y <Integer>` - vertical window position (pixels)
-* `width <Integer>` - the width of the window (pixels)
-* `height <Integer>` - the height of the window (pixels)
-* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
-* `center <Boolean` - center the window upon opening
-* `minWidth <Integer>` - window minimum width (pixels)
-* `minHeight <Integer>` - window minimum height (pixels)
-* `maxWidth <Integer>` - window maximum width (pixels)
-* `maxHeight <Integer>` - window maximum height (pixels)
-* `resizable <Boolean>` - window resizability
-* `movable <Boolean>` - window movability
-* `minimizable <Boolean>` - window minimizability
-* `maximizable <Boolean>` - window maximizability
-* `closable <Boolean>` - window closability
-* `focusable <Boolean>` - window focusability
-* `alwaysOnTop <Boolean>` - Set window to always be on top
-* `fullscreen <Boolean>` - Set window to fullscreen upon open
-* `kiosk <Boolean>` - Set window to enter kiosk mode upon open
-* `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
-* `hasShadow <Boolean>` - Set window shadow
-* `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
-* `transparent <Boolean>` - Set window transparency
-* `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+- `show <Boolean>` Default: `true` - show the window as soon as it has been opened
+- `x <Integer>` - the horizontal position of left side of the window (pixels)
+- `y <Integer>` - vertical window position (pixels)
+- `width <Integer>` - the width of the window (pixels)
+- `height <Integer>` - the height of the window (pixels)
+- `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+- `center <Boolean` - center the window upon opening
+- `minWidth <Integer>` - window minimum width (pixels)
+- `minHeight <Integer>` - window minimum height (pixels)
+- `maxWidth <Integer>` - window maximum width (pixels)
+- `maxHeight <Integer>` - window maximum height (pixels)
+- `resizable <Boolean>` - window resizability
+- `movable <Boolean>` - window movability
+- `minimizable <Boolean>` - window minimizability
+- `maximizable <Boolean>` - window maximizability
+- `closable <Boolean>` - window closability
+- `focusable <Boolean>` - window focusability
+- `alwaysOnTop <Boolean>` - Set window to always be on top
+- `fullscreen <Boolean>` - Set window to fullscreen upon open
+- `kiosk <Boolean>` - Set window to enter kiosk mode upon open
+- `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
+- `hasShadow <Boolean>` - Set window shadow
+- `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
+- `transparent <Boolean>` - Set window transparency
+- `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
 
 ### `win.on[ce]('message', (...args) => { })` <a name="win-recieve-messages"></a>
+
 ### `for await (const [ ...args ] of win)`
 
 Receive a message from the window. The received `args` array is deserialized via `JSON.parse`.
@@ -350,31 +352,31 @@ Open the window.
 
 **Options**
 
-* `show` Default: `true` - show the window as soon as it has been opened
-* `x <Integer>` - the horizontal position of left side of the window (pixels)
-* `y <Integer>` - vertical window position (pixels)
-* `width <Integer>` - the width of the window (pixels)
-* `height <Integer>` - the height of the window (pixels)
-* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
-* `center <Boolean` - center the window upon opening
-* `minWidth <Integer>` - window minimum width (pixels)
-* `minHeight <Integer>` - window minimum height (pixels)
-* `maxWidth <Integer>` - window maximum width (pixels)
-* `maxHeight <Integer>` - window maximum height (pixels)
-* `resizable <Boolean>` - window resizability
-* `movable <Boolean>` - window movability
-* `minimizable <Boolean>` - window minimizability
-* `maximizable <Boolean>` - window maximizability
-* `closable <Boolean>` - window closability
-* `focusable <Boolean>` - window focusability
-* `alwaysOnTop <Boolean>` - Set window to always be on top
-* `fullscreen <Boolean>` - Set window to fullscreen upon open
-* `kiosk <Boolean>` - Set window to enter kiosk mode upon open
-* `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
-* `hasShadow <Boolean>` - Set window shadow
-* `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
-* `transparent <Boolean>` - Set window transparency
-* `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+- `show` Default: `true` - show the window as soon as it has been opened
+- `x <Integer>` - the horizontal position of left side of the window (pixels)
+- `y <Integer>` - vertical window position (pixels)
+- `width <Integer>` - the width of the window (pixels)
+- `height <Integer>` - the height of the window (pixels)
+- `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+- `center <Boolean` - center the window upon opening
+- `minWidth <Integer>` - window minimum width (pixels)
+- `minHeight <Integer>` - window minimum height (pixels)
+- `maxWidth <Integer>` - window maximum width (pixels)
+- `maxHeight <Integer>` - window maximum height (pixels)
+- `resizable <Boolean>` - window resizability
+- `movable <Boolean>` - window movability
+- `minimizable <Boolean>` - window minimizability
+- `maximizable <Boolean>` - window maximizability
+- `closable <Boolean>` - window closability
+- `focusable <Boolean>` - window focusability
+- `alwaysOnTop <Boolean>` - Set window to always be on top
+- `fullscreen <Boolean>` - Set window to fullscreen upon open
+- `kiosk <Boolean>` - Set window to enter kiosk mode upon open
+- `autoHideMenuBar <Boolean>` - Hide menu bar unless Alt key is pressed (Linux, Windows)
+- `hasShadow <Boolean>` - Set window shadow
+- `opacity <Number>` - Set window opacity (0.0 - 1.0) (Windows, macOS)
+- `transparent <Boolean>` - Set window transparency
+- `backgroundColor <String>` Default: `'#FFF'` - window default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
 
 ### `const success = await win.close()` <a name="win-close"></a>
 
@@ -402,7 +404,7 @@ Focus the window.
 
 **Options**
 
-* `steal` Default: `true` - 
+- `steal` Default: `true` -
 
 ### `const success = await win.blur()` <a name="win-blur"></a>
 
@@ -428,26 +430,27 @@ Resolves to: `<Boolean>`
 
 Unmaximize/unminimize the window if it is currently maximized/minimized.
 
-### `const sourceId = await win.getMediaSourceId()`  <a name="win-getmediasourceid"></a>
+### `const sourceId = await win.getMediaSourceId()` <a name="win-getmediasourceid"></a>
 
 Resolves to: `<String>`
 
 Correlates to the `id` property of objects in the array returned from [ui.media.desktopSources](#ui-media-desktopsources).
 
-### `await win.send(...args)`  <a name="win-send"></a>
+### `await win.send(...args)` <a name="win-send"></a>
 
 Send arguments to the window. They will be serialized with `JSON.stringify`.
 
-### `const found = await win.find(options <Object>)`  <a name="win-find"></a>
+### `const found = await win.find(options <Object>)` <a name="win-find"></a>
 
 Resolves to: `<Found> extends <streamx.Readable>`
 
 Find and select text, emit matches as data events.
 
 **Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+- text `<String>` - search term
+- forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+- matchCase `<Boolean>` - case-sensitivity. Default `false`.
 
 #### `await found.proceed()` <a name="win-find-found-proceed"></a>
 
@@ -497,19 +500,18 @@ await win.dimensions({
   height: 300,
   animate: true // only has an effect on macOS
 })
-
 ```
 
 Sets the dimensions of the window.
 
 **Options**
 
-* `x <Integer>` - the horizontal position of left side of the window (pixels)
-* `y <Integer>` - the vertical position of the top of the window (pixels)
-* `width <Integer>` - the width of the window (pixels)
-* `height <Integer>` - the height of the window (pixels)
-* `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
-* `position <String>` - may be `'center'` to set the window in the center of the screen or else `undefined`.
+- `x <Integer>` - the horizontal position of left side of the window (pixels)
+- `y <Integer>` - the vertical position of the top of the window (pixels)
+- `width <Integer>` - the width of the window (pixels)
+- `height <Integer>` - the height of the window (pixels)
+- `animate <Boolean>` Default: `false` - animate the dimensional change. MacOS only, ignored on other OS's.
+- `position <String>` - may be `'center'` to set the window in the center of the screen or else `undefined`.
 
 ### `const visible = await win.isVisible()` <a name="win-isvisible"></a>
 
@@ -543,22 +545,20 @@ Create a new `View` instance. Views provide isolated content views. Frameless, c
 
 **Options**
 
-* `x <Integer>` - the horizontal position of left side of the view (pixels)
-* `y <Integer>` - vertical view position (pixels)
-* `width <Integer>` - the width of the view (pixels)
-* `height <Integer>` - the height of the view (pixels)
-* `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
-* `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
+- `x <Integer>` - the horizontal position of left side of the view (pixels)
+- `y <Integer>` - vertical view position (pixels)
+- `width <Integer>` - the width of the view (pixels)
+- `height <Integer>` - the height of the view (pixels)
+- `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+- `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
 
-
-* https://www.electronjs.org/docs/latest/api/browser-view#viewsetbackgroundcolorcolor-experimental
+- https://www.electronjs.org/docs/latest/api/browser-view#viewsetbackgroundcolorcolor-experimental
 
 ### `view.on[ce]('message', (...args) => { })` <a name="view-recieve-messages"></a>
+
 ### `for await (const [ ...args ] of view)`
 
 Receive a message from the view. The received `args` array is deserialized via `JSON.parse`.
-
-
 
 ### `const success = await view.open(options <Object>)` <a name="view-open"></a>
 
@@ -568,12 +568,12 @@ Open the view.
 
 **Options**
 
-* `x <Integer>` - the horizontal position of left side of the view (pixels)
-* `y <Integer>` - vertical view position (pixels)
-* `width <Integer>` - the width of the view (pixels)
-* `height <Integer>` - the height of the view (pixels)
-* `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
-* `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
+- `x <Integer>` - the horizontal position of left side of the view (pixels)
+- `y <Integer>` - vertical view position (pixels)
+- `width <Integer>` - the width of the view (pixels)
+- `height <Integer>` - the height of the view (pixels)
+- `backgroundColor <String>` Default: `'#FFF'` - view default background color. Hex, RGB, RGBA, HSL HSLA, CSS color
+- `autoresize <Object>` Default `{ width=true, height=true, vertical=false, horizontal=false }` - dimensions for the view to autoresize alongside. For example, if `width` is `true` and the view container increases/decreases in width, the view will increase/decrease in width at the same rate.
 
 ### `const success = await view.close()` <a name="view-close"></a>
 
@@ -601,7 +601,7 @@ Foreground the view.
 
 **Options**
 
-* `steal` Default: `false` -  focus input as well as foregrounding 
+- `steal` Default: `false` - focus input as well as foregrounding
 
 ### `const success = await view.blur()` <a name="view-blur"></a>
 
@@ -627,9 +627,9 @@ Find and select text, emit matches as data events.
 
 **Options**
 
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+- text `<String>` - search term
+- forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+- matchCase `<Boolean>` - case-sensitivity. Default `false`.
 
 #### `await found.proceed()` <a name="view-find-found-proceed"></a>
 
@@ -684,11 +684,10 @@ Sets the dimensions of the view.
 
 **Options**
 
-* `x <Integer>` - the horizontal position of left side of the window (pixels)
-* `y <Integer>` - the vertical position of the top of the window (pixels)
-* `width <Integer>` - the width of the window (pixels)
-* `height <Integer>` - the height of the window (pixels)
-
+- `x <Integer>` - the horizontal position of left side of the window (pixels)
+- `y <Integer>` - the vertical position of the top of the window (pixels)
+- `width <Integer>` - the width of the window (pixels)
+- `height <Integer>` - the height of the window (pixels)
 
 ```js
 const view = new ui.View('./some.html', {
@@ -713,10 +712,10 @@ Sets the dimensions of the view.
 
 **Options**
 
-* `x <Integer>` - the horizontal position of left side of the window (pixels)
-* `y <Integer>` - the vertical position of the top of the window (pixels)
-* `width <Integer>` - the width of the window (pixels)
-* `height <Integer>` - the height of the window (pixels)
+- `x <Integer>` - the horizontal position of left side of the window (pixels)
+- `y <Integer>` - the vertical position of the top of the window (pixels)
+- `width <Integer>` - the width of the window (pixels)
+- `height <Integer>` - the height of the window (pixels)
 
 ### `const visible = await view.isVisible()` <a name="view-isvisible"></a>
 
@@ -730,13 +729,14 @@ Resolves to: `<Boolean>`
 
 Whether the view is closed.
 
-### `const { self } = ui.Window`  `const { self } = ui.View` <a name="deprecated-self"></a>
+### `const { self } = ui.Window` `const { self } = ui.View` <a name="deprecated-self"></a>
 
 > DEPRECATED use `ui.app`.
 
-### `const { parent } = ui.Window`  `const { parent } = ui.View` <a name="parent"></a>
+### `const { parent } = ui.Window` `const { parent } = ui.View` <a name="parent"></a>
 
 ### `parent.on[ce]('message', (...args) => { })` <a name="parent-receive-messages"></a>
+
 ### `for await (const [ ...args ] of parent)`
 
 Receive a message from the parent window or view. The received `args` array is deserialized via `JSON.parse`.
@@ -744,7 +744,6 @@ Receive a message from the parent window or view. The received `args` array is d
 ### `await parent.send(...args)` <a name="parent-send"></a>
 
 Send arguments to the parent view or window. They will be serialized with `JSON.stringify`.
-
 
 ### `const success = await parent.focus([options <Object>])` <a name="parent-focus"></a>
 
@@ -754,7 +753,7 @@ Foreground parent view or window.
 
 **Options**
 
-* `steal` Default: `false` -  focus input as well as foregrounding 
+- `steal` Default: `false` - focus input as well as foregrounding
 
 ### `const success = await parent.blur()` <a name="parent-blur"></a>
 
@@ -777,9 +776,6 @@ Hide parent view or window.
 ### `const sourceId = await parent.getMediaSourceId()` <a name="parent-getmediasourceid"></a>
 
 Get the sourceId of the parent window or view.
-
-
-
 
 ### `const success = await parent.minimize()` <a name="parent-minimize"></a>
 
@@ -818,10 +814,10 @@ Resolves to: `<Boolean>`
 Whether the parent window or view is visible.
 
 ### `const isMaximized = await parent.isMaximized()` <a name="parent-ismaximized"></a>
+
 Resolves to: `<Boolean>`
 
 Whether the parent window is maximized. Throws a `TypeError` if `parent` is a view.
-
 
 ### `const isMinimized = await parent.isMinimized()` <a name="parent-isminimized"></a>
 
@@ -836,9 +832,10 @@ Resolves to: `<Found> extends <streamx.Readable>`
 Find and select text, emit matches as data events.
 
 **Options**
-* text `<String>` - search term
-* forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
-* matchCase `<Boolean>`  - case-sensitivity. Default `false`.
+
+- text `<String>` - search term
+- forward `<Boolean>` - search forward (`true`) or backward (`false`). Defaults `true`.
+- matchCase `<Boolean>` - case-sensitivity. Default `false`.
 
 #### `await found.proceed()` <a name="parent-find-found-proceed"></a>
 
@@ -998,7 +995,6 @@ The following `platform`s are supported:
 - `linux`
 - `win32`
 
-
 ## Web APIs <a name="web-apis"></a>
 
 Most [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API) will work as-is.
@@ -1011,7 +1007,7 @@ The [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open
 
 In browsers, `window.open` opens a new browser window. The opened window belongs to the same browser from which `window.open` is called.
 
-With `pear-electron` UI Library, `window.open` loads the URL in the **default system browser**. It does *not* create a new application window (use `Pear.Window` to create application windows).
+With `pear-electron` UI Library, `window.open` loads the URL in the **default system browser**. It does _not_ create a new application window (use `Pear.Window` to create application windows).
 
 Therefore Pear's `window.open` only supports a single URL argument. The `target` and `windowFeatures` parameters that browsers support are discarded.
 
@@ -1029,11 +1025,11 @@ Use `<script src="path/to/my-file.js">` to load a JavaScript Script.
 
 The `pear-electron` library is a Pear User Interface Runtime Library, providing multiple capabilities:
 
-* When loaded into a pear entrypoint JS file, `pear-electron` exports `runtime.js`, the runtime initializor.
-* When loaded into electron, `pear-electron` exports a UI library that is injected via `Pear[Pear.constructor.UI]` inside the runtime build that becomes the asset defined on `pear.assets.ui` configuration. 
-* The `pear-electron/pre` script provides autoconfiguration, it sets `pear.assets.ui` on the application per `pear.assets.ui` in the `pear-electron/package.json`.
+- When loaded into a pear entrypoint JS file, `pear-electron` exports `runtime.js`, the runtime initializor.
+- When loaded into electron, `pear-electron` exports a UI library that is injected via `Pear[Pear.constructor.UI]` inside the runtime build that becomes the asset defined on `pear.assets.ui` configuration.
+- The `pear-electron/pre` script provides autoconfiguration, it sets `pear.assets.ui` on the application per `pear.assets.ui` in the `pear-electron/package.json`.
 
-The `pear-electron` repo is self-bootstrapping and generates the runtime drive with `by-arch`, `prebuilds` and `boot.bundle`, which can then be staged with Pear. 
+The `pear-electron` repo is self-bootstrapping and generates the runtime drive with `by-arch`, `prebuilds` and `boot.bundle`, which can then be staged with Pear.
 
 ```sh
 npm run prestage
@@ -1057,7 +1053,7 @@ npm i ../pear-electron/name-of-the-tar.gz
 Then run the app with the `-d` (development) and `--pre-io` flag (to see any output from the `pear-electron/pre` script).
 
 ```sh
-pear run --pre-io -d . 
+pear run --pre-io -d .
 ```
 
 # LICENSE <a name="license"></a>
