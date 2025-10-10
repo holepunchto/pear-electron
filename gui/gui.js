@@ -608,6 +608,7 @@ class App {
             }
             const { id } = await this.starting
             const config = await this.ipc.config()
+            Pear.app = Pear.config = config
             state.update({ id, config })
             applyGuiOptions(app.win, state.config.options.gui ?? {})
             if (app.closing) return false
