@@ -1,11 +1,12 @@
 'use strict'
-const debare = init()
+const reset = compat()
 const pack = require('pear-pack')
-debare()
+const evaluate = require('bare-bundle-evaluate')
+reset()
 const IPC = require('pear-ipc')
 const tryboot = require('pear-tryboot')
 const AppDrive = require('pear-appdrive')
-const run = require('node-bare-bundle')
+const Bundle = require('bare-bundle')
 const Localdrive = require('localdrive')
 const { pathToFileURL } = require('url-file-url')
 const { isWindows, isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
@@ -20,8 +21,8 @@ const BOOT_ELECTRON_PRELOAD = 2
 
 function getEntry (type) {
   switch (type) {
-    case BOOT_ELECTRON_MAIN: return '/node_modules/pear-electron/electron-main.js'
-    case BOOT_ELECTRON_PRELOAD: return '/node_modules/pear-electron/preload.js'
+    case BOOT_ELECTRON_MAIN: return 'file:///node_modules/pear-electron/electron-main.js'
+    case BOOT_ELECTRON_PRELOAD: return 'file:///node_modules/pear-electron/preload.js'
   }
 }
 
@@ -49,24 +50,26 @@ async function boot () {
   await drive.ready()
   const type = getBootType()
   const entry = getEntry(type)
-  const { bundle, prebuilds } = await pack(drive, { entry, target, builtins, prebuildPrefix: pathToFileURL(API.RTI.ui).toString() })
+  const packed = await pack(drive, { entry, target, builtins, prebuildPrefix: pathToFileURL(API.RTI.ui).toString() })
   await drive.close()
   await ipc.close()
 
   const ldrive = new Localdrive(API.RTI.ui)
-  for (const [prebuild, addon] of prebuilds) {
+  for (const [prebuild, addon] of packed.prebuilds) {
     if (await ldrive.entry(prebuild) !== null) continue
     await ldrive.put(prebuild, addon) // add any new prebuilds into asset prebuilds
   }
 
+  const bundle = Bundle.from(packed.bundle)
+
   setImmediate(() => { // preserve unhandled exceptions (so they don't become rejections)
-    run(bundle, { mount: './electron.bundle', entrypoint: entry })
+    evaluate(bundle, require)
   })
 }
 
 boot().catch(console.error)
 
-function init () {
+function compat () {
   const kIPC = Symbol('boot-ipc')
   const rtiFlagIx = process.argv.indexOf('--rti')
   const RTI = rtiFlagIx > -1 && process.argv[rtiFlagIx + 1]
@@ -80,10 +83,17 @@ function init () {
   global.Pear = new API()
   global.Pear.config = global.Pear.app // TODO remove
   API.CONSTANTS = require('pear-constants')
+  const Addon = (...args) => {
+    console.log('attemptin Addon', args)
+  }
+  Addon.host = process.platform + '-' + process.arch
+  // spoof
   global.Bare = {
     simulator: false,
     platform: process.platform,
-    arch: process.arch
+    arch: process.arch,
+    Addon,
+    versions: { bare: '1.22.0', uv: '1.51.0', v8: '13.8.258.18' }
   }
   return () => {
     delete global.Bare // does not cause deopt as long as deleting the most recently added property on the object
@@ -100,19 +110,19 @@ function init () {
 
 //     const handler = {
 //       get (o, prop, recv) {
-//         console.trace(name, 'get', String(prop))
+//         console.log(name, 'get', String(prop))
 //         return wrap(Reflect.get(o, prop, recv))
 //       },
 //       set (o, prop, value, recv) {
-//         console.trace(name, 'set', String(prop), value)
+//         console.log(name, 'set', String(prop), value)
 //         return Reflect.set(o, prop, value, recv)
 //       },
 //       apply (fn, thisArg, args) {
-//         console.trace(name, 'apply', args)
+//         console.log(name, 'apply', args)
 //         return Reflect.apply(fn, thisArg, args)
 //       },
 //       construct (fn, args, newT) {
-//         console.trace(name, 'construct', args)
+//         console.log(name, 'construct', args)
 //         return wrap(Reflect.construct(fn, args, newT))
 //       }
 //     }
