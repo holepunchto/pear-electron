@@ -55,6 +55,14 @@ async function electronMain (cmd) {
     await app.close()
   }) // note: would be unhandled rejection on failure, but should never fail
 
+  let cutover = false
+  app.handle?.view?.webContents?.on('will-navigate', (e, url) => {
+    if (e.frame && e.frame.url === url && !cutover) {
+      app.cutover({ after: 0 })
+      cutover = true
+    }
+  })
+
   await app.cutover()
 }
 
