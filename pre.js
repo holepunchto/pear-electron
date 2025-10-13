@@ -6,7 +6,9 @@ const path = require('bare-path')
 const pipe = require('pear-pipe')()
 function srcs (html) {
   return [
-    ...(html.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<script\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gis))
+    ...(html
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .matchAll(/<script\b(?![^>]*\bdefer\b)[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gis))
   ].map(m => m[1] || m[2] || m[3])
 }
 
