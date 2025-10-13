@@ -640,7 +640,7 @@ class App {
     return { fork, length, key: key ? key.toString('hex') : null }
   }
 
-  cutover () { return this.ipc.cutover() }
+  cutover (params) { return this.ipc.cutover(params) }
 
   unloading () { return this.ipc.unloading() }
 
