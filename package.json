@@ -95,6 +95,7 @@
     "pear-tryboot": "^1.0.0",
     "script-linker": "^2.5.3",
     "streamx": "^2.20.2",
+    "unix-path-resolve": "^1.0.2",
     "url-file-url": "^1.0.4",
     "which-runtime": "^1.2.1"
   },
