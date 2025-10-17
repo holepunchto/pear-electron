@@ -12,4 +12,4 @@ Pear.updates((update) => {
 
 document.querySelector('h1').addEventListener('click', (e) => { e.target.innerHTML = '🍐' })
 
-console.log(await ui.dimensions()) // log app dimensions
+console.log(await ui.app.dimensions()) // log app dimensions
