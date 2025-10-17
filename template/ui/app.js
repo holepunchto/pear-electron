@@ -1,6 +1,4 @@
 /** @typedef {import('pear-interface')} */ /* global Pear */
-import ui from 'pear-electron'
-
 Pear.updates((update) => {
     console.log('update available:', update)
     document.getElementById('update').style.display = 'revert'
@@ -11,5 +9,3 @@ Pear.updates((update) => {
   })
 
 document.querySelector('h1').addEventListener('click', (e) => { e.target.innerHTML = '🍐' })
-
-console.log(await ui.dimensions()) // log app dimensions
