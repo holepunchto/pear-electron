@@ -4,6 +4,8 @@ const Localdrive = require('localdrive')
 const cenc = require('compact-encoding')
 const path = require('bare-path')
 const pipe = require('pear-pipe')()
+const unixpathresolve = require('unix-path-resolve')
+
 function srcs (html) {
   return [
     ...(html.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<script\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gis))
@@ -15,8 +17,9 @@ async function configure (options) {
   const url = new URL(global.Pear.config.applink + '/')
   const pathname = normalize(url.pathname)
   const drive = new Localdrive(pathname)
-  const html = (await drive.get(options.gui?.main ?? 'index.html')).toString()
-  const entrypoints = srcs(html)
+  const main = unixpathresolve('/', options.gui?.main || 'index.html')
+  const html = (await drive.get(main)).toString()
+  const entrypoints = srcs(html).map(e => unixpathresolve(path.dirname(main), e))
   stage.entrypoints = Array.isArray(stage.entrypoints) ? [...stage.entrypoints, ...entrypoints] : entrypoints
   options.stage = stage
   const pkg = (options.assets?.ui && !options.assets.ui.only) ? null : JSON.parse(await drive.get('node_modules/pear-electron/package.json'))
