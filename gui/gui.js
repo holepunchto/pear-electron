@@ -738,6 +738,7 @@ function applyGuiOption (win, key, value) {
       })
       return
     }
+    case 'setContentProtection': return win.setContentProtection(value)
     case 'kiosk': return win.setKiosk(value)
     case 'autoHideMenuBar': return win.setAutoHideMenuBar(value)
     case 'hasShadow': return win.setHasShadow(value)
@@ -1007,6 +1008,7 @@ class Window extends GuiCtrl {
   closing = false
   #viewInitialized = null
   #viewLoaded = null
+  _contentProtected = false
 
   #onactivate = () => {
     if (this.closing || this.closed) return
@@ -1269,6 +1271,22 @@ class Window extends GuiCtrl {
 
   isFullscreen () {
     return this.win ? this.win.isFullScreen() : false
+  }
+
+  async setContentProtection (enable) {
+    if (!this.win) return false
+    const value = !!enable
+    try {
+      this.win.setContentProtection(value)
+      this._contentProtected = value
+      return true
+    } catch (_) {
+      return false
+    }
+  }
+
+  isContentProtected () {
+    return !!this._contentProtected
   }
 
   async restore () {
@@ -1548,6 +1566,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('setMinimizable', (evt, ...args) => this.setMinimizable(...args))
     electron.ipcMain.handle('setMaximizable', (evt, ...args) => this.setMaximizable(...args))
     electron.ipcMain.handle('fullscreen ', (evt, ...args) => this.fullscreen(...args))
+    electron.ipcMain.handle('setContentProtection', (evt, ...args) => this.setContentProtection(...args))
     electron.ipcMain.handle('restore', (evt, ...args) => this.restore(...args))
     electron.ipcMain.handle('find', (evt, ...args) => this.find(...args))
     electron.ipcMain.handle('focus', (evt, ...args) => this.focus(...args))
@@ -1558,6 +1577,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('isMinimized', (evt, ...args) => this.isMinimized(...args))
     electron.ipcMain.handle('isMaximized', (evt, ...args) => this.isMaximized(...args))
     electron.ipcMain.handle('isFullscreen', (evt, ...args) => this.isFullscreen(...args))
+    electron.ipcMain.handle('isContentProtected', (evt, ...args) => this.isContentProtected(...args))
     electron.ipcMain.handle('setSize', (evt, ...args) => this.setSize(...args))
     electron.ipcMain.handle('permit', (evt, ...args) => this.permit(...args))
     electron.ipcMain.handle('unloading', async (evt, ...args) => this.unloading(...args))
@@ -1775,6 +1795,7 @@ class PearGUI extends ReadyResource {
         isMaximized () { return false },
         isMinimized () { return false },
         isClosed () { return true },
+        isContentProtected () { return false },
         unloading () {},
         completeUnload () {}
       }
@@ -1824,6 +1845,7 @@ class PearGUI extends ReadyResource {
     if (act === 'isMinimized') return instance.isMinimized()
     if (act === 'isMaximized') return instance.isMaximized()
     if (act === 'isFullscreen') return instance.isFullscreen()
+    if (act === 'isContentProtected') return instance.isContentProtected()
   }
 
   open ({ id, options }) { return this.getCtrl(id).open(options) }
@@ -1846,6 +1868,10 @@ class PearGUI extends ReadyResource {
   setMaximizable ({ id, value }) { return this.getCtrl(id).setMaximizable(value) }
 
   fullscreen ({ id }) { return this.getCtrl(id).fullscreen() }
+
+  setContentProtection ({ id, enable }) { return this.getCtrl(id).setContentProtection(enable) }
+
+  isContentProtected ({ id }) { return this.getCtrl(id).isContentProtected() }
 
   restore ({ id }) { return this.getCtrl(id).restore() }
 

@@ -180,6 +180,7 @@ module.exports = (api) => {
         minimize = () => { return ipc.minimize({ id: this.id }) }
         maximize = () => { return ipc.maximize({ id: this.id }) }
         fullscreen = () => { return ipc.fullscreen({ id: this.id }) }
+        setContentProtection = (enable) => { return ipc.setContentProtection({ id: this.id, enable }) }
         restore = () => { return ipc.restore({ id: this.id }) }
         close = () => { return ipc.close({ id: this.id }) }
         quit = () => { return ipc.quit({ id: this.id }) }
@@ -188,6 +189,7 @@ module.exports = (api) => {
         isMinimized = () => { return ipc.isMinimized({ id: this.id }) }
         isMaximized = () => { return ipc.isMaximized({ id: this.id }) }
         isFullscreen = () => { return ipc.isFullscreen({ id: this.id }) }
+        isContentProtected = () => { return ipc.isContentProtected({ id: this.id }) }
         report = (rpt) => { return ipc.report(rpt) }
       }
 
