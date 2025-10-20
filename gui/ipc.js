@@ -19,6 +19,7 @@ module.exports = class IPC {
   setMaximizable (...args) { return electron.ipcRenderer.invoke('setMaximizable', ...args) }
   setMinimizable (...args) { return electron.ipcRenderer.invoke('setMinimizable', ...args) }
   fullscreen (...args) { return electron.ipcRenderer.invoke('fullscreen', ...args) }
+  setContentProtection (...args) { return electron.ipcRenderer.invoke('setContentProtection', ...args) }
   restore (...args) { return electron.ipcRenderer.invoke('restore', ...args) }
   focus (...args) { return electron.ipcRenderer.invoke('focus', ...args) }
   blur (...args) { return electron.ipcRenderer.invoke('blur', ...args) }
@@ -28,6 +29,7 @@ module.exports = class IPC {
   isMinimized (...args) { return electron.ipcRenderer.invoke('isMinimized', ...args) }
   isMaximized (...args) { return electron.ipcRenderer.invoke('isMaximized', ...args) }
   isFullscreen (...args) { return electron.ipcRenderer.invoke('isFullscreen', ...args) }
+  isContentProtected (...args) { return electron.ipcRenderer.invoke('isContentProtected', ...args) }
   setSize (...args) { return electron.ipcRenderer.invoke('setSize', ...args) }
   permit (...args) { return electron.ipcRenderer.invoke('permit', ...args) }
   unloading (...args) { return electron.ipcRenderer.invoke('unloading', ...args) }
