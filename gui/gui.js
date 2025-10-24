@@ -1547,7 +1547,7 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('maximize', (evt, ...args) => this.maximize(...args))
     electron.ipcMain.handle('setMinimizable', (evt, ...args) => this.setMinimizable(...args))
     electron.ipcMain.handle('setMaximizable', (evt, ...args) => this.setMaximizable(...args))
-    electron.ipcMain.handle('fullscreen ', (evt, ...args) => this.fullscreen(...args))
+    electron.ipcMain.handle('fullscreen', (evt, ...args) => this.fullscreen(...args))
     electron.ipcMain.handle('restore', (evt, ...args) => this.restore(...args))
     electron.ipcMain.handle('find', (evt, ...args) => this.find(...args))
     electron.ipcMain.handle('focus', (evt, ...args) => this.focus(...args))
