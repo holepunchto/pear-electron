@@ -7,6 +7,7 @@ const IPC = require('pear-ipc')
 const tryboot = require('pear-tryboot')
 const AppDrive = require('pear-appdrive')
 const Bundle = require('bare-bundle')
+const runBundle = require('node-bare-bundle')
 const Localdrive = require('localdrive')
 const { pathToFileURL } = require('url-file-url')
 const { isWindows, isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
@@ -63,7 +64,7 @@ async function boot () {
   const bundle = Bundle.from(packed.bundle)
 
   setImmediate(() => { // preserve unhandled exceptions (so they don't become rejections)
-    evaluate(bundle, require)
+    runBundle(bundle, { mount: '/electron.bundle' })
   })
 }
 
