@@ -1,33 +1,13 @@
 'use strict'
-const reset = compat()
-const pack = require('pear-pack')
-const evaluate = require('bare-bundle-evaluate')
-reset()
-const IPC = require('pear-ipc')
-const tryboot = require('pear-tryboot')
-const AppDrive = require('pear-appdrive')
-const Bundle = require('bare-bundle')
-const runBundle = require('node-bare-bundle')
-const Localdrive = require('localdrive')
+const { isWindows, isMac, isLinux, isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
-const { isWindows, isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
-
-const builtins = [
-  'electron', 'net', 'assert', 'console', 'events', 'fs', 'fs/promises', 'http', 'https', 'os',
-  'path', 'child_process', 'repl', 'url', 'tty', 'module', 'process', 'timers', 'inspector'
-]
-const target = [process.platform + '-' + process.arch]
+const evaluate = require('bare-bundle-evaluate')
+const Bundle = require('bare-bundle')
+const electron = require('electron')
 const BOOT_ELECTRON_MAIN = 1
 const BOOT_ELECTRON_PRELOAD = 2
 
-function getEntry (type) {
-  switch (type) {
-    case BOOT_ELECTRON_MAIN: return 'file:///node_modules/pear-electron/electron-main.js'
-    case BOOT_ELECTRON_PRELOAD: return 'file:///node_modules/pear-electron/preload.js'
-  }
-}
-
-function getBootType () {
+function type () {
   if (isElectron) {
     return (isElectronRenderer || isElectronWorker)
       ? BOOT_ELECTRON_PRELOAD
@@ -35,42 +15,73 @@ function getBootType () {
   }
 }
 
-async function boot () {
-  const API = Pear.constructor
-  const ipc = new IPC.Client({
-    lock: API.CONSTANTS.PLATFORM_LOCK,
-    socketPath: API.CONSTANTS.SOCKET_PATH,
-    connectTimeout: API.CONSTANTS.CONNECT_TIMEOUT,
-    connect: tryboot
-  })
-  global.Pear[API.IPC] = ipc
-  const startId = API.RTI.startId
-  await ipc.ready()
-  await ipc.identify({ startId })
-  const drive = new AppDrive()
-  await drive.ready()
-  const type = getBootType()
-  const entry = getEntry(type)
-  const packed = await pack(drive, { entry, target, builtins, prebuildPrefix: pathToFileURL(API.RTI.ui).toString() })
-  await drive.close()
-  await ipc.close()
+setup()
 
-  const ldrive = new Localdrive(API.RTI.ui)
-  for (const [prebuild, addon] of packed.prebuilds) {
-    if (await ldrive.entry(prebuild) !== null) continue
-    await ldrive.put(prebuild, addon) // add any new prebuilds into asset prebuilds
+switch (type()) {
+  case BOOT_ELECTRON_PRELOAD: {
+    try {
+      const uint8 = electron.ipcRenderer.sendSync('preload')
+      const buffer = Buffer.from(uint8)
+      const bundle = Bundle.from(buffer)
+      evaluate(bundle)
+    } catch (err) {
+      console.error(err)
+    }
+
+    break
   }
+  case BOOT_ELECTRON_MAIN: {
+    configureElectron()
 
-  const bundle = Bundle.from(packed.bundle)
+    const API = global.Pear.constructor
 
-  setImmediate(() => { // preserve unhandled exceptions (so they don't become rejections)
-    runBundle(bundle, { mount: '/electron.bundle' })
-  })
+    const Client = require('pear-ipc/raw-client')
+
+    const ipc = new Client({
+      lock: API.CONSTANTS.PLATFORM_LOCK,
+      socketPath: API.CONSTANTS.SOCKET_PATH,
+      connectTimeout: API.CONSTANTS.CONNECT_TIMEOUT
+    })
+    global.Pear[API.IPC] = ipc
+
+    ipc.ready()
+      .then(() => ipc.identify({ startId: API.RTI.startId }), console.error) // TODO: have to identify for ipc.get to be valid
+      .then(async () => {
+        const buffer = await ipc.get({ key: '/node_modules/pear-electron/load.bundle' })
+        const loader = Bundle.from(buffer)
+        const prefix = pathToFileURL(API.RTI.ui)
+        for (const o of Object.values(loader.resolutions)) {
+          if (Object.hasOwn(o, 'require-addon') === false) continue
+          for (const hosts of Object.values(o)) {
+            const { platform, arch } = global.process
+            if (Object.hasOwn(hosts, platform) === false) continue
+            const prebuilds = hosts[platform]
+            if (typeof prebuilds === 'string') hosts[platform] = prefix + hosts[platform]
+            else hosts[platform][arch] = prefix + hosts[platform][arch]
+          }
+        }
+        const load = evaluate(loader).exports
+        const bundle = await load('file:///node_modules/pear-electron/electron-main.js')
+        setImmediate(() => { // preserve unhandled exceptions so they don't become rejections
+          evaluate(bundle)
+        })
+        electron.ipcMain.on('preload', async (evt) => {
+          const bundle = await load('file:///node_modules/pear-electron/preload.js')
+          evt.returnValue = bundle.toBuffer()
+        })
+      }, console.error)
+      .finally(() => {
+        const closing = ipc.close()
+        closing.catch(console.error)
+        return closing
+      })
+
+    break
+  }
+  default: throw Error('Unrecognized Environment')
 }
 
-boot().catch(console.error)
-
-function compat () {
+function setup () {
   const kIPC = Symbol('boot-ipc')
   const rtiFlagIx = process.argv.indexOf('--rti')
   const RTI = rtiFlagIx > -1 && process.argv[rtiFlagIx + 1]
@@ -84,54 +95,61 @@ function compat () {
   global.Pear = new API()
   global.Pear.config = global.Pear.app // TODO remove
   API.CONSTANTS = require('pear-constants')
-  const Addon = (...args) => {
-    console.log('attemptin Addon', args)
-  }
-  Addon.host = process.platform + '-' + process.arch
-  // spoof
-  global.Bare = {
-    simulator: false,
-    platform: process.platform,
-    arch: process.arch,
-    Addon,
-    versions: { bare: '1.22.0', uv: '1.51.0', v8: '13.8.258.18' }
-  }
-  return () => {
-    delete global.Bare // does not cause deopt as long as deleting the most recently added property on the object
-  }
+  global.BOOT = require?.main?.filename // TODO put this on API (make sure it transfers to later API instance)
 }
 
-// function traceProxy (target, name = 'proxy') {
-//   const cache = new WeakMap()
-//   const wrap = val => {
-//     if (val === null) return val
-//     const t = typeof val
-//     if (t !== 'object' && t !== 'function') return val
-//     if (cache.has(val)) return cache.get(val)
+function applingPath () {
+  const i = process.argv.indexOf('--appling')
+  if (i === -1 || process.argv.length <= i + 1) return null
+  return process.argv[i + 1]
+}
 
-//     const handler = {
-//       get (o, prop, recv) {
-//         console.log(name, 'get', String(prop))
-//         return wrap(Reflect.get(o, prop, recv))
-//       },
-//       set (o, prop, value, recv) {
-//         console.log(name, 'set', String(prop), value)
-//         return Reflect.set(o, prop, value, recv)
-//       },
-//       apply (fn, thisArg, args) {
-//         console.log(name, 'apply', args)
-//         return Reflect.apply(fn, thisArg, args)
-//       },
-//       construct (fn, args, newT) {
-//         console.log(name, 'construct', args)
-//         return wrap(Reflect.construct(fn, args, newT))
-//       }
-//     }
+function applingName () {
+  const a = applingPath()
+  if (!a) return null
 
-//     const p = new Proxy(val, handler)
-//     cache.set(val, p)
-//     return p
-//   }
+  if (isMac) {
+    const end = a.indexOf('.app')
+    if (end === -1) return null
+    const start = a.lastIndexOf('/', end) + 1
+    return a.slice(start, end)
+  }
 
-//   return wrap(target)
-// }
+  if (isWindows) {
+    const name = a.slice(a.lastIndexOf('\\') + 1).replace(/\.exe$/i, '')
+    return name || null
+  }
+
+  return null
+}
+
+function configureElectron () {
+  const appName = applingName()
+  if (appName) {
+    process.title = appName
+    electron.app.on('ready', () => { process.title = appName })
+  }
+
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
+
+  /* c8 ignore start */
+  const inspix = process.argv.indexOf('--inspector-port')
+  if (inspix > -1) {
+    electron.app.commandLine.appendSwitch('remote-debugging-port', inspix + 1)
+  }
+  /* c8 ignore stop */
+  electron.protocol.registerSchemesAsPrivileged([
+    { scheme: 'file', privileges: { secure: true, bypassCSP: true, corsEnabled: true, supportFetchAPI: true, allowServiceWorkers: true } }
+  ])
+
+  // TODO: Remove when issue https://github.com/electron/electron/issues/29458 is resolved.
+  electron.app.commandLine.appendSwitch('disable-features', 'WindowCaptureMacV2')
+
+  // Needed for running fully-local WebRTC proxies
+  electron.app.commandLine.appendSwitch('allow-loopback-in-peer-connection')
+
+  if (isLinux && process.env.XDG_SESSION_TYPE === 'wayland') {
+    electron.app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer,WaylandWindowDecorations')
+    electron.app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
+  }
+}

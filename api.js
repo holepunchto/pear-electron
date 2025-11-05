@@ -336,7 +336,6 @@ module.exports = (api) => {
           }
         }
       }
-
       this[this.constructor.UI] = new PearElectron()
     }
 

@@ -7,7 +7,7 @@ if (process.isMainFrame) {
   const timers = require('timers')
   const { isMac, isWindows, platform } = require('which-runtime')
   const API = require('pear-api')
-  const GUI = require('./gui')
+  const GUI = require('./gui/preload')
   const state = global.Pear.constructor._STATE
   const { parentWcId, env, id, rti, tray, ...config } = state
   const isDecal = state.isDecal || false
@@ -20,7 +20,6 @@ if (process.isMainFrame) {
   const gui = new GUI({ API, state })
   global.Pear = gui.api
   const PearElectron = Pear[Pear.constructor.UI]
-
   if (isDecal === false) Object.assign(process.env, env)
 
   {

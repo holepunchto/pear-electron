@@ -1,17 +1,14 @@
 'use strict'
 const electron = require('electron')
-const { isWindows, isMac, isLinux } = require('which-runtime')
 const { command } = require('paparam')
-const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-constants')
+const { SWAP } = require('pear-constants')
 const API = require('pear-api')
 const crasher = require('pear-crasher')
-const tryboot = require('pear-tryboot')
 const rundef = require('pear-cmd/run')
 const State = require('pear-state')
-const GUI = require('./gui')
+const GUI = require('./gui/gui')
 const argv = process.argv.slice(2) // ['path-to-runtime', 'run' ...args]
 
-configureElectron()
 crasher('electron-main', SWAP, argv.indexOf('--log') > -1)
 const run = command('run', ...rundef, electronMain)
 run.parse(argv)
@@ -32,12 +29,7 @@ async function electronMain (cmd) {
     return
   }
 
-  const gui = new GUI({
-    socketPath: SOCKET_PATH,
-    connectTimeout: CONNECT_TIMEOUT,
-    tryboot,
-    state
-  })
+  const gui = new GUI({ state })
   global.Pear = new API(gui.ipc, state)
   await gui.ready()
   // note: would be unhandled rejection on failure, but should never fail:
@@ -56,60 +48,4 @@ async function electronMain (cmd) {
   }) // note: would be unhandled rejection on failure, but should never fail
 
   await app.cutover()
-}
-
-function configureElectron () {
-  const appName = applingName()
-  if (appName) {
-    process.title = appName
-    electron.app.on('ready', () => { process.title = appName })
-  }
-
-  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
-
-  /* c8 ignore start */
-  const inspix = process.argv.indexOf('--inspector-port')
-  if (inspix > -1) {
-    electron.app.commandLine.appendSwitch('remote-debugging-port', inspix + 1)
-  }
-  /* c8 ignore stop */
-  electron.protocol.registerSchemesAsPrivileged([
-    { scheme: 'file', privileges: { secure: true, bypassCSP: true, corsEnabled: true, supportFetchAPI: true, allowServiceWorkers: true } }
-  ])
-
-  // TODO: Remove when issue https://github.com/electron/electron/issues/29458 is resolved.
-  electron.app.commandLine.appendSwitch('disable-features', 'WindowCaptureMacV2')
-
-  // Needed for running fully-local WebRTC proxies
-  electron.app.commandLine.appendSwitch('allow-loopback-in-peer-connection')
-
-  if (isLinux && process.env.XDG_SESSION_TYPE === 'wayland') {
-    electron.app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer,WaylandWindowDecorations')
-    electron.app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
-  }
-}
-
-function applingPath () {
-  const i = process.argv.indexOf('--appling')
-  if (i === -1 || process.argv.length <= i + 1) return null
-  return process.argv[i + 1]
-}
-
-function applingName () {
-  const a = applingPath()
-  if (!a) return null
-
-  if (isMac) {
-    const end = a.indexOf('.app')
-    if (end === -1) return null
-    const start = a.lastIndexOf('/', end) + 1
-    return a.slice(start, end)
-  }
-
-  if (isWindows) {
-    const name = a.slice(a.lastIndexOf('\\') + 1).replace(/\.exe$/i, '')
-    return name || null
-  }
-
-  return null
 }

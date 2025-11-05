@@ -1,9 +1,8 @@
 'use strict'
 const electron = require('electron')
-const { resolve } = require('path')
+const path = require('path')
 const unixPathResolve = require('unix-path-resolve')
 const { once } = require('events')
-const path = require('path')
 const { isMac, isLinux, isWindows } = require('which-runtime')
 const hypercoreid = require('hypercore-id-encoding')
 const IPC = require('pear-ipc')
@@ -397,7 +396,7 @@ class App {
   closing = null
   closed = false
   appReady = false
-  static root = unixPathResolve(resolve(__dirname, '..'))
+  static root = unixPathResolve(path.resolve(__dirname, '..'))
 
   constructor (gui) {
     const { state, ipc } = gui
@@ -1033,6 +1032,7 @@ class Window extends GuiCtrl {
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
+
     this.win = new BrowserWindow({
       ...(options.window || options),
       height,
@@ -1044,7 +1044,7 @@ class Window extends GuiCtrl {
       show,
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: global.BOOT,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
         additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
@@ -1150,7 +1150,7 @@ class Window extends GuiCtrl {
       ...(options.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: global.BOOT,
         session,
         additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
         autoHideMenuBar: true,
@@ -1364,7 +1364,7 @@ class View extends GuiCtrl {
       ...(options?.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: global.BOOT,
         session,
         additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
@@ -1462,13 +1462,14 @@ class PearGUI extends ReadyResource {
   _app = null
   #tray
 
-  constructor ({ socketPath, connectTimeout, tryboot, state }) {
+  constructor ({ state }) {
     super()
     this.state = state
+    const tryboot = require('pear-tryboot')
     this.ipc = new IPC.Client({
       lock: constants.PLATFORM_LOCK,
-      socketPath,
-      connectTimeout,
+      socketPath: constants.SOCKET_PATH,
+      connectTimeout: constants.CONNECT_TIMEOUT,
       api: {
         reports (method) {
           return (params = {}) => {
