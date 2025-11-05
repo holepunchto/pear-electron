@@ -1033,6 +1033,12 @@ class Window extends GuiCtrl {
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
+
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     this.win = new BrowserWindow({
       ...(options.window || options),
       height,
@@ -1047,7 +1053,7 @@ class Window extends GuiCtrl {
         preload: require.main.filename,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1143,11 +1149,6 @@ class Window extends GuiCtrl {
     const urls = ['http://*/*', 'https://*/*']
     session.webRequest.onBeforeRequest({ urls }, onBeforeRequest)
     session.webRequest.onBeforeSendHeaders(onBeforeSendHeaders)
-
-    const tray = {
-      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
-      darkMode: getDarkMode()
-    }
 
     if (this.closing) return false
 
