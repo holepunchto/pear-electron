@@ -1144,6 +1144,11 @@ class Window extends GuiCtrl {
     session.webRequest.onBeforeRequest({ urls }, onBeforeRequest)
     session.webRequest.onBeforeSendHeaders(onBeforeSendHeaders)
 
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     if (this.closing) return false
 
     this.view = new BrowserView({
@@ -1152,7 +1157,7 @@ class Window extends GuiCtrl {
       webPreferences: {
         preload: require.main.filename,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
