@@ -1033,6 +1033,11 @@ class Window extends GuiCtrl {
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
 
+    const tray = {
+      scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
+      darkMode: getDarkMode()
+    }
+
     this.win = new BrowserWindow({
       ...(options.window || options),
       height,
@@ -1047,7 +1052,7 @@ class Window extends GuiCtrl {
         preload: global.BOOT,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1152,7 +1157,7 @@ class Window extends GuiCtrl {
       webPreferences: {
         preload: global.BOOT,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
