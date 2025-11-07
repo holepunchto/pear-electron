@@ -11,7 +11,14 @@ const opts = {
   id: Pear.pid,
   dir: pathname,
   link: pear.assets.ui.link,
-  only: ['/by-arch', '/prebuilds'],
+  only: [
+    '/by-arch/darwin-arm64/bin/Pear Runtime.app',
+    '/by-arch/darwin-x64/bin/Pear Runtime.app',
+    '/by-arch/linux-arm64/bin/pear-runtime-app',
+    '/by-arch/linux-x64/bin/pear-runtime-app',
+    '/by-arch/win32-x64/bin/pear-runtime-app',
+    '/prebuilds'
+  ],
   force: true,
   json: !isTTY
 }
