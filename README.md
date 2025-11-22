@@ -88,7 +88,7 @@ Inside the `pear-electron` runtime desktop application, pear-electron resolves t
 
 **index.html**:
 ```html
-<script src="./app.js" type="module"><script>
+<script src="./app.js" type="module"></script>
 ```
 
 **app.js**:
