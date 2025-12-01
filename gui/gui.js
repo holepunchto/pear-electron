@@ -1029,7 +1029,12 @@ class Window extends GuiCtrl {
       this.appkin = null
     }
 
-    const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
+    // Handle serialized Buffer from IPC (becomes { type: 'Buffer', data: [...] })
+    let stateKey = this.state.key
+    if (stateKey && stateKey.type === 'Buffer' && Array.isArray(stateKey.data)) {
+      stateKey = Buffer.from(stateKey.data)
+    }
+    const session = electron.session.fromPartition(`persist:${this.sessname || (stateKey ? hypercoreid.encode(stateKey) : this.state.dir)}`)
 
     const { show = true } = { show: (options.show || options.window?.show) }
     const { height = this.constructor.height, width = this.constructor.width } = options
@@ -1353,7 +1358,12 @@ class View extends GuiCtrl {
       this.appkin = null
     }
 
-    const session = electron.session.fromPartition(`persist:${this.sessname || (this.state.key ? hypercoreid.encode(this.state.key) : this.state.dir)}`)
+    // Handle serialized Buffer from IPC (becomes { type: 'Buffer', data: [...] })
+    let stateKey = this.state.key
+    if (stateKey && stateKey.type === 'Buffer' && Array.isArray(stateKey.data)) {
+      stateKey = Buffer.from(stateKey.data)
+    }
+    const session = electron.session.fromPartition(`persist:${this.sessname || (stateKey ? hypercoreid.encode(stateKey) : this.state.dir)}`)
 
     const tray = {
       scaleFactor: electron.screen.getPrimaryDisplay().scaleFactor,
