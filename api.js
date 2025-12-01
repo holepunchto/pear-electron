@@ -83,7 +83,7 @@ module.exports = (api) => {
         constructor (id) {
           super()
           this.id = id
-          ipc.receiveFrom(id, (...args) => {
+          ipc.receiveFrom((...args) => {
             this.emit('message', ...args)
           })
         }
