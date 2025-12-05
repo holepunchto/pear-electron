@@ -6,16 +6,20 @@
   "scripts": {
     "bootstrap": "pear run scripts/bootstrap.js",
     "decal": "pear run scripts/decal.js",
-    "bundle": "pear run scripts/bundle.js",
+    "prebuilds": "pear run scripts/prebuilds.js",
     "prestage": "pear run scripts/prestage.mjs",
     "lint": "standard"
   },
   "files": [
-    "bootstrap.js",
+    "api.js",
+    "boot.js",
+    "electron-main.js",
+    "gui/",
     "index.js",
-    "runtime.js",
+    "prebuilds/",
+    "preload.js",
     "pre.js",
-    "api.js"
+    "runtime.js"
   ],
   "imports": {
     "fs": {
@@ -31,19 +35,22 @@
         "link": "pear://0.940.cktxzetiwt6un3ado5kgqedge6ya4nfazjckzq76zcapefwxakdy",
         "name": "Pear Runtime",
         "only": [
-          "/boot.bundle",
-          "/by-arch/%%HOST%%",
-          "/prebuilds/%%HOST%%"
-        ]
+          "/by-arch/%%HOST%%"
+        ],
+        "pack": [{
+          "bundle": "/boot.bundle",
+          "entry": "/node_modules/pear-electron/boot.js",
+          "builtins": ["electron","net","assert","console","events","fs","fs/promises","http","https","os","path","child_process","repl","url","tty","module","process","timers","inspector"],
+          "extensions": [".node"],
+          "conditions": ["electron", "renderer", "node"]
+        }]
       }
     },
     "stage": {
       "skipWarmup": "true",
       "only": [
-        "boot.bundle",
         "by-arch",
         "CHANGELOG.md",
-        "prebuilds",
         "template"
       ]
     }
