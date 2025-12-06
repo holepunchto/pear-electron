@@ -25,12 +25,21 @@ const opts = {
 }
 
 const transforms = {
-  dumping: ({ link, dir, list }) => list > -1 ? '' : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,
+  dumping: ({ link, dir, list }) =>
+    list > -1
+      ? ''
+      : `\n${ansi.pear} Bootstrapping pear-electron runtimes from peers\n\nfrom: ${link}\ninto: ${dir}\n`,
   file: ({ key, value }) => `${key}${value ? '\n' + value : ''}`,
   complete: () => '\x1b[1A\nBootstrap complete\n',
-  stats ({ upload, download, peers }) {
-    const dl = download.bytes + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.bytes)} - ${byteSize(download.speed)}/s ] `
-    const ul = upload.bytes + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.bytes)} - ${byteSize(upload.speed)}/s ] `
+  stats({ upload, download, peers }) {
+    const dl =
+      download.bytes + download.speed === 0
+        ? ''
+        : `[${ansi.down} ${byteSize(download.bytes)} - ${byteSize(download.speed)}/s ] `
+    const ul =
+      upload.bytes + upload.speed === 0
+        ? ''
+        : `[${ansi.up} ${byteSize(upload.bytes)} - ${byteSize(upload.speed)}/s ] `
     return {
       output: 'status',
       message: `[ Peers: ${peers} ] ${dl}${ul}`
@@ -40,7 +49,7 @@ const transforms = {
   final: () => 'Bootstrapped'
 }
 
-async function bootstrap (opts, outs = transforms) {
+async function bootstrap(opts, outs = transforms) {
   const output = outputter('dump', outs)
   const ipc = new IPC.Client({
     lock: PLATFORM_LOCK,

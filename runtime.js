@@ -23,23 +23,31 @@ const pkg = require('./package.json')
 
 const bin = (name) => {
   const kebab = name.toLowerCase().split(' ').join('-')
-  const cased = kebab.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
+  const cased = kebab
+    .split('-')
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(' ')
   const app = isMac ? cased + '.app' : kebab + '-app'
-  const exe = isWindows ? cased + '.exe' : (isMac ? 'Contents/MacOS/' + cased : kebab)
-  return isWindows ? 'bin\\' + app + '\\' + exe : (isMac ? 'bin/' + app + '/' + exe : 'bin/' + app + '/' + exe)
+  const exe = isWindows ? cased + '.exe' : isMac ? 'Contents/MacOS/' + cased : kebab
+  return isWindows
+    ? 'bin\\' + app + '\\' + exe
+    : isMac
+      ? 'bin/' + app + '/' + exe
+      : 'bin/' + app + '/' + exe
 }
 
 class PearElectron {
-  constructor () {
+  constructor() {
     if (!Pear.app.assets.ui?.path) {
-      const info =
-        Pear.app.options.pre
-          ? { assets: Pear.app.assets }
-          : { assets: Pear.app.assets, hint: 'set pre: pear-electron/pre to autoset assets.ui' }
+      const info = Pear.app.options.pre
+        ? { assets: Pear.app.assets }
+        : { assets: Pear.app.assets, hint: 'set pre: pear-electron/pre to autoset assets.ui' }
       throw new ERR_INVALID_CONFIG('pear.assets.ui must be defined for project', info)
     }
     if (!Pear.app.assets.ui?.name) {
-      throw new ERR_INVALID_CONFIG('pear.assets.ui.name must be defined for project', { assets: Pear.app.assets })
+      throw new ERR_INVALID_CONFIG('pear.assets.ui.name must be defined for project', {
+        assets: Pear.app.assets
+      })
     }
     this.ipc = Pear[Pear.constructor.IPC]
     this.applink = new URL(Pear.app.applink)
@@ -47,8 +55,13 @@ class PearElectron {
     Pear.teardown(() => this.ipc.close())
   }
 
-  async start (opts = {}) {
-    this.bin = path.join(Pear.app.assets.ui.path, 'by-arch', require.addon.host, bin(Pear.app.assets.ui.name))
+  async start(opts = {}) {
+    this.bin = path.join(
+      Pear.app.assets.ui.path,
+      'by-arch',
+      require.addon.host,
+      bin(Pear.app.assets.ui.name)
+    )
     const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)
     let argv = parsed.rest
@@ -75,7 +88,8 @@ class PearElectron {
 
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
-    if ((isLinux || isWindows) && indices.flags.sandbox === undefined) argv.splice(indices.args.link, 0, '--no-sandbox')
+    if ((isLinux || isWindows) && indices.flags.sandbox === undefined)
+      argv.splice(indices.args.link, 0, '--no-sandbox')
 
     const builtins = [
       'electron',
@@ -104,7 +118,14 @@ class PearElectron {
 
     const prebuilds = path.join(Pear.app.assets.ui.path, 'prebuilds')
 
-    const boot = await this.ipc.bundle({ cache: true, entry: '/node_modules/pear-electron/boot.js', prebuilds, builtins, extensions, conditions })
+    const boot = await this.ipc.bundle({
+      cache: true,
+      entry: '/node_modules/pear-electron/boot.js',
+      prebuilds,
+      builtins,
+      extensions,
+      conditions
+    })
 
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
@@ -149,7 +170,8 @@ class PearElectron {
 
     const onerr = (data) => {
       const str = data.toString()
-      const ignore = str.indexOf('DevTools listening on ws://') > -1 ||
+      const ignore =
+        str.indexOf('DevTools listening on ws://') > -1 ||
         str.indexOf('NSApplicationDelegate.applicationSupportsSecureRestorableState') > -1 ||
         str.indexOf('", source: devtools://devtools/') > -1 ||
         str.indexOf('sysctlbyname for kern.hv_vmm_present failed with status -1') > -1 ||
@@ -166,7 +188,7 @@ class PearElectron {
   }
 }
 
-function project (dir, initial) {
+function project(dir, initial) {
   try {
     if (JSON.parse(fs.readFileSync(path.join(dir, 'package.json'))).pear) {
       return { dir, entrypoint: initial.slice(dir.length) }
@@ -176,12 +198,14 @@ function project (dir, initial) {
   }
   const parent = path.dirname(dir)
   if (parent === dir) {
-    throw ERR_INVALID_PROJECT_DIR(`A valid package.json file with pear field must exist (checked from "${initial}" to "${dir}")`)
+    throw ERR_INVALID_PROJECT_DIR(
+      `A valid package.json file with pear field must exist (checked from "${initial}" to "${dir}")`
+    )
   }
   return project(parent, initial)
 }
 
-function normalize (pathname) {
+function normalize(pathname) {
   if (isWindows) return path.normalize(pathname.slice(1))
   return pathname
 }

@@ -6,7 +6,9 @@ const state = RTI ? null : JSON.parse(process.argv[process.argv.indexOf('--state
 const app = {}
 class API {
   static RTI = RTI ? JSON.parse(RTI) : state.rti // runtime information
-  static get CONSTANTS () { return require('pear-constants') }
+  static get CONSTANTS() {
+    return require('pear-constants')
+  }
   app = app
   config = app
 }
@@ -26,10 +28,8 @@ switch (getBootType()) {
   }
 }
 
-function getBootType () {
+function getBootType() {
   if (isElectron) {
-    return (isElectronRenderer || isElectronWorker)
-      ? BOOT_ELECTRON_PRELOAD
-      : BOOT_ELECTRON_MAIN
+    return isElectronRenderer || isElectronWorker ? BOOT_ELECTRON_PRELOAD : BOOT_ELECTRON_MAIN
   }
 }
