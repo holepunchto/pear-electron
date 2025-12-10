@@ -9,7 +9,7 @@ const tryboot = require('pear-tryboot')
 const rundef = require('pear-cmd/run')
 const State = require('pear-state')
 const GUI = require('./gui')
-const argv = process.argv.slice(2) // ['path-to-runtime', 'run' ...args]
+const argv = process.argv.slice(2) // ['path-to-runtime', 'path-to-bundle', ...args]
 
 configureElectron()
 crasher('electron-main', SWAP, argv.indexOf('--log') > -1)
@@ -68,7 +68,7 @@ function configureElectron () {
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
   /* c8 ignore start */
-  const inspix = process.argv.indexOf('--inspector-port')
+  const inspix = argv.indexOf('--inspector-port')
   if (inspix > -1) {
     electron.app.commandLine.appendSwitch('remote-debugging-port', inspix + 1)
   }
@@ -90,9 +90,9 @@ function configureElectron () {
 }
 
 function applingPath () {
-  const i = process.argv.indexOf('--appling')
-  if (i === -1 || process.argv.length <= i + 1) return null
-  return process.argv[i + 1]
+  const i = argv.indexOf('--appling')
+  if (i === -1 || argv.length <= i + 1) return null
+  return argv[i + 1]
 }
 
 function applingName () {

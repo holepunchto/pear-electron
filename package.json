@@ -32,18 +32,11 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "pear://0.940.cktxzetiwt6un3ado5kgqedge6ya4nfazjckzq76zcapefwxakdy",
+        "link": "TODO - needs new build link per https://github.com/holepunchto/electron-runtime/pull/4",
         "name": "Pear Runtime",
         "only": [
           "/by-arch/%%HOST%%"
-        ],
-        "pack": [{
-          "bundle": "/boot.bundle",
-          "entry": "/node_modules/pear-electron/boot.js",
-          "builtins": ["electron","net","assert","console","events","fs","fs/promises","http","https","os","path","child_process","repl","url","tty","module","process","timers","inspector"],
-          "extensions": [".node"],
-          "conditions": ["electron", "renderer", "node"]
-        }]
+        ]
       }
     },
     "stage": {
@@ -115,7 +108,6 @@
     "quickbit-universal": "^2.2.0",
     "redhat-overpass-font": "^1.0.0",
     "rocksdb-native": "^3.5.5",
-    "sodium-native": "^5.0.1",
     "standard": "^17.1.2",
     "udx-native": "^1.18.3"
   }

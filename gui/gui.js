@@ -15,9 +15,11 @@ const kCtrl = Symbol('pear.gui.ctrl')
 const streamx = require('streamx')
 const pipe = require('pear-pipe')()
 const run = require('pear-run')
-
-const defaultTrayOs = { win32: true, linux: true, darwin: true }
 const defaultTrayIcon = require('./icons/tray')
+const defaultTrayOs = { win32: true, linux: true, darwin: true }
+const boot = isMac
+  ? path.join(process.execPath, '..', '..', 'Resources', 'app', 'boot.js')
+  : path.join(process.execPath, '..', 'resources', 'app', 'boot.js')
 
 class Menu {
   static PEAR = 0
@@ -1044,10 +1046,10 @@ class Window extends GuiCtrl {
       show,
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: boot,
         ...(decal === false ? { session } : {}),
         partition: 'persist:pear',
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
+        additionalArguments: [process.argv[1], '--state', JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1150,9 +1152,9 @@ class Window extends GuiCtrl {
       ...(options.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: boot,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
+        additionalArguments: [process.argv[1], '--state', JSON.stringify({ ...this.state.config, rti: this.rti, parentWcId: this.win.webContents.id, decalled: true })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,
@@ -1364,9 +1366,9 @@ class View extends GuiCtrl {
       ...(options?.view || options),
       backgroundColor: options.backgroundColor || DEF_BG,
       webPreferences: {
-        preload: require.main.filename,
+        preload: boot,
         session,
-        additionalArguments: [JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
+        additionalArguments: [process.argv[1], '--state', JSON.stringify({ ...this.state.config, ...(options?.view?.config || options.config || {}), rti: this.rti, parentWcId: this.win.webContents.id, tray })],
         autoHideMenuBar: true,
         experimentalFeatures: true,
         nodeIntegration: true,

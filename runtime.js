@@ -7,7 +7,7 @@ const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
 const { isLinux, isWindows, isMac } = require('which-runtime')
-const { pathToFileURL } = require('url-file-url')
+const { pathToFileURL, fileURLToPath } = require('url-file-url')
 const constants = require('pear-constants')
 const plink = require('pear-link')
 const Logger = require('pear-logger')
@@ -31,29 +31,29 @@ const bin = (name) => {
 
 class PearElectron {
   constructor () {
-    if (!Pear.config.assets.ui?.path) {
+    if (!Pear.app.assets.ui?.path) {
       const info =
-        Pear.config.options.pre
-          ? { assets: Pear.config.assets }
-          : { assets: Pear.config.assets, hint: 'set pre: pear-electron/pre to autoset assets.ui' }
+        Pear.app.options.pre
+          ? { assets: Pear.app.assets }
+          : { assets: Pear.app.assets, hint: 'set pre: pear-electron/pre to autoset assets.ui' }
       throw new ERR_INVALID_CONFIG('pear.assets.ui must be defined for project', info)
     }
-    if (!Pear.config.assets.ui?.name) {
-      throw new ERR_INVALID_CONFIG('pear.assets.ui.name must be defined for project', { assets: Pear.config.assets })
+    if (!Pear.app.assets.ui?.name) {
+      throw new ERR_INVALID_CONFIG('pear.assets.ui.name must be defined for project', { assets: Pear.app.assets })
     }
     this.ipc = Pear[Pear.constructor.IPC]
-    this.applink = new URL(Pear.config.applink)
+    this.applink = new URL(Pear.app.applink)
     this.LOG = new Logger({ labels: [pkg.name] })
     Pear.teardown(() => this.ipc.close())
   }
 
   async start (opts = {}) {
-    this.bin = path.join(Pear.config.assets.ui.path, 'by-arch', require.addon.host, bin(Pear.config.assets.ui.name))
+    this.bin = path.join(Pear.app.assets.ui.path, 'by-arch', require.addon.host, bin(Pear.app.assets.ui.name))
     const parsed = pear(Pear.argv.slice(1))
     const cmd = command('run', ...run)
     let argv = parsed.rest
     const { args, indices } = cmd.parse(argv)
-    let link = Pear.config.link
+    let link = Pear.app.link
     const { drive, pathname, hash, search } = plink.parse(link)
     const { key } = drive
     const isPear = link.startsWith('pear://')
@@ -76,15 +76,45 @@ class PearElectron {
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
     if ((isLinux || isWindows) && indices.flags.sandbox === undefined) argv.splice(indices.args.link, 0, '--no-sandbox')
+
+    const builtins = [
+      'electron',
+      'net',
+      'assert',
+      'console',
+      'events',
+      'fs',
+      'fs/promises',
+      'http',
+      'https',
+      'os',
+      'path',
+      'child_process',
+      'repl',
+      'url',
+      'tty',
+      'module',
+      'process',
+      'timers',
+      'inspector'
+    ]
+    const extensions = ['.node']
+
+    const conditions = ['electron', 'node']
+
+    const prebuilds = path.join(Pear.app.assets.ui.path, 'prebuilds')
+
+    const boot = await this.ipc.bundle({ cache: true, entry: '/node_modules/pear-electron/boot.js', prebuilds, builtins, extensions, conditions })
+
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
       bridge: opts.bridge?.addr ?? undefined,
-      startId: Pear.config.startId,
+      startId: Pear.app.startId,
       dir
     })
 
-    argv = ['run', '--rti', info, ...argv]
+    argv = [fileURLToPath(boot.file), '--rti', info, ...argv]
     const stdio = args.detach
       ? ['ignore', 'ignore', 'ignore', 'overlapped']
       : ['ignore', 'inherit', 'pipe', 'overlapped']
