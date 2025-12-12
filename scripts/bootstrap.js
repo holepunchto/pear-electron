@@ -4,13 +4,14 @@ const IPC = require('pear-ipc')
 const { PLATFORM_LOCK, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-constants')
 const tryboot = require('pear-tryboot')
 const { outputter, ansi, byteSize, isTTY } = require('pear-terminal')
-const { pear } = require('../package.json')
 const { pathname } = new URL(Pear.config.applink)
+
+const RUNTIMES = 'pear://0.1167.6988abemqn7ogjpm8cjjg4aeb81rduxfn4h31sgn44u3cadu9s7o'
 
 const opts = {
   id: Pear.pid,
   dir: pathname,
-  link: pear.assets.ui.link,
+  link: RUNTIMES,
   only: [
     '/by-arch/darwin-arm64/bin/Pear Runtime.app',
     '/by-arch/darwin-x64/bin/Pear Runtime.app',
@@ -28,14 +29,15 @@ const transforms = {
   file: ({ key, value }) => `${key}${value ? '\n' + value : ''}`,
   complete: () => '\x1b[1A\nBootstrap complete\n',
   stats ({ upload, download, peers }) {
-    const dl = download.total + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.total)} - ${byteSize(download.speed)}/s ] `
-    const ul = upload.total + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.total)} - ${byteSize(upload.speed)}/s ] `
+    const dl = download.bytes + download.speed === 0 ? '' : `[${ansi.down} ${byteSize(download.bytes)} - ${byteSize(download.speed)}/s ] `
+    const ul = upload.bytes + upload.speed === 0 ? '' : `[${ansi.up} ${byteSize(upload.bytes)} - ${byteSize(upload.speed)}/s ] `
     return {
       output: 'status',
       message: `[ Peers: ${peers} ] ${dl}${ul}`
     }
   },
-  error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`
+  error: (err) => `Bootstrap Failure (code: ${err.code || 'none'}) ${err.stack}`,
+  final: () => 'Bootstrapped'
 }
 
 async function bootstrap (opts, outs = transforms) {
