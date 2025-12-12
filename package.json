@@ -32,7 +32,7 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "TODO - needs new build link per https://github.com/holepunchto/electron-runtime/pull/4",
+        "link": "pear://0.1165.oitfruq7rndnbat9dcyy37nq4i69qbx351bczopusqgqahzzne6o",
         "name": "Pear Runtime",
         "only": [
           "/by-arch/%%HOST%%"
@@ -85,7 +85,7 @@
     "pear-crasher": "^1.0.1",
     "pear-errors": "^1.0.0",
     "pear-gunk": "^1.0.0",
-    "pear-ipc": "^6.4.0",
+    "pear-ipc": "^6.9.0",
     "pear-link": "^4.1.0",
     "pear-logger": "^1.0.0",
     "pear-pipe": "^1.0.2",
