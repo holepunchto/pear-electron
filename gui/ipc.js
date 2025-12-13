@@ -55,6 +55,11 @@ module.exports = class IPC {
   badge (...args) { return electron.ipcRenderer.invoke('badge', ...args) }
   find (...args) { return electron.ipcRenderer.invoke('find', ...args) }
 
+  showOpenDialog (...args) { return electron.dialog.showOpenDialog(...args) }
+  showSaveDialog (...args) { return electron.dialog.showSaveDialog(...args) }
+  showMessageBox (...args) { return electron.dialog.showMessageBox(...args) }
+  showErrorBox (...args) { return electron.dialog.showErrorBox(...args) }
+
   getPathForFile (file) { return electron.webUtils.getPathForFile(file) }
 
   tray (opts, listener) {
