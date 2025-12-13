@@ -37,7 +37,11 @@ module.exports = (api) => {
           screen: () => ipc.askForMediaAccess({ id, media: 'screen' })
         },
         desktopSources: (options = {}) => ipc.desktopSources(options),
-        getPathForFile: (file) => ipc.getPathForFile(file)
+        getPathForFile: (file) => ipc.getPathForFile(file),
+        showOpenDialog: (...args) => ipc.showOpenDialog(...args),
+        showSaveDialog: (...args) => ipc.showSaveDialog(...args),
+        showMessageBox: (...args) => ipc.showMessageBox(...args),
+        showErrorBox: (...args) => ipc.showErrorBox(...args)
       }
 
       class Found extends streamx.Readable {
