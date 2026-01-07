@@ -8,7 +8,8 @@
     "decal": "pear run scripts/decal.js",
     "prebuilds": "pear run scripts/prebuilds.js",
     "prestage": "pear run scripts/prestage.mjs",
-    "lint": "standard"
+    "format": "prettier --write .",
+    "lint": "prettier --check . && lunte"
   },
   "files": [
     "api.js",
@@ -98,12 +99,15 @@
     "@fontsource/open-sans": "^5.1.0",
     "crc-universal": "^1.0.4",
     "fs-native-extensions": "^1.4.2",
+    "lunte": "^1.4.0",
     "pear-interface": "^1.0.3",
     "pear-pack": "^1.0.1",
+    "prettier": "^3.7.4",
+    "prettier-config-holepunch": "^2.0.0",
     "quickbit-universal": "^2.2.0",
     "redhat-overpass-font": "^1.0.0",
     "rocksdb-native": "^3.5.5",
-    "standard": "^17.1.2",
+    "sodium-native": "^5.0.1",
     "udx-native": "^1.18.3"
   }
 }

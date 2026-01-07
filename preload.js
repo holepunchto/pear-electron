@@ -1,7 +1,6 @@
 'use strict'
 
-/* global Pear */
-/* eslint-env node, browser */
+/* global Pear, XMLHttpRequest, history, window, location, customElements, HTMLElement, MutationObserver, IntersectionObserver, window, document */
 module.exports = (state) => {
   if (!process.isMainFrame) return
   const electron = require('electron')
@@ -15,7 +14,9 @@ module.exports = (state) => {
   const dir = config.dir
   state.config = config
   process.chdir(dir)
-  if (config.fragment) history.replaceState(null, null, '#' + config.fragment)
+  if (config.fragment) {
+    history.replaceState(null, null, '#' + config.fragment)
+  }
 
   const gui = new GUI({ API, state })
   window.Pear = gui.api
@@ -24,7 +25,8 @@ module.exports = (state) => {
   if (isDecal === false) Object.assign(process.env, env)
 
   {
-    const { setTimeout, clearTimeout, setImmediate, clearImmediate, setInterval, clearInterval } = timers
+    const { setTimeout, clearTimeout, setImmediate, clearImmediate, setInterval, clearInterval } =
+      timers
     global.setTimeout = setTimeout
     global.clearTimeout = clearTimeout
     global.setImmediate = setImmediate
@@ -34,7 +36,9 @@ module.exports = (state) => {
   }
 
   if (isDecal) {
-    electron.ipcRenderer.once('exit', (e, code) => { Pear.exit(code) })
+    electron.ipcRenderer.once('exit', (e, code) => {
+      Pear.exit(code)
+    })
   } else {
     process.once('exit', (code) => {
       const actuallyARefresh = code === undefined
@@ -60,13 +64,13 @@ module.exports = (state) => {
       mapImport: gunk.platform.mapImport,
       symbol: gunk.platform.symbol,
       protocol: gunk.platform.protocol,
-      getSync (url) {
+      getSync(url) {
         const xhr = new XMLHttpRequest()
         xhr.open('GET', url, false)
         xhr.send(null)
         return xhr.responseText
       },
-      resolveSync (req, dirname, { isImport }) {
+      resolveSync(req, dirname, { isImport }) {
         const xhr = new XMLHttpRequest()
         const type = isImport ? 'esm' : 'cjs'
         const url = `${dirname}/~${req}+platform-resolve+${type}`
@@ -83,13 +87,13 @@ module.exports = (state) => {
       mapImport: gunk.app.mapImport,
       symbol: gunk.app.symbol,
       protocol: gunk.app.protocol,
-      getSync (url) {
+      getSync(url) {
         const xhr = new XMLHttpRequest()
         xhr.open('GET', url, false)
         xhr.send(null)
         return xhr.responseText
       },
-      resolveSync (req, dirname, { isImport }) {
+      resolveSync(req, dirname, { isImport }) {
         const xhr = new XMLHttpRequest()
         const type = isImport ? 'esm' : 'cjs'
         const url = `${dirname}/~${req}+resolve+${type}`
@@ -100,7 +104,7 @@ module.exports = (state) => {
       }
     })
 
-    async function warm () {
+    async function warm() {
       for await (const { batch, protocol } of Pear[Pear.constructor.UI].warming()) {
         let sl = null
         if (protocol === 'pear' || protocol === 'holepunch') sl = pltsl
@@ -113,7 +117,7 @@ module.exports = (state) => {
     if (Pear.config.isDecal === false) warm().catch(console.error)
   }
 
-  function descopeGlobals () {
+  function descopeGlobals() {
     delete global.require
     delete global.module
     delete global.__dirname
@@ -122,139 +126,152 @@ module.exports = (state) => {
 
   descopeGlobals()
 
-  customElements.define('pear-ctrl', class extends HTMLElement {
-    #onfocus = null
-    #onblur = null
-    #demax = null
-    #closing = null
-    get closing () {
-      return this.#closing === null ? Promise.resolve() : this.#closing
-    }
-
-    static get observedAttributes () {
-      return ['data-minimizable', 'data-maximizable']
-    }
-
-    attributeChangedCallback (name) {
-      if (name.startsWith('data-') === false) return
-      if (name === 'data-minimizable') {
-        this.#setMinimizable(strToBool(this.dataset.minimizable))
+  customElements.define(
+    'pear-ctrl',
+    class extends HTMLElement {
+      #onfocus = null
+      #onblur = null
+      #demax = null
+      #closing = null
+      get closing() {
+        return this.#closing === null ? Promise.resolve() : this.#closing
       }
-      if (name === 'data-maximizable') {
-        this.#setMaximizable(strToBool(this.dataset.maximizable))
+
+      static get observedAttributes() {
+        return ['data-minimizable', 'data-maximizable']
       }
-    }
 
-    async #maclights (visible) {
-      await gui.ipc.setWindowButtonVisibility({ id: gui.id, visible })
-      const { x, y } = this.root.querySelector('#ctrl').getBoundingClientRect()
-      await gui.ipc.setWindowButtonPosition({ id: gui.id, point: { x, y: y - 6 } })
-    }
+      attributeChangedCallback(name) {
+        if (name.startsWith('data-') === false) return
+        if (name === 'data-minimizable') {
+          this.#setMinimizable(strToBool(this.dataset.minimizable))
+        }
+        if (name === 'data-maximizable') {
+          this.#setMaximizable(strToBool(this.dataset.maximizable))
+        }
+      }
 
-    connectedCallback () {
-      this.dataset.platform = platform
-      if (isMac) {
-        this.#maclights(true).catch(console.error)
-        this.mutations = new MutationObserver(async () => {
-          const { x, y } = this.root.querySelector('#ctrl').getBoundingClientRect()
-          await gui.ipc.setWindowButtonPosition({ id: gui.id, point: { x, y: y - 6 } })
+      async #maclights(visible) {
+        await gui.ipc.setWindowButtonVisibility({ id: gui.id, visible })
+        const { x, y } = this.root.querySelector('#ctrl').getBoundingClientRect()
+        await gui.ipc.setWindowButtonPosition({ id: gui.id, point: { x, y: y - 6 } })
+      }
+
+      connectedCallback() {
+        this.dataset.platform = platform
+        if (isMac) {
+          this.#maclights(true).catch(console.error)
+          this.mutations = new MutationObserver(async () => {
+            const { x, y } = this.root.querySelector('#ctrl').getBoundingClientRect()
+            await gui.ipc.setWindowButtonPosition({ id: gui.id, point: { x, y: y - 6 } })
+          })
+          this.mutations.observe(this, { attributes: true })
+
+          this.intesections = new IntersectionObserver(
+            ([element]) => this.#maclights(element.isIntersecting),
+            { threshold: 0 }
+          )
+
+          this.intesections.observe(this)
+          this.#setCtrl()
+          return
+        }
+        const min = this.root.querySelector('#min')
+        const max = this.root.querySelector('#max')
+        const restore = this.root.querySelector('#restore')
+        const close = this.root.querySelector('#close')
+
+        max.addEventListener('click', this.#max)
+        min.addEventListener('click', this.#min)
+
+        if (restore) restore.addEventListener('click', this.#restore)
+        close.addEventListener('click', this.#close)
+        window.addEventListener('focus', this.#onfocus)
+        window.addEventListener('blur', this.#onblur)
+        window.addEventListener('mouseover', (e) => {
+          const x = e.clientX
+          const y = e.clientY
+          if (document.elementFromPoint(x, y) === this) this.#onfocus()
         })
-        this.mutations.observe(this, { attributes: true })
 
-        this.intesections = new IntersectionObserver(([element]) => this.#maclights(element.isIntersecting), { threshold: 0 })
-
-        this.intesections.observe(this)
         this.#setCtrl()
-        return
-      }
-      const min = this.root.querySelector('#min')
-      const max = this.root.querySelector('#max')
-      const restore = this.root.querySelector('#restore')
-      const close = this.root.querySelector('#close')
-
-      max.addEventListener('click', this.#max)
-      min.addEventListener('click', this.#min)
-
-      if (restore) restore.addEventListener('click', this.#restore)
-      close.addEventListener('click', this.#close)
-      window.addEventListener('focus', this.#onfocus)
-      window.addEventListener('blur', this.#onblur)
-      window.addEventListener('mouseover', (e) => {
-        const x = e.clientX
-        const y = e.clientY
-        if (document.elementFromPoint(x, y) === this) this.#onfocus()
-      })
-
-      this.#setCtrl()
-    }
-
-    async #setCtrl () {
-      if (this.dataset.minimizable !== undefined) this.#setMinimizable(strToBool(this.dataset.minimizable))
-      if (this.dataset.maximizable !== undefined) this.#setMaximizable(strToBool(this.dataset.maximizable))
-    }
-
-    async #setMaximizable (value) {
-      if (!isMac) {
-        this.root.querySelector('#max').style.display = value ? 'inline' : 'none'
-      } else {
-        await gui.ipc.setMaximizable({ id: gui.id, value: !!value })
-      }
-    }
-
-    async #setMinimizable (value) {
-      if (!isMac) {
-        this.root.querySelector('#min').style.display = value ? 'inline' : 'none'
-      } else {
-        await gui.ipc.setMinimizable({ id: gui.id, value: !!value })
-      }
-    }
-
-    disconnectedCallback () {
-      if (isMac) {
-        this.mutations.disconnect()
-        this.intesections.disconnect()
-        this.#closing = gui.ipc.setWindowButtonVisibility({ id: gui.id, visible: false })
-        return
       }
 
-      const min = this.root.querySelector('#min')
-      const max = this.root.querySelector('#max')
-      const restore = this.root.querySelector('#restore')
-      const close = this.root.querySelector('#close')
-      min.removeEventListener('click', this.#min)
-      max.removeEventListener('click', this.#max)
-      if (restore) restore.removeEventListener('click', this.#restore)
-      close.removeEventListener('click', this.#close)
-      window.removeEventListener('focus', this.#onfocus)
-      window.removeEventListener('blur', this.#onblur)
-    }
+      async #setCtrl() {
+        if (this.dataset.minimizable !== undefined) {
+          this.#setMinimizable(strToBool(this.dataset.minimizable))
+        }
+        if (this.dataset.maximizable !== undefined) {
+          this.#setMaximizable(strToBool(this.dataset.maximizable))
+        }
+      }
 
-    constructor () {
-      super()
-      this.template = document.createElement('template')
-      this.template.innerHTML = isWindows ? this.#win() : (isMac ? this.#mac() : this.#gen())
-      this.root = this.attachShadow({ mode: 'open' })
-      this.root.appendChild(this.template.content.cloneNode(true))
-      this.#onfocus = () => this.root.querySelector('#ctrl').classList.add('focused')
-      this.#onblur = () => this.root.querySelector('#ctrl').classList.remove('focused')
-      this.#demax = () => this.root.querySelector('#ctrl').classList.remove('max')
-    }
+      async #setMaximizable(value) {
+        if (!isMac) {
+          this.root.querySelector('#max').style.display = value ? 'inline' : 'none'
+        } else {
+          await gui.ipc.setMaximizable({ id: gui.id, value: !!value })
+        }
+      }
 
-    async #min () { await PearElectron.app.minimize() }
-    async #max (e) {
-      if (isMac) await PearElectron.app.fullscreen()
-      else await PearElectron.app.maximize()
-      e.target.root.querySelector('#ctrl').classList.add('max')
-    }
+      async #setMinimizable(value) {
+        if (!isMac) {
+          this.root.querySelector('#min').style.display = value ? 'inline' : 'none'
+        } else {
+          await gui.ipc.setMinimizable({ id: gui.id, value: !!value })
+        }
+      }
 
-    async #restore (e) {
-      await PearElectron.app.restore()
-      e.target.root.querySelector('#ctrl').classList.remove('max')
-    }
+      disconnectedCallback() {
+        if (isMac) {
+          this.mutations.disconnect()
+          this.intesections.disconnect()
+          this.#closing = gui.ipc.setWindowButtonVisibility({ id: gui.id, visible: false })
+          return
+        }
 
-    async #close () { await PearElectron.app.close() }
-    #win () {
-      return `
+        const min = this.root.querySelector('#min')
+        const max = this.root.querySelector('#max')
+        const restore = this.root.querySelector('#restore')
+        const close = this.root.querySelector('#close')
+        min.removeEventListener('click', this.#min)
+        max.removeEventListener('click', this.#max)
+        if (restore) restore.removeEventListener('click', this.#restore)
+        close.removeEventListener('click', this.#close)
+        window.removeEventListener('focus', this.#onfocus)
+        window.removeEventListener('blur', this.#onblur)
+      }
+
+      constructor() {
+        super()
+        this.template = document.createElement('template')
+        this.template.innerHTML = isWindows ? this.#win() : isMac ? this.#mac() : this.#gen()
+        this.root = this.attachShadow({ mode: 'open' })
+        this.root.appendChild(this.template.content.cloneNode(true))
+        this.#onfocus = () => this.root.querySelector('#ctrl').classList.add('focused')
+        this.#onblur = () => this.root.querySelector('#ctrl').classList.remove('focused')
+        this.#demax = () => this.root.querySelector('#ctrl').classList.remove('max')
+      }
+
+      async #min() {
+        await PearElectron.app.minimize()
+      }
+      async #max(e) {
+        if (isMac) await PearElectron.app.fullscreen()
+        else await PearElectron.app.maximize()
+        e.target.root.querySelector('#ctrl').classList.add('max')
+      }
+
+      async #restore(e) {
+        await PearElectron.app.restore()
+        e.target.root.querySelector('#ctrl').classList.remove('max')
+      }
+
+      async #close() {
+        await PearElectron.app.close()
+      }
+      #win() {
+        return `
     <style>
       #ctrl {
         user-select: none;
@@ -314,18 +331,18 @@ module.exports = (state) => {
       </div>
     </div>
     `
-    }
+      }
 
-    #mac () {
-      return `
+      #mac() {
+        return `
       <style>:host {display: block;}</style>
       <div id=ctrl></div>
       `
-    }
+      }
 
-    #gen () {
-      // linux uses frame atm
-      return `
+      #gen() {
+        // linux uses frame atm
+        return `
         <style>
           #ctrl {
             user-select: none;
@@ -400,8 +417,11 @@ module.exports = (state) => {
           </div>
         </div>
       `
+      }
     }
-  })
+  )
 }
 
-function strToBool (str) { return str === 'true' }
+function strToBool(str) {
+  return str === 'true'
+}
