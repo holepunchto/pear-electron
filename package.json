@@ -32,7 +32,7 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "pear://0.3260.gd4n8itmfs6x7tzioj6jtxexiu4x4ijiu3grxdjwkbtkczw5dwho",
+        "link": "pear://0.940.electron",
         "name": "Pear Runtime",
         "only": [
           "/by-arch/%%HOST%%"
@@ -42,9 +42,7 @@
     "stage": {
       "skipWarmup": "true",
       "only": [
-        "by-arch",
-        "CHANGELOG.md",
-        "template"
+        "by-arch"
       ]
     }
   },
@@ -53,9 +51,6 @@
       "Bare",
       "Pear",
       "LOG"
-    ],
-    "ignore": [
-      "template"
     ]
   },
   "keywords": [
