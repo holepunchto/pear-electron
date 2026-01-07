@@ -33,7 +33,7 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "pear://0.940.electron",
+        "link": "pear://0.1167.6988abemqn7ogjpm8cjjg4aeb81rduxfn4h31sgn44u3cadu9s7o",
         "name": "Pear Runtime",
         "only": [
           "/by-arch/%%HOST%%"
