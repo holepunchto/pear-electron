@@ -32,7 +32,7 @@
   "pear": {
     "assets": {
       "ui": {
-        "link": "pear://0.1165.oitfruq7rndnbat9dcyy37nq4i69qbx351bczopusqgqahzzne6o",
+        "link": "pear://0.3260.gd4n8itmfs6x7tzioj6jtxexiu4x4ijiu3grxdjwkbtkczw5dwho",
         "name": "Pear Runtime",
         "only": [
           "/by-arch/%%HOST%%"

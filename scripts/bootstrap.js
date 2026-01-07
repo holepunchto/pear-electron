@@ -6,7 +6,7 @@ const tryboot = require('pear-tryboot')
 const { outputter, ansi, byteSize, isTTY } = require('pear-terminal')
 const { pathname } = new URL(Pear.config.applink)
 
-const RUNTIMES = 'pear://0.1167.6988abemqn7ogjpm8cjjg4aeb81rduxfn4h31sgn44u3cadu9s7o'
+const RUNTIMES = 'pear://0.3260.gd4n8itmfs6x7tzioj6jtxexiu4x4ijiu3grxdjwkbtkczw5dwho'
 
 const opts = {
   id: Pear.pid,
