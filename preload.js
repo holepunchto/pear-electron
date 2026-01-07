@@ -1,7 +1,6 @@
 'use strict'
 
-/* global Pear */
-/* eslint-env node, browser */
+/* global Pear, XMLHttpRequest, history, window, location, customElements, HTMLElement, MutationObserver, IntersectionObserver, window, document */
 module.exports = (state) => {
   if (!process.isMainFrame) return
   const electron = require('electron')
@@ -15,7 +14,9 @@ module.exports = (state) => {
   const dir = config.dir
   state.config = config
   process.chdir(dir)
-  if (config.fragment) history.replaceState(null, null, '#' + config.fragment)
+  if (config.fragment) {
+    history.replaceState(null, null, '#' + config.fragment)
+  }
 
   const gui = new GUI({ API, state })
   window.Pear = gui.api
@@ -197,10 +198,12 @@ module.exports = (state) => {
       }
 
       async #setCtrl() {
-        if (this.dataset.minimizable !== undefined)
+        if (this.dataset.minimizable !== undefined) {
           this.#setMinimizable(strToBool(this.dataset.minimizable))
-        if (this.dataset.maximizable !== undefined)
+        }
+        if (this.dataset.maximizable !== undefined) {
           this.#setMaximizable(strToBool(this.dataset.maximizable))
+        }
       }
 
       async #setMaximizable(value) {

@@ -479,8 +479,9 @@ class App {
       wc.on('render-process-gone', async (evt, details) => {
         if (details?.reason === 'killed' || details?.reason === 'clean-exit') return
         if (this.state.dev) process._rawDebug('A Render Process has gone', evt, details)
-        else
+        else {
           electron.dialog.showErrorBox('A Render Process has gone', JSON.stringify(details, 0, 2))
+        }
         const err = new Error('A Render Process has gone')
         err.code = 'ERR_CRASH'
         err.info = details
@@ -850,15 +851,15 @@ function* groupings(win, opts) {
     else if (key === 'height') yield group(win, opts, seen, key, value, 1, 'width', 'getSize')
     else if (key === 'x') yield group(win, opts, seen, key, value, 0, 'y', 'getPosition')
     else if (key === 'y') yield group(win, opts, seen, key, value, 1, 'x', 'getPosition')
-    else if (key === 'minWidth')
+    else if (key === 'minWidth') {
       yield group(win, opts, seen, key, value, 0, 'minHeight', 'getMinimumSize')
-    else if (key === 'minHeight')
+    } else if (key === 'minHeight') {
       yield group(win, opts, seen, key, value, 1, 'minWidth', 'getMinimumSize')
-    else if (key === 'maxWidth')
+    } else if (key === 'maxWidth') {
       yield group(win, opts, seen, key, value, 0, 'maxHeight', 'getMaximumSize')
-    else if (key === 'maxHeight')
+    } else if (key === 'maxHeight') {
       yield group(win, opts, seen, key, value, 1, 'maxWidth', 'getMaximumSize')
-    else yield [key, value]
+    } else yield [key, value]
   }
 }
 
@@ -1326,8 +1327,9 @@ class Window extends GuiCtrl {
 
     if (this.closing) return false
 
-    if (typeof options.afterNativeViewLoaded === 'function')
+    if (typeof options.afterNativeViewLoaded === 'function') {
       await options.afterNativeViewLoaded(this)
+    }
 
     if (this.closing) return false
 
@@ -1545,8 +1547,9 @@ class View extends GuiCtrl {
     }
     await this.view.webContents.loadURL(this.entry)
 
-    if (typeof options.afterNativeViewLoaded === 'function')
+    if (typeof options.afterNativeViewLoaded === 'function') {
       await options.afterNativeViewLoaded(this)
+    }
 
     this.closed = false
     const { show = true } = options
@@ -1617,10 +1620,11 @@ class View extends GuiCtrl {
   }
 
   async close() {
-    if (this.view && !this.closed)
+    if (this.view && !this.closed) {
       try {
         this.win.removeBrowserView(this.view)
       } catch {}
+    }
     this.win = null // detach from parent window
     return super.close()
   }
@@ -2040,8 +2044,9 @@ class PearGUI extends ReadyResource {
 
   async parent({ id, act, args }) {
     const instance = this.getCtrl(id)
-    if (!instance)
+    if (!instance) {
       throw new Error(`Could not find parent with id "${id}" to perform action "${act}"!`)
+    }
     if (act === 'focus') return instance.focus(...args)
     if (act === 'blur') return instance.blur()
     if (act === 'show') return instance.show()
@@ -2368,8 +2373,9 @@ class Tray extends ReadyResource {
 
       const iconBuffer = Buffer.from(await res.arrayBuffer())
       const iconNativeImg = electron.nativeImage.createFromBuffer(iconBuffer)
-      if (iconNativeImg.isEmpty())
+      if (iconNativeImg.isEmpty()) {
         throw new Error('Failed to create tray icon: Invalid image, try PNG or JPEG')
+      }
 
       const trayIconSize = isWindows ? { width: 16, height: 16 } : { width: 22, height: 22 }
       return iconNativeImg.resize(trayIconSize)

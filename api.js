@@ -262,14 +262,16 @@ module.exports = (api) => {
         #unlisten = null
 
         static get parent() {
-          if (!api.COMPAT)
+          if (!api.COMPAT) {
             console.warn('Pear.Window.parent & Pear.View.parent are deprecated use ui.app.parent')
+          }
           return Pear[API.UI].app.parent
         }
 
         static get self() {
-          if (!api.COMPAT)
+          if (!api.COMPAT) {
             console.warn('Pear.Window.self & Pear.View.self are deprecated use ui.app')
+          }
           return Pear[API.UI].app
         }
 
@@ -357,8 +359,9 @@ module.exports = (api) => {
         }
 
         fullscreen() {
-          if (this.constructor[kGuiCtrl] === 'view')
+          if (this.constructor[kGuiCtrl] === 'view') {
             throw new Error('A View cannot be fullscreened')
+          }
           return ipc.fullscreen({ id: this.id })
         }
 
@@ -432,52 +435,60 @@ module.exports = (api) => {
     }
 
     get tray() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn("Pear.tray is deprecated use require('pear-electron').app.tray")
+      }
       return this[this.constructor.UI].app.tray
     }
 
     get badge() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn("Pear.badge is deprecated use require('pear-electron').app.badge")
+      }
       return this[this.constructor.UI].app.badge
     }
 
     get media() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn("Pear.media is deprecated use require('pear-electron').media")
+      }
       return this[this.constructor.UI].media
     }
 
     get Window() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn("Pear.Window is deprecated use require('pear-electron').Window")
+      }
       return this[this.constructor.UI].Window
     }
 
     get View() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn("Pear.View is deprecated use require('pear-electron').View")
+      }
       return this[this.constructor.UI].View
     }
 
     get worker() {
-      if (!this.constructor.COMPAT)
+      if (!this.constructor.COMPAT) {
         console.warn(
           '[ DEPRECATED ] Pear.worker is deprecated and will be removed (use pear-run & pear-pipe)'
         )
+      }
       const ipc = this.#ipc
       return new (class DeprecatedWorker {
         #pipe = null
         run(link, args = []) {
-          if (!this.constructor.COMPAT)
+          if (!this.constructor.COMPAT) {
             console.warn('[ DEPRECATED ] Pear.worker.run() is now pear-run')
+          }
           return ipc.run(link, args)
         }
 
         pipe() {
-          if (!this.constructor.COMPAT)
+          if (!this.constructor.COMPAT) {
             console.warn('[ DEPRECATED ] Pear.worker.pipe() is now pear-pipe')
+          }
           if (this.#pipe !== null) return this.#pipe
           this.#pipe = ipc.pipe()
           return this.#pipe

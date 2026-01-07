@@ -88,8 +88,9 @@ class PearElectron {
 
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
-    if ((isLinux || isWindows) && indices.flags.sandbox === undefined)
+    if ((isLinux || isWindows) && indices.flags.sandbox === undefined) {
       argv.splice(indices.args.link, 0, '--no-sandbox')
+    }
 
     const builtins = [
       'electron',
