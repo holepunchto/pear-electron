@@ -1,7 +1,7 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
-const { pathname } = new URL(global.Pear.config.applink + '/')
+const { pathname } = new URL(global.Pear.app.applink + '/')
 const fonts = fs.readFileSync(path.join(pathname, 'fonts.css'), { encoding: 'utf8' }).split('\n')
 const decal = fs.readFileSync(path.join(pathname, 'decal.html'), { encoding: 'utf8' }).split('\n')
 
@@ -13,7 +13,7 @@ const srcs = fonts
     return match
   })
   .map((line) => {
-    const file = line.slice(12, -20)
+    const file = line.slice(12, -2)
     const data = fs.readFileSync(file).toString('base64')
     return `  src: url('data:font/woff2;base64,${data}') format('woff2'));`
   })
