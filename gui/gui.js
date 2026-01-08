@@ -1173,8 +1173,7 @@ class Window extends GuiCtrl {
         partition: 'persist:pear',
         additionalArguments: [
           process.argv[1],
-          '--state',
-          JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })
+          `--state=${JSON.stringify({ ...this.state.config, rti: this.rti, isDecal: true })}`
         ],
         autoHideMenuBar: true,
         experimentalFeatures: true,
@@ -1288,13 +1287,12 @@ class Window extends GuiCtrl {
         session,
         additionalArguments: [
           process.argv[1],
-          '--state',
-          JSON.stringify({
+          `--state=${JSON.stringify({
             ...this.state.config,
             rti: this.rti,
             parentWcId: this.win.webContents.id,
             decalled: true
-          })
+          })}`
         ],
         autoHideMenuBar: true,
         experimentalFeatures: true,
@@ -1521,14 +1519,13 @@ class View extends GuiCtrl {
         session,
         additionalArguments: [
           process.argv[1],
-          '--state',
-          JSON.stringify({
+          `--state=${JSON.stringify({
             ...this.state.config,
             ...(options?.view?.config || options.config || {}),
             rti: this.rti,
             parentWcId: this.win.webContents.id,
             tray
-          })
+          })}`
         ],
         autoHideMenuBar: true,
         experimentalFeatures: true,
