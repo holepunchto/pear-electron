@@ -2,7 +2,8 @@
 const { isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
 const rtiFlagIx = process.argv.indexOf('--rti')
 const RTI = rtiFlagIx > -1 && process.argv[rtiFlagIx + 1]
-const state = RTI ? null : JSON.parse(process.argv[process.argv.indexOf('--state') + 1])
+const match = process.argv.find((s) => s.startsWith('--state='))
+const state = RTI ? null : JSON.parse(match.replace('--state=', ''))
 const app = {}
 class API {
   static RTI = RTI ? JSON.parse(RTI) : state.rti // runtime information
