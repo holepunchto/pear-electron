@@ -1707,6 +1707,28 @@ class PearGUI extends ReadyResource {
       this.#stream(this.messages(pattern), evt)
     })
 
+    electron.ipcMain.on('powerMonitor', (evt) => {
+      const stream = new streamx.Readable()
+
+      electron.powerMonitor.on('suspend', () => {
+        stream.push('suspend')
+      })
+
+      electron.powerMonitor.on('resume', () => {
+        stream.push('resume')
+      })
+
+      electron.powerMonitor.on('lock-screen', () => { // windows and macos only
+        stream.push('lock-screen')
+      })
+
+      electron.powerMonitor.on('unlock-screen', () => { // windows and macos only
+        stream.push('unlock-screen')
+      })
+
+      this.#stream(stream, evt)
+    })
+
     electron.ipcMain.handle('getMediaAccessStatus', (evt, ...args) =>
       this.getMediaAccessStatus(...args)
     )

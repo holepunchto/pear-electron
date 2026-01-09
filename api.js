@@ -174,6 +174,10 @@ module.exports = (api) => {
           return ipc.badge({ id: this.id, count })
         }
 
+        powerMonitor = () => {
+          return ipc.powerMonitor()
+        }
+
         tray = async (opts = {}, listener) => {
           opts = {
             ...opts,

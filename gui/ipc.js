@@ -216,6 +216,9 @@ module.exports = class IPC {
   seed(opts = {}) {
     return new Stream('seed', opts)
   }
+  powerMonitor() {
+    return new Stream('powerMonitor')
+  }
 
   report(...args) {
     return electron.ipcRenderer.invoke('report', ...args)
