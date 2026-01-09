@@ -146,6 +146,12 @@ module.exports = class IPC {
   find(...args) {
     return electron.ipcRenderer.invoke('find', ...args)
   }
+  suspension(...args) {
+    return electron.ipcRenderer.invoke('suspension', ...args)
+  }
+  screenLock(...args) {
+    return electron.ipcRenderer.invoke('screen-lock', ...args)
+  }
 
   getPathForFile(file) {
     return electron.webUtils.getPathForFile(file)
@@ -215,6 +221,9 @@ module.exports = class IPC {
   }
   seed(opts = {}) {
     return new Stream('seed', opts)
+  }
+  powerMonitor() {
+    return new Stream('power-monitor')
   }
 
   report(...args) {

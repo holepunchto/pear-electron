@@ -420,6 +420,15 @@ module.exports = (api) => {
           return Buffer.from(await ipc.get(key)).toString('utf-8')
         }
 
+        get power() {
+          if (!this._powerMonitorStream) this._powerMonitorStream = ipc.powerMonitor()
+          return {
+            monitor: this._powerMonitorStream,
+            suspension: (prevent) => ipc.suspension(prevent),
+            screenLock: (prevent) => ipc.screenLock(prevent)
+          }
+        }
+
         constructor() {
           if (state.isDecal) {
             this.constructor.DECAL = {

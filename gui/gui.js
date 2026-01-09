@@ -1658,6 +1658,9 @@ class PearGUI extends ReadyResource {
     this.streamsMap = new Map()
     this.ipc.once('close', () => this.close())
 
+    this._suspensionId = null
+    this._screenLockId = null
+
     electron.ipcMain.on('exit', (e, code) => {
       process.exit(code)
     })
@@ -1705,6 +1708,30 @@ class PearGUI extends ReadyResource {
 
     electron.ipcMain.on('messages', (evt, pattern) => {
       this.#stream(this.messages(pattern), evt)
+    })
+
+    electron.ipcMain.on('power-monitor', (evt) => {
+      const stream = new streamx.Readable()
+
+      electron.powerMonitor.on('suspend', () => {
+        stream.push({ status: 'suspend' })
+      })
+
+      electron.powerMonitor.on('resume', () => {
+        stream.push({ status: 'resume' })
+      })
+
+      electron.powerMonitor.on('lock-screen', () => {
+        // windows and macos only
+        stream.push({ status: 'lock-screen' })
+      })
+
+      electron.powerMonitor.on('unlock-screen', () => {
+        // windows and macos only
+        stream.push({ status: 'unlock-screen' })
+      })
+
+      this.#stream(stream, evt)
     })
 
     electron.ipcMain.handle('getMediaAccessStatus', (evt, ...args) =>
@@ -1759,6 +1786,8 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
     electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
     electron.ipcMain.handle('badge', (evt, ...args) => this.badge(...args))
+    electron.ipcMain.handle('suspension', (evt, ...args) => this.suspension(...args))
+    electron.ipcMain.handle('screen-lock', (evt, ...args) => this.screenLock(...args))
 
     electron.ipcMain.handle('restart', (evt, ...args) => {
       const ctrl = this.getCtrl(evt.sender.id)
@@ -2246,6 +2275,26 @@ class PearGUI extends ReadyResource {
     } else {
       this.getCtrl(id).win.setIcon(linuxBadgeIcon(count))
       return true
+    }
+  }
+
+  suspension(prevent) {
+    if (prevent === true && this._suspensionId === null) {
+      this._suspensionId = electron.powerSaveBlocker.start('prevent-app-suspension')
+    }
+    if (prevent === false && this._suspensionId !== null) {
+      electron.powerSaveBlocker.stop(this._suspensionId)
+      this._suspensionId = null
+    }
+  }
+
+  screenLock(prevent) {
+    if (prevent === true && this._screenLockId === null) {
+      this._screenLockId = electron.powerSaveBlocker.start('prevent-display-sleep')
+    }
+    if (prevent === false && this._screenLockId !== null) {
+      electron.powerSaveBlocker.stop(this._screenLockId)
+      this._screenLockId = null
     }
   }
 }
