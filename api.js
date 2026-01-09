@@ -421,11 +421,10 @@ module.exports = (api) => {
         }
 
         get power() {
-          if (!this._powerMonitorStream) this._powerMonitorStream = ipc.powerMonitor()
           return {
             monitor: this._powerMonitorStream,
-            suspension: (prevent) => ipc.suspension(prevent),
-            screenLock: (prevent) => ipc.screenLock(prevent)
+            suspension: (prevent) => ipc.suspensionBlock(prevent),
+            screenLock: (prevent) => ipc.screenLockBlock(prevent)
           }
         }
 
@@ -436,6 +435,8 @@ module.exports = (api) => {
               'hypercore-id-encoding': require('hypercore-id-encoding'),
               'pear-constants': require('pear-constants')
             }
+          } else {
+            this._powerMonitorStream = ipc.powerMonitor()
           }
         }
       }

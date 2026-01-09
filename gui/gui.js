@@ -1658,8 +1658,8 @@ class PearGUI extends ReadyResource {
     this.streamsMap = new Map()
     this.ipc.once('close', () => this.close())
 
-    this._suspensionId = null
-    this._screenLockId = null
+    this._suspensionBlockId = null
+    this._screenLockBlockId = null
 
     electron.ipcMain.on('exit', (e, code) => {
       process.exit(code)
@@ -1786,8 +1786,8 @@ class PearGUI extends ReadyResource {
     electron.ipcMain.handle('exists', (evt, ...args) => this.exists(...args))
     electron.ipcMain.handle('compare', (evt, ...args) => this.compare(...args))
     electron.ipcMain.handle('badge', (evt, ...args) => this.badge(...args))
-    electron.ipcMain.handle('suspension', (evt, ...args) => this.suspension(...args))
-    electron.ipcMain.handle('screen-lock', (evt, ...args) => this.screenLock(...args))
+    electron.ipcMain.handle('suspensionBlock', (evt, ...args) => this.suspensionBlock(...args))
+    electron.ipcMain.handle('screenLockBlock', (evt, ...args) => this.screenLockBlock(...args))
 
     electron.ipcMain.handle('restart', (evt, ...args) => {
       const ctrl = this.getCtrl(evt.sender.id)
@@ -2278,23 +2278,23 @@ class PearGUI extends ReadyResource {
     }
   }
 
-  suspension(prevent) {
-    if (prevent === true && this._suspensionId === null) {
-      this._suspensionId = electron.powerSaveBlocker.start('prevent-app-suspension')
+  suspensionBlock(prevent) {
+    if (prevent === true && this._suspensionBlockId === null) {
+      this._suspensionBlockId = electron.powerSaveBlocker.start('prevent-app-suspension')
     }
-    if (prevent === false && this._suspensionId !== null) {
-      electron.powerSaveBlocker.stop(this._suspensionId)
-      this._suspensionId = null
+    if (prevent === false && this._suspensionBlockId !== null) {
+      electron.powerSaveBlocker.stop(this._suspensionBlockId)
+      this._suspensionBlockId = null
     }
   }
 
-  screenLock(prevent) {
-    if (prevent === true && this._screenLockId === null) {
-      this._screenLockId = electron.powerSaveBlocker.start('prevent-display-sleep')
+  screenLockBlock(prevent) {
+    if (prevent === true && this._screenLockBlockId === null) {
+      this._screenLockBlockId = electron.powerSaveBlocker.start('prevent-display-sleep')
     }
-    if (prevent === false && this._screenLockId !== null) {
-      electron.powerSaveBlocker.stop(this._screenLockId)
-      this._screenLockId = null
+    if (prevent === false && this._screenLockBlockId !== null) {
+      electron.powerSaveBlocker.stop(this._screenLockBlockId)
+      this._screenLockBlockId = null
     }
   }
 }

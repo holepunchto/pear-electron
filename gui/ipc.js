@@ -146,11 +146,11 @@ module.exports = class IPC {
   find(...args) {
     return electron.ipcRenderer.invoke('find', ...args)
   }
-  suspension(...args) {
-    return electron.ipcRenderer.invoke('suspension', ...args)
+  suspensionBlock(...args) {
+    return electron.ipcRenderer.invoke('suspensionBlock', ...args)
   }
-  screenLock(...args) {
-    return electron.ipcRenderer.invoke('screen-lock', ...args)
+  screenLockBlock(...args) {
+    return electron.ipcRenderer.invoke('screenLockBlock', ...args)
   }
 
   getPathForFile(file) {
