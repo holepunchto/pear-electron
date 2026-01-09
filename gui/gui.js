@@ -1718,11 +1718,13 @@ class PearGUI extends ReadyResource {
         stream.push('resume')
       })
 
-      electron.powerMonitor.on('lock-screen', () => { // windows and macos only
+      electron.powerMonitor.on('lock-screen', () => {
+        // windows and macos only
         stream.push('lock-screen')
       })
 
-      electron.powerMonitor.on('unlock-screen', () => { // windows and macos only
+      electron.powerMonitor.on('unlock-screen', () => {
+        // windows and macos only
         stream.push('unlock-screen')
       })
 
