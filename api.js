@@ -174,10 +174,6 @@ module.exports = (api) => {
           return ipc.badge({ id: this.id, count })
         }
 
-        powerMonitor = () => {
-          return ipc.powerMonitor()
-        }
-
         tray = async (opts = {}, listener) => {
           opts = {
             ...opts,
@@ -422,6 +418,15 @@ module.exports = (api) => {
 
         async get(key) {
           return Buffer.from(await ipc.get(key)).toString('utf-8')
+        }
+
+        get power() {
+          if (!this._powerMonitorStream) this._powerMonitorStream = ipc.powerMonitor()
+          return {
+            monitor: this._powerMonitorStream,
+            suspension: (prevent) => ipc.suspension(prevent),
+            screenLock: (prevent) => ipc.screenLock(prevent)
+          }
         }
 
         constructor() {
