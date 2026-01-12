@@ -306,20 +306,28 @@ Exits the process with the provided exit code.
 
 ### `ui.power.monitor`
 
-Data stream backed by Electron’s `powerMonitor`. Emits power and session state changes, including:
+Emits power and session state changes, including:
 
 - `suspend`
 - `resume`
 - `lock-screen`
 - `unlock-screen`
 
+Each status update is an object containing the current state:
+
+```
+ui.power.monitor.on('data', ({ status }) => {
+  // `status` represents the new power or session state
+})
+```
+
 ### `ui.power.suspension(prevent <Boolean>)`
 
-When enabled, the application will continue running and will not be suspended by the operating system.
+When `true`, it keeps the system active and prevents app suspension, even with the screen off.
 
 ### `ui.power.screenLock(prevent <Boolean>)`
 
-When enabled, the display will be prevented from sleeping or locking.
+When `true`, prevents the display from sleeping. Keeps both the system and screen active.
 
 ### `const win = new ui.Window(entry <String>, options <Object>)` <a name="ui-window"></a>
 
