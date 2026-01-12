@@ -304,6 +304,31 @@ Captures available desktop sources. Resolves to an array of objects with shape `
 
 Exits the process with the provided exit code.
 
+### `ui.power.monitor`
+
+Emits power and session state changes, including:
+
+- `suspend`
+- `resume`
+- `lock-screen`
+- `unlock-screen`
+
+Each status update is an object containing the current state:
+
+```
+ui.power.monitor.on('data', ({ status }) => {
+  // `status` represents the new power or session state
+})
+```
+
+### `ui.power.suspension(prevent <Boolean>)`
+
+When `true`, it keeps the system active and prevents app suspension, even with the screen off.
+
+### `ui.power.screenLock(prevent <Boolean>)`
+
+When `true`, prevents the display from sleeping. Keeps both the system and screen active.
+
 ### `const win = new ui.Window(entry <String>, options <Object>)` <a name="ui-window"></a>
 
 Desktop Applications only.
