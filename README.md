@@ -304,26 +304,22 @@ Captures available desktop sources. Resolves to an array of objects with shape `
 
 Exits the process with the provided exit code.
 
-### `const power = ui.power`
+### `ui.power.monitor`
 
-#### `power.monitor`
-
-Event stream backed by Electron’s `powerMonitor`. Emits power and session state changes as events, including:
+Data stream backed by Electron’s `powerMonitor`. Emits power and session state changes, including:
 
 - `suspend`
 - `resume`
 - `lock-screen`
 - `unlock-screen`
 
-#### `power.suspension(prevent <Boolean>)`
-
-Enables or disables Electron’s power save blocker of type `prevent-app-suspension`.
+### `ui.power.suspension(prevent <Boolean>)`
 
 When enabled, the application will continue running and will not be suspended by the operating system.
 
-#### `power.screenLock(prevent <Boolean>)`
+### `ui.power.screenLock(prevent <Boolean>)`
 
-Enables or disables Electron’s power save blocker of type `prevent-display-sleep`. When enabled, the display will be prevented from sleeping or locking.
+When enabled, the display will be prevented from sleeping or locking.
 
 ### `const win = new ui.Window(entry <String>, options <Object>)` <a name="ui-window"></a>
 
