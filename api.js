@@ -420,6 +420,14 @@ module.exports = (api) => {
           return Buffer.from(await ipc.get(key)).toString('utf-8')
         }
 
+        get power() {
+          return {
+            monitor: this._powerMonitorStream,
+            suspension: (prevent) => ipc.suspensionBlock(prevent),
+            screenLock: (prevent) => ipc.screenLockBlock(prevent)
+          }
+        }
+
         constructor() {
           if (state.isDecal) {
             this.constructor.DECAL = {
@@ -427,6 +435,8 @@ module.exports = (api) => {
               'hypercore-id-encoding': require('hypercore-id-encoding'),
               'pear-constants': require('pear-constants')
             }
+          } else {
+            this._powerMonitorStream = ipc.powerMonitor()
           }
         }
       }
