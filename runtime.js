@@ -140,7 +140,7 @@ class PearElectron {
     argv = [fileURLToPath(boot.file), '--rti', info, ...argv]
     const stdio = args.detach
       ? ['ignore', 'ignore', 'ignore', 'overlapped']
-      : ['ignore', 'pipe', 'pipe', 'overlapped']
+      : ['ignore', 'inherit', 'pipe', 'overlapped']
     const options = {
       stdio,
       cwd,
@@ -186,7 +186,6 @@ class PearElectron {
       fs.writeSync(2, data)
     }
     sp.stderr.on('data', onerr)
-    sp.stdout.pipe(process.stdout)
     return pipe
   }
 }
