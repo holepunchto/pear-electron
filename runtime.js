@@ -3,7 +3,6 @@
 const fs = require('bare-fs')
 const os = require('bare-os')
 const path = require('bare-path')
-const process = require('bare-process')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
@@ -88,7 +87,7 @@ class PearElectron {
     argv = ['run', '--rti', info, ...argv]
     const stdio = args.detach
       ? ['ignore', 'ignore', 'ignore', 'overlapped']
-      : ['ignore', 'pipe', 'pipe', 'overlapped']
+      : ['ignore', 'inherit', 'pipe', 'overlapped']
     const options = {
       stdio,
       cwd,
@@ -133,7 +132,6 @@ class PearElectron {
       fs.writeSync(2, data)
     }
     sp.stderr.on('data', onerr)
-    sp.stdout.pipe(process.stdout)
     return pipe
   }
 }
