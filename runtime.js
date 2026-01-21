@@ -3,7 +3,6 @@
 const fs = require('bare-fs')
 const os = require('bare-os')
 const path = require('bare-path')
-const process = require('bare-process')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
