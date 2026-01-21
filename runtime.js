@@ -11,6 +11,7 @@ const { pathToFileURL, fileURLToPath } = require('url-file-url')
 const constants = require('pear-constants')
 const plink = require('pear-link')
 const Logger = require('pear-logger')
+const { stdio } = require('pear-terminal')
 const { ERR_INVALID_APPLING, ERR_INVALID_PROJECT_DIR, ERR_INVALID_CONFIG } = require('pear-errors')
 
 // cutover stops replaying & relaying subscriber streams between clients
@@ -137,11 +138,10 @@ class PearElectron {
     })
 
     argv = [fileURLToPath(boot.file), '--rti', info, ...argv]
-    const stdio = args.detach
-      ? ['ignore', 'ignore', 'ignore', 'overlapped']
-      : ['ignore', 'inherit', 'pipe', 'overlapped']
     const options = {
-      stdio,
+      stdio: args.detach
+        ? ['ignore', 'ignore', 'ignore', 'overlapped']
+        : ['ignore', 'inherit', 'pipe', 'overlapped'],
       cwd,
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
@@ -185,6 +185,7 @@ class PearElectron {
       fs.writeSync(2, data)
     }
     sp.stderr.on('data', onerr)
+    sp.stdout.pipe(stdio.out)
     return pipe
   }
 }
