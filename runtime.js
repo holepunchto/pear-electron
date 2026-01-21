@@ -89,7 +89,7 @@ class PearElectron {
     const options = {
       stdio: args.detach
         ? ['ignore', 'ignore', 'ignore', 'overlapped']
-        : ['ignore', 'inherit', 'pipe', 'overlapped'],
+        : ['ignore', 'pipe', 'pipe', 'overlapped'],
       cwd,
       windowsHide: true,
       ...{ env: { ...env, NODE_PRESERVE_SYMLINKS: 1 } }
