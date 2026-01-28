@@ -1,13 +1,12 @@
 'use strict'
-if (!process.argv[1]) process.exit(0) // silent exit when missing entry arg (macOS restart hotfix)
 const { isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
 const rtiFlagIx = process.argv.indexOf('--rti')
 const RTI = rtiFlagIx > -1 && process.argv[rtiFlagIx + 1]
 const match = process.argv.find((s) => s.startsWith('--state='))
-const state = RTI ? null : JSON.parse(match.replace('--state=', ''))
+const state = RTI || !match ? null : JSON.parse(match.replace('--state=', ''))
 const app = {}
 class API {
-  static RTI = RTI ? JSON.parse(RTI) : state.rti // runtime information
+  static RTI = RTI ? JSON.parse(RTI) : state?.rti // runtime information
   static get CONSTANTS() {
     return require('pear-constants')
   }
