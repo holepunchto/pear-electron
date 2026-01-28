@@ -1,4 +1,5 @@
 'use strict'
+if (!process.argv[1]) process.exit(0) // silent exit when missing entry arg (macOS restart hotfix)
 const { isElectron, isElectronRenderer, isElectronWorker } = require('which-runtime')
 const rtiFlagIx = process.argv.indexOf('--rti')
 const RTI = rtiFlagIx > -1 && process.argv[rtiFlagIx + 1]
