@@ -1,6 +1,7 @@
 'use strict'
-const electron = require('electron')
 const { isWindows, isMac, isLinux } = require('which-runtime')
+if (isMac && !process.argv[1]) process.exit(0) // silent exit when missing entry args
+const electron = require('electron')
 const { command } = require('paparam')
 const { SWAP, SOCKET_PATH, CONNECT_TIMEOUT } = require('pear-constants')
 const API = require('pear-api')
