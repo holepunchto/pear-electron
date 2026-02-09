@@ -89,6 +89,10 @@ function configureElectron () {
   }
 }
 
+if (isLinux && process.arch === 'x64') {
+  electron.app.disableHardwareAcceleration()
+}
+
 function applingPath () {
   const i = process.argv.indexOf('--appling')
   if (i === -1 || process.argv.length <= i + 1) return null

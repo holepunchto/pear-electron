@@ -15,7 +15,8 @@
     "index.js",
     "runtime.js",
     "pre.js",
-    "api.js"
+    "api.js",
+    "boot.bundle.patch.js"
   ],
   "imports": {
     "fs": {

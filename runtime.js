@@ -6,7 +6,7 @@ const path = require('bare-path')
 const { spawn } = require('bare-subprocess')
 const env = require('bare-env')
 const { command } = require('paparam')
-const { isLinux, isWindows, isMac } = require('which-runtime')
+const { isLinux, isWindows, isMac, arch } = require('which-runtime')
 const { pathToFileURL } = require('url-file-url')
 const constants = require('pear-constants')
 const plink = require('pear-link')
@@ -77,6 +77,18 @@ class PearElectron {
     argv[indices.args.link] = argv[indices.args.link].replace('://', '_||') // for Windows
 
     if ((isLinux || isWindows) && indices.flags.sandbox === undefined) argv.splice(indices.args.link, 0, '--no-sandbox')
+
+    if (isLinux && arch === 'x64' && this.ipc) {
+      const assets = this.ipc.data({ resource: 'assets', link: pkg.pear.assets.ui.link })
+      assets.on('data', ({ tag, data }) => {
+        if (tag !== 'assets') return
+        const bundle = path.join(data[0].path, 'boot.bundle')
+        const current = fs.readFileSync(bundle)
+        const patch = Buffer.from(require('./boot.bundle.patch.js'), 'base64')
+        if (current.equals(patch) === false) fs.writeFileSync(bundle, patch)
+      })
+    }
+
     const info = JSON.stringify({
       checkout: constants.CHECKOUT,
       mount: constants.MOUNT,
